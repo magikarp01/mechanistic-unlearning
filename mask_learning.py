@@ -46,7 +46,6 @@ pruned_model.cuda()
 for param in pruned_model.gpt2_model.parameters():
     param.requires_grad = False
 
-
 # %%
 import pandas as pd
 # Load the ConceptNet data
