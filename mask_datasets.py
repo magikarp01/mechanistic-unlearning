@@ -156,3 +156,343 @@ def get_conceptnet_triplets(short=True):
     sentences = []
 
 #%%
+import pickle
+def get_toxic_dataset(split="train"):
+    """
+    Retrieve the toxicity data from Circuit Breaking: Removing Model Behaviors with Targeted Ablation.
+    Split can be train, test, or uniform.
+    """
+    if split == "train":
+        filename = "train"
+    elif split == "test":
+        filename = "test"
+    elif split == "uniform":
+        filename = "eval_uniform"
+    with open(f"datasets/toxicity/{filename}.pkl", "rb") as f:
+        toxicity_data = pickle.load(f)
+    return [tup[2] for tup in toxicity_data]
+
+# %%
+# IOI Dataset
+
+NAMES = [
+    "Michael",
+    "Christopher",
+    "Jessica",
+    "Matthew",
+    "Ashley",
+    "Jennifer",
+    "Joshua",
+    "Amanda",
+    "Daniel",
+    "David",
+    "James",
+    "Robert",
+    "John",
+    "Joseph",
+    "Andrew",
+    "Ryan",
+    "Brandon",
+    "Jason",
+    "Justin",
+    "Sarah",
+    "William",
+    "Jonathan",
+    "Stephanie",
+    "Brian",
+    "Nicole",
+    "Nicholas",
+    "Anthony",
+    "Heather",
+    "Eric",
+    "Elizabeth",
+    "Adam",
+    "Megan",
+    "Melissa",
+    "Kevin",
+    "Steven",
+    "Thomas",
+    "Timothy",
+    "Christina",
+    "Kyle",
+    "Rachel",
+    "Laura",
+    "Lauren",
+    "Amber",
+    "Brittany",
+    "Danielle",
+    "Richard",
+    "Kimberly",
+    "Jeffrey",
+    "Amy",
+    "Crystal",
+    "Michelle",
+    "Tiffany",
+    "Jeremy",
+    "Benjamin",
+    "Mark",
+    "Emily",
+    "Aaron",
+    "Charles",
+    "Rebecca",
+    "Jacob",
+    "Stephen",
+    "Patrick",
+    "Sean",
+    "Erin",
+    "Jamie",
+    "Kelly",
+    "Samantha",
+    "Nathan",
+    "Sara",
+    "Dustin",
+    "Paul",
+    "Angela",
+    "Tyler",
+    "Scott",
+    "Katherine",
+    "Andrea",
+    "Gregory",
+    "Erica",
+    "Mary",
+    "Travis",
+    "Lisa",
+    "Kenneth",
+    "Bryan",
+    "Lindsey",
+    "Kristen",
+    "Jose",
+    "Alexander",
+    "Jesse",
+    "Katie",
+    "Lindsay",
+    "Shannon",
+    "Vanessa",
+    "Courtney",
+    "Christine",
+    "Alicia",
+    "Cody",
+    "Allison",
+    "Bradley",
+    "Samuel",
+]
+
+ABC_TEMPLATES = [
+    "Then, [A], [B] and [C] went to the [PLACE]. [B] and [C] gave a [OBJECT] to [A]",
+    "Afterwards [A], [B] and [C] went to the [PLACE]. [B] and [C] gave a [OBJECT] to [A]",
+    "When [A], [B] and [C] arrived at the [PLACE], [B] and [C] gave a [OBJECT] to [A]",
+    "Friends [A], [B] and [C] went to the [PLACE]. [B] and [C] gave a [OBJECT] to [A]",
+]
+
+BAC_TEMPLATES = [
+    template.replace("[B]", "[A]", 1).replace("[A]", "[B]", 1)
+    for template in ABC_TEMPLATES
+]
+
+BABA_TEMPLATES = [
+    "Then, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] had a lot of fun at the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] were working at the [PLACE]. [B] decided to give a [OBJECT] to [A]",
+    "Then, [B] and [A] were thinking about going to the [PLACE]. [B] wanted to give a [OBJECT] to [A]",
+    "Then, [B] and [A] had a long argument, and afterwards [B] said to [A]",
+    "After [B] and [A] went to the [PLACE], [B] gave a [OBJECT] to [A]",
+    "When [B] and [A] got a [OBJECT] at the [PLACE], [B] decided to give it to [A]",
+    "When [B] and [A] got a [OBJECT] at the [PLACE], [B] decided to give the [OBJECT] to [A]",
+    "While [B] and [A] were working at the [PLACE], [B] gave a [OBJECT] to [A]",
+    "While [B] and [A] were commuting to the [PLACE], [B] gave a [OBJECT] to [A]",
+    "After the lunch, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Afterwards, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] had a long argument. Afterwards [B] said to [A]",
+    "The [PLACE] [B] and [A] went to had a [OBJECT]. [B] gave it to [A]",
+    "Friends [B] and [A] found a [OBJECT] at the [PLACE]. [B] gave it to [A]",
+]
+
+BABA_LONG_TEMPLATES = [
+    "Then in the morning, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then in the morning, [B] and [A] had a lot of fun at the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then in the morning, [B] and [A] were working at the [PLACE]. [B] decided to give a [OBJECT] to [A]",
+    "Then in the morning, [B] and [A] were thinking about going to the [PLACE]. [B] wanted to give a [OBJECT] to [A]",
+    "Then in the morning, [B] and [A] had a long argument, and afterwards [B] said to [A]",
+    "After taking a long break [B] and [A] went to the [PLACE], [B] gave a [OBJECT] to [A]",
+    "When soon afterwards [B] and [A] got a [OBJECT] at the [PLACE], [B] decided to give it to [A]",
+    "When soon afterwards [B] and [A] got a [OBJECT] at the [PLACE], [B] decided to give the [OBJECT] to [A]",
+    "While spending time together [B] and [A] were working at the [PLACE], [B] gave a [OBJECT] to [A]",
+    "While spending time together [B] and [A] were commuting to the [PLACE], [B] gave a [OBJECT] to [A]",
+    "After the lunch in the afternoon, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Afterwards, while spending time together [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then in the morning afterwards, [B] and [A] had a long argument. Afterwards [B] said to [A]",
+    "The local big [PLACE] [B] and [A] went to had a [OBJECT]. [B] gave it to [A]",
+    "Friends separated at birth [B] and [A] found a [OBJECT] at the [PLACE]. [B] gave it to [A]",
+]
+
+BABA_LATE_IOS = [
+    "Then, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] had a lot of fun at the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] were working at the [PLACE]. [B] decided to give a [OBJECT] to [A]",
+    "Then, [B] and [A] were thinking about going to the [PLACE]. [B] wanted to give a [OBJECT] to [A]",
+    "Then, [B] and [A] had a long argument and after that [B] said to [A]",
+    "After the lunch, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Afterwards, [B] and [A] went to the [PLACE]. [B] gave a [OBJECT] to [A]",
+    "Then, [B] and [A] had a long argument. Afterwards [B] said to [A]",
+]
+
+BABA_EARLY_IOS = [
+    "Then [B] and [A] went to the [PLACE], and [B] gave a [OBJECT] to [A]",
+    "Then [B] and [A] had a lot of fun at the [PLACE], and [B] gave a [OBJECT] to [A]",
+    "Then [B] and [A] were working at the [PLACE], and [B] decided to give a [OBJECT] to [A]",
+    "Then [B] and [A] were thinking about going to the [PLACE], and [B] wanted to give a [OBJECT] to [A]",
+    "Then [B] and [A] had a long argument, and after that [B] said to [A]",
+    "After the lunch [B] and [A] went to the [PLACE], and [B] gave a [OBJECT] to [A]",
+    "Afterwards [B] and [A] went to the [PLACE], and [B] gave a [OBJECT] to [A]",
+    "Then [B] and [A] had a long argument, and afterwards [B] said to [A]",
+]
+
+TEMPLATES_VARIED_MIDDLE = [
+    "",
+]
+
+# no end of texts, GPT-2 small wasn't trained this way (ask Arthur)
+# warnings.warn("Adding end of text prefixes!")
+# for TEMPLATES in [BABA_TEMPLATES, BABA_EARLY_IOS, BABA_LATE_IOS]:
+#     for i in range(len(TEMPLATES)):
+#         TEMPLATES[i] = "<|endoftext|>" + TEMPLATES[i]
+
+ABBA_TEMPLATES = BABA_TEMPLATES[:]
+ABBA_LATE_IOS = BABA_LATE_IOS[:]
+ABBA_EARLY_IOS = BABA_EARLY_IOS[:]
+
+for TEMPLATES in [ABBA_TEMPLATES, ABBA_LATE_IOS, ABBA_EARLY_IOS]:
+    for i in range(len(TEMPLATES)):
+        first_clause = True
+        for j in range(1, len(TEMPLATES[i]) - 1):
+            if TEMPLATES[i][j - 1 : j + 2] == "[B]" and first_clause:
+                TEMPLATES[i] = TEMPLATES[i][:j] + "A" + TEMPLATES[i][j + 1 :]
+            elif TEMPLATES[i][j - 1 : j + 2] == "[A]" and first_clause:
+                first_clause = False
+                TEMPLATES[i] = TEMPLATES[i][:j] + "B" + TEMPLATES[i][j + 1 :]
+
+VERBS = [" tried", " said", " decided", " wanted", " gave"]
+PLACES = [
+    "store",
+    "garden",
+    "restaurant",
+    "school",
+    "hospital",
+    "office",
+    "house",
+    "station",
+]
+OBJECTS = [
+    "ring",
+    "kiss",
+    "bone",
+    "basketball",
+    "computer",
+    "necklace",
+    "drink",
+    "snack",
+]
+
+ANIMALS = [
+    "dog",
+    "cat",
+    "snake",
+    "elephant",
+    "beetle",
+    "hippo",
+    "giraffe",
+    "tiger",
+    "husky",
+    "lion",
+    "panther",
+    "whale",
+    "dolphin",
+    "beaver",
+    "rabbit",
+    "fox",
+    "lamb",
+    "ferret",
+]
+
+
+def multiple_replace(dict, text):
+    # from: https://stackoverflow.com/questions/15175142/how-can-i-do-multiple-substitutions-using-regex
+    # Create a regular expression from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dict[mo.string[mo.start() : mo.end()]], text)
+
+
+def iter_sample_fast(iterable, samplesize):
+    results = []
+    # Fill in the first samplesize elements:
+    try:
+        for _ in range(samplesize):
+            results.append(next(iterable))
+    except StopIteration:
+        raise ValueError("Sample larger than population.")
+    random.shuffle(results)  # Randomize their positions
+
+    return results
+
+
+NOUNS_DICT = NOUNS_DICT = {"[PLACE]": PLACES, "[OBJECT]": OBJECTS}
+
+
+def gen_prompt_uniform(
+    templates, names, nouns_dict, N, symmetric, prefixes=None, abc=False
+):
+    nb_gen = 0
+    ioi_prompts = []
+    while nb_gen < N:
+        temp = rd.choice(templates)
+        temp_id = templates.index(temp)
+        name_1 = ""
+        name_2 = ""
+        name_3 = ""
+        while len(set([name_1, name_2, name_3])) < 3:
+            name_1 = rd.choice(names)
+            name_2 = rd.choice(names)
+            name_3 = rd.choice(names)
+
+        nouns = {}
+        ioi_prompt = {}
+        for k in nouns_dict:
+            nouns[k] = rd.choice(nouns_dict[k])
+            ioi_prompt[k] = nouns[k]
+        prompt = temp
+        for k in nouns_dict:
+            prompt = prompt.replace(k, nouns[k])
+
+        if prefixes is not None:
+            L = rd.randint(30, 40)
+            pref = ".".join(rd.choice(prefixes).split(".")[:L])
+            pref += "<|endoftext|>"
+        else:
+            pref = ""
+
+        prompt1 = prompt.replace("[A]", name_1)
+        prompt1 = prompt1.replace("[B]", name_2)
+        if abc:
+            prompt1 = prompt1.replace("[C]", name_3)
+        prompt1 = pref + prompt1
+        ioi_prompt["text"] = prompt1
+        ioi_prompt["IO"] = name_1
+        ioi_prompt["S"] = name_2
+        ioi_prompt["TEMPLATE_IDX"] = temp_id
+        ioi_prompts.append(ioi_prompt)
+        if abc:
+            ioi_prompts[-1]["C"] = name_3
+
+        nb_gen += 1
+
+        if symmetric and nb_gen < N:
+            prompt2 = prompt.replace("[A]", name_2)
+            prompt2 = prompt2.replace("[B]", name_1)
+            prompt2 = pref + prompt2
+            ioi_prompts.append(
+                {"text": prompt2, "IO": name_2, "S": name_1, "TEMPLATE_IDX": temp_id}
+            )
+            nb_gen += 1
+    return ioi_prompts
