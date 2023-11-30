@@ -1,3 +1,10 @@
+# *.pkl
+*.pt
+*.pyc
+*/models/gpt2_weights.pkl
+*/models/masked_gpt2_mean_ablation_v6.pkl
+ioi/models/gpt2_weights.pkl
+ioi/models/masked_gpt2_mean_ablation_v6.pkl
+jupyter_logs/
 datasets/*
 !datasets/prepared/
-*.pyc
