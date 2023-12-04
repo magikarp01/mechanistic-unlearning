@@ -548,7 +548,7 @@ def make_table(cols, colnames, title="", n_rows=5, decimals=4):
         table.add_row(*list(map(f, row)))
     rprint(table)
 
-class IOIDataset:
+class IOIData:
     def __init__(
         self,
         prompt_type: Union[
@@ -710,7 +710,7 @@ class IOIDataset:
         # Get flipped prompts
         flipped_prompts = gen_flipped_prompts(self.ioi_prompts, self.templates_by_prompt, flip, NAMES, seed)
 
-        flipped_ioi_dataset = IOIDataset(
+        flipped_ioi_dataset = IOIData(
             prompt_type=self.prompt_type,
             N=self.N,
             tokenizer=self.tokenizer,
@@ -724,7 +724,7 @@ class IOIDataset:
         return flipped_ioi_dataset
 
     def copy(self):
-        copy_ioi_dataset = IOIDataset(
+        copy_ioi_dataset = IOIData(
             prompt_type=self.prompt_type,
             N=self.N,
             tokenizer=self.tokenizer,
@@ -735,7 +735,7 @@ class IOIDataset:
 
     def __getitem__(self, key):
         sliced_prompts = self.ioi_prompts[key]
-        sliced_dataset = IOIDataset(
+        sliced_dataset = IOIData(
             prompt_type=self.prompt_type,
             N=len(sliced_prompts),
             tokenizer=self.tokenizer,
@@ -761,13 +761,12 @@ class IOIDataset:
         self.toks = self.toks.to(device)
         return self
 
-class IOITask(Dataset, IOIDataset):
-    def __init__(self, model, corrupt_format = 'ABC->XYZ, BAB->XYZ', **kwargs):
-        self.clean_data = IOIDataset(
+class IOIDataset(Dataset, IOIData):
+    def __init__(self, corrupt_format = ['ABC->XYZ', 'BAB->XYZ'], **kwargs):
+        self.clean_data = IOIData(
             **kwargs
         )
         self.corr_data = self.clean_data.gen_flipped_prompts(corrupt_format)
-        self.model = model
 
         # self.clean_logit_diff = self.ave_logit_diff(
         #     model(self.clean_data.toks),
@@ -826,6 +825,133 @@ class IOITask(Dataset, IOIDataset):
             return (clean_logit_diff, corr_logit_diff)
         else:
             return (clean_logit_diff.mean(), corr_logit_diff.mean())
+
+
+from tasks.task import Task
+from torch.utils.data import DataLoader
+# class IOITask(Task):
+#     def __init__(self, batch_size, **kwargs):
+#         self.dataset = IOIDataset(**kwargs)
+#         self.train_loader = DataLoader(self.dataset, batch_size=batch_size)
+#         self.train_iter = iter(self.train_loader)
+
+#     def get_train_loss(self, model):
+#         data = next(iter(self.train_loader))
+#         clean_logits = model(data['clean_tok'])
+#         # corr_logits = model(data['corr_tok'])
+
+#         return 
+
+
+
+import torch
+from torch.utils.data import Dataset, DataLoader
+from torch.nn.utils.rnn import pad_sequence
+import pickle
+
+class IOITask_old(Task):
+
+    class IOIPromptsDataset(Dataset):
+        def __init__(self, ioi_prompts, tokenizer):
+            self.ioi_prompts = ioi_prompts
+            self.tokenizer = tokenizer
+
+        def __len__(self):
+            return len(self.ioi_prompts)
+
+        def __getitem__(self, idx):
+            prompt = self.ioi_prompts[idx]
+            text = prompt['text']
+            tokens = self.tokenizer.encode(text)
+            last_token_pos = len(tokens) - 1
+
+            return {
+                'text': text,
+                'tokens': tokens,
+                'last_token_pos': last_token_pos
+            }
+
+    def collate_batch(self, batch):
+        texts = [item['text'] for item in batch]
+        tokens = [torch.tensor(item['tokens']) for item in batch]
+        last_token_pos = [item['last_token_pos'] for item in batch]
+
+        # Pad the sequences so that they all have the same length
+        tokens_padded = pad_sequence(tokens, batch_first=True)
+
+        return {
+            'text': texts,
+            'tokens': tokens_padded,
+            'last_token_pos': torch.tensor(last_token_pos)
+        }
+
+    def __init__(self, batch_size, tokenizer, template_type="single"):
+        with open(f"tasks/ioi/data/ioi_prompts_{template_type}_template_train.pkl", "rb") as f:
+            ioi_prompts_train = pickle.load(f)
+        with open(f"tasks/ioi/data/ioi_prompts_{template_type}_template_test.pkl", "rb") as f:
+            ioi_test_prompts = pickle.load(f)
+        self.ioi_prompts_train_dataset = self.IOIPromptsDataset(ioi_prompts_train, tokenizer)
+        self.ioi_prompts_test_dataset = self.IOIPromptsDataset(ioi_test_prompts, tokenizer)
+
+        self.train_loader = DataLoader(self.ioi_prompts_train_dataset, batch_size=batch_size, shuffle=True, collate_fn=self.collate_batch)
+        self.test_loader = DataLoader(self.ioi_prompts_test_dataset, batch_size=batch_size, shuffle=True, collate_fn=self.collate_batch)
+
+        self.train_iter = iter(self.train_loader)
+        self.test_iter = iter(self.test_loader)
+        self.criterion = torch.nn.CrossEntropyLoss()
+        self.tokenizer = tokenizer
+
+    def calculate_loss(self, tokens, last_token_positions, model):
+        outputs = model(tokens)
+        logits = outputs[0]
+
+        # get logits at the last token position
+        
+        logits_last_token = []
+        labels = []
+
+        for i in range(last_token_positions.shape[0]):
+            logits_last_token.append(logits[i, last_token_positions[i]-1])
+            labels.append(tokens[i, last_token_positions[i]])
+        logits_last_token = torch.stack(logits_last_token)
+        labels = torch.stack(labels).to(logits_last_token.device)
+        print(f"{logits_last_token.shape=}, {labels.shape=}")
+        print(f"{logits_last_token.argmax(dim=1)=}, {labels=}")
+    
+        loss = self.criterion(logits_last_token, labels)
+        
+        return loss
+
+    def get_train_loss(self, model):
+        try:
+            batch = next(self.train_iter)
+        except StopIteration:
+            self.train_iter = iter(self.train_loader)
+            batch = next(self.train_iter)
+
+
+        inputs = batch['tokens']
+        last_token_positions = batch['last_token_pos']
+
+        loss = self.calculate_loss(inputs, last_token_positions, model)
+        return loss
+
+    def get_test_loss(self, model):
+        # same as train
+        with torch.no_grad():
+            try:
+                batch = next(self.test_iter)
+            except StopIteration:
+                self.test_iter = iter(self.test_loader)
+                batch = next(self.test_iter)
+
+            inputs = batch['tokens']
+            last_token_positions = batch['last_token_pos']
+
+            loss = self.calculate_loss(inputs, last_token_positions, model)
+            return loss
+    
+
 
     # def get_loss(self, logits):
     #     patched_logit_diff = self.ave_logit_diff(logits, self.clean_data)

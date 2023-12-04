@@ -1,5 +1,5 @@
 #%%
-from IOITask import IOITask
+from tasks.ioi.IOITask import IOIDataset
 import torch as t
 from torch.utils.data import DataLoader
 from transformer_lens import HookedTransformer
@@ -20,7 +20,7 @@ model.set_use_attn_result(True)
 
 # %%
 N=3
-task = IOITask(
+task = IOIDataset(
     model,
     prompt_type='mixed',
     N=N,
@@ -37,7 +37,7 @@ data = next(iter(task_loader))
 clean_logits = model(data['clean_tok'])
 corr_logits = model(data['corr_tok'])
 
-losses = IOITask.get_loss(clean_logits, corr_logits, data)
+losses = IOIDataset.get_loss(clean_logits, corr_logits, data)
 
 # Losses is of type (clean_loss, corr_loss)
 # Each loss is mean logit diff (logit of S - logit of IO)
