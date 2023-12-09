@@ -6,7 +6,7 @@ import torch
 from transformers import AutoTokenizer
 
 
-REMOTE_URL = f"tasks/zsre/zsre_mend_eval.json"
+REMOTE_URL = f"tasks/kg_trips/zsre_mend_eval.json"
 
 # from transformers import GPT2Tokenizer, GPT2LMHeadModel
 # tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -20,7 +20,7 @@ class MENDQADataset:
 
     def __init__(self, data_dir: str, tok: AutoTokenizer, *args, **kwargs):
         data_dir = Path(data_dir)
-        zsre_loc = data_dir / "zsre_mend_eval.json"
+        zsre_loc = data_dir / "data/zsre_mend_eval.json"
         if not zsre_loc.exists():
             print(f"{zsre_loc} does not exist. Downloading from {REMOTE_URL}")
             data_dir.mkdir(exist_ok=True, parents=True)
@@ -64,5 +64,3 @@ class MENDQADataset:
 
     def __len__(self):
         return len(self._data)
-
-#%%
