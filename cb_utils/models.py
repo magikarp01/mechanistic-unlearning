@@ -53,10 +53,10 @@ def load_gpt2_weights():
 
 
 # %%
-def load_demo_gpt2(means, mask_dict_superset=None):
+def load_demo_gpt2(means, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False):
     with open("models/gpt2_weights.pkl", "rb") as f:
         gpt2_weights = pickle.load(f)
-    demo_gpt2 = DemoTransformer(Config(debug=False), means, mask_dict_superset=mask_dict_superset)
+    demo_gpt2 = DemoTransformer(Config(debug=False), means, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.cuda()
     return demo_gpt2

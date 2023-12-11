@@ -95,7 +95,7 @@ class SportsTask(Task):
             # should be shape (batch_size, vocab_size)
             assert len(last_logits.shape) == 2
 
-            labels = [' ' + sport for sport in labels]            
+            labels = [' ' + sport for sport in labels]
 
             if check_all_logits:
                 tokenized_labels = self.tokenizer(labels, return_tensors='pt').input_ids[:, 0]

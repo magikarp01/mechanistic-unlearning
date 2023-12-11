@@ -141,10 +141,10 @@ class Attention(nn.Module):
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
         if weight_mask:
-            self.weight_mask_W_Q = nn.parameter(torch.ones_like(self.W_Q), requires_grad=True)
-            self.weight_mask_W_K = nn.parameter(torch.ones_like(self.W_K), requires_grad=True)
-            self.weight_mask_W_V = nn.parameter(torch.ones_like(self.W_V), requires_grad=True)
-            self.weight_mask_W_O = nn.parameter(torch.ones_like(self.W_O), requires_grad=True)
+            self.weight_mask_W_Q = nn.Parameter(torch.ones_like(self.W_Q), requires_grad=True)
+            self.weight_mask_W_K = nn.Parameter(torch.ones_like(self.W_K), requires_grad=True)
+            self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
+            self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
         self.weight_mask = weight_mask
 
         self.register_buffer("IGNORE", torch.tensor(-1e5, dtype=torch.float32, device="cuda"))
@@ -207,10 +207,10 @@ class MLP(nn.Module):
         self.b_out = nn.Parameter(torch.zeros((cfg.d_model)))
 
         if weight_mask:
-            self.weight_mask_W_in = nn.parameter(torch.ones_like(self.W_in), requires_grad=True)
-            self.weight_mask_W_out = nn.parameter(torch.ones_like(self.W_out), requires_grad=True)
-            self.weight_mask_b_in = nn.parameter(torch.ones_like(self.b_in), requires_grad=True)
-            self.weight_mask_b_out = nn.parameter(torch.ones_like(self.b_out), requires_grad=True)
+            self.weight_mask_W_in = nn.Parameter(torch.ones_like(self.W_in), requires_grad=True)
+            self.weight_mask_W_out = nn.Parameter(torch.ones_like(self.W_out), requires_grad=True)
+            self.weight_mask_b_in = nn.Parameter(torch.ones_like(self.b_in), requires_grad=True)
+            self.weight_mask_b_out = nn.Parameter(torch.ones_like(self.b_out), requires_grad=True)
         self.weight_mask = weight_mask
 
     def discretize_weight_masks(self, threshold=0.5):
