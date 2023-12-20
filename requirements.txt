@@ -7,3 +7,7 @@ fancy_einsum
 git+https://github.com/redwoodresearch/Easy-Transformer.git
 charset-normalizer==3.1.0
 detoxify
+cmapy
+
+# https://github.com/Aaquib111/edge-attribution-patching.git
+# cd into edge-attribution-patching, git clone https://github.com/ArthurConmy/Automatic-Circuit-Discovery.git

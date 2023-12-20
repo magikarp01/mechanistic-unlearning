@@ -348,6 +348,7 @@ def gen_flipped_prompts(prompts: List[dict], templates_by_prompt: List[str], fli
     '''
     random.seed(seed)
     np.random.seed(seed)
+    # print
     abba_flip, baba_flip = flip.split(",")
     flip_dict = {
         "ABB": [flip.strip() for flip in abba_flip.split("->")],
@@ -827,22 +828,6 @@ class IOIDataset(Dataset, IOIData):
             return (clean_logit_diff.mean(), corr_logit_diff.mean())
 
 
-from tasks.task import Task
-from torch.utils.data import DataLoader
-# class IOITask(Task):
-#     def __init__(self, batch_size, **kwargs):
-#         self.dataset = IOIDataset(**kwargs)
-#         self.train_loader = DataLoader(self.dataset, batch_size=batch_size)
-#         self.train_iter = iter(self.train_loader)
-
-#     def get_train_loss(self, model):
-#         data = next(iter(self.train_loader))
-#         clean_logits = model(data['clean_tok'])
-#         # corr_logits = model(data['corr_tok'])
-
-#         return 
-
-
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -882,7 +867,11 @@ class IOITask_old(Task):
             'S': subjects
         }
 
-    def __init__(self, batch_size, tokenizer, template_type="single"):
+    def __init__(self, batch_size, tokenizer, template_type="single",
+                 handle_multitoken_labels=False, device='cuda'):
+        """
+        handle_multitoken_labels is for tokenizers other than gpt2, which might tokenize names with multiple tokens. In this case, we'll just analyze the first token.
+        """
         with open(f"tasks/ioi/data/ioi_prompts_{template_type}_template_train.pkl", "rb") as f:
             ioi_prompts_train = pickle.load(f)
         with open(f"tasks/ioi/data/ioi_prompts_{template_type}_template_test.pkl", "rb") as f:
@@ -897,16 +886,36 @@ class IOITask_old(Task):
         self.test_iter = iter(self.test_loader)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.tokenizer = tokenizer
+        self.handle_multitoken_labels = handle_multitoken_labels
+        self.device = device
     
+    def tokenize_names(self, names):
+        """
+        Tokenize names but handle possible multitoken labels
+        """
+        if self.handle_multitoken_labels:
+            try:
+                tokenized_names = self.tokenizer(names, return_tensors='pt').input_ids
+            except ValueError:
+                # tokenizes as multiple tokens
+                tokenized_names = self.tokenizer(names).input_ids
+                # convert to tensor, but only take first token of each
+                tokenized_names = torch.tensor([[t[0]] for t in tokenized_names])
+        else:
+            tokenized_names = self.tokenizer(names, return_tensors='pt').input_ids
+        return tokenized_names
+
     def calculate_loss(self, model, batch):
+
         last_logits = get_final_logits(model, self.tokenizer, batch['text'])
         labels = [' ' + io for io in batch['IO']]
-        tokenized_labels = self.tokenizer(labels, return_tensors='pt').input_ids
+        tokenized_labels = self.tokenize_names(labels)
+
         assert tokenized_labels.shape[0] == last_logits.shape[0]
         # labels should be 1 token
         assert tokenized_labels.shape[1] == 1, tokenized_labels
 
-        return self.criterion(last_logits, tokenized_labels[:, 0])
+        return self.criterion(last_logits, tokenized_labels[:, 0].to(self.device))
 
     def get_train_loss(self, model):
         try:
@@ -948,18 +957,21 @@ class IOITask_old(Task):
             ios = batch['IO']
             subjects = batch['S']
 
-            io_tokens = self.tokenizer([' ' + io for io in ios], return_tensors='pt').input_ids
+            # io_tokens = self.tokenizer([' ' + io for io in ios], return_tensors='pt').input_ids
+            io_tokens = self.tokenize_names([' ' + io for io in ios])
+
             assert io_tokens.shape[1] == 1
-            io_tokens = io_tokens[:, 0]
+            io_tokens = io_tokens[:, 0].to(self.device)
             last_logits = get_final_logits(model, self.tokenizer, prompts)
 
             if check_all_logits:
                 num_correct = (torch.argmax(last_logits, dim=1) == io_tokens).sum().item()
 
             else:
-                subject_tokens = self.tokenizer([' ' + s for s in subjects], return_tensors='pt').input_ids
+                # subject_tokens = self.tokenizer([' ' + s for s in subjects], return_tensors='pt').input_ids
+                subject_tokens = self.tokenize_names([' ' + s for s in subjects])
                 assert subject_tokens.shape[1] == 1
-                subject_tokens = subject_tokens[:, 0]
+                subject_tokens = subject_tokens[:, 0].to(self.device)
                 num_correct = 0
                 for idx in range(len(io_tokens)):
                     subject_logit = last_logits[idx, subject_tokens[idx]]
@@ -967,6 +979,26 @@ class IOITask_old(Task):
                     num_correct += 1 if (io_logit.item() > subject_logit.item()) else 0
             return num_correct / len(io_tokens)
                     
+    def get_tokens(self, num_batches, use_train_data=True):
+        # get tokens for num_batches, return in a tensor of shape (num_batches * self.batch_size, prompt_len)
+        tokens = []
+        for i in range(num_batches):
+            if use_train_data:
+                try:
+                    batch = next(self.train_iter)
+                except StopIteration:
+                    self.train_iter = iter(self.train_loader)
+                    batch = next(self.train_iter)
+            else:
+                try:
+                    batch = next(self.test_iter)
+                except StopIteration:
+                    self.test_iter = iter(self.test_loader)
+                    batch = next(self.test_iter)
+
+            prompts = batch['text']
+            tokens.append(self.tokenizer(prompts, return_tensors='pt', padding=True).input_ids)
+        return torch.cat(tokens, dim=0)
 
     # def calculate_loss(self, tokens, last_token_positions, model):
     #     outputs = model(tokens)
@@ -1050,3 +1082,125 @@ class IOITask_old(Task):
     # def get_loss(self, logits):
     #     patched_logit_diff = self.ave_logit_diff(logits, self.clean_data)
     #     return (patched_logit_diff - self.corrupted_logit_diff) / (self.clean_logit_diff - self.corrupted_logit_diff)
+
+from tasks.task import Task
+from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
+class IOITask(Task, IOITask_old):
+    class IOIPromptsDataset(Dataset):
+        def __init__(self, data_list):
+            self.data = data_list
+
+        def __len__(self):
+            return len(self.data)
+
+        def __getitem__(self, idx):
+            item = self.data[idx]
+            return item
+        
+    def process_prompt(self, prompt):
+        def remove_IO(self, text, io):
+            # remove second occurrence of io in text
+            first_index = text.find(io)
+            assert first_index != -1, f"IO word {io} not found in text {text}"
+            # Find the second occurrence of the io word
+            second_index = text.find(io, first_index + len(io))
+            assert second_index != -1, f"IO word {io} only occurs once in text {text}"
+
+            new_text = text[:second_index] + text[second_index:].replace(io, '', 1)
+            
+            # remove last space
+            return new_text[:-1]
+
+        prompt['text'] = remove_IO(self, prompt['text'], prompt['IO'])
+        return prompt
+
+    def __init__(self, batch_size, tokenizer, prompt_type='ABBA', num_data=1000, nb_templates=1, store_corrupt=True):
+        
+        self.clean_data = IOIData(
+            prompt_type=prompt_type,
+            N=num_data,
+            tokenizer=tokenizer,
+            prepend_bos=False,
+            seed=1,
+            nb_templates=nb_templates
+        )
+        
+        # Split the data into train and test sets
+        train_data, test_data = train_test_split(self.clean_data.ioi_prompts, test_size=0.2, shuffle=False)
+        train_data = [self.process_prompt(prompt) for prompt in train_data]
+        test_data = [self.process_prompt(prompt) for prompt in test_data]
+
+        # self.train_toks, self.test_toks = train_test_split(self.clean_data.toks, test_size=0.2, shuffle=False)
+
+        self.train_loader = DataLoader(self.IOIPromptsDataset(train_data), batch_size=batch_size, shuffle=True)
+        self.test_loader = DataLoader(self.IOIPromptsDataset(test_data), batch_size=batch_size, shuffle=True)
+        
+        if store_corrupt:
+            self.corr_data = self.clean_data.gen_flipped_prompts('ABC->XYZ, BAB->XYZ')
+            # no point making a train-test split, since these prompts are kind of meaningless
+            corr_prompts = [self.process_prompt(prompt) for prompt in self.corr_data.ioi_prompts]
+            self.corr_loader = DataLoader(self.IOIPromptsDataset(corr_prompts), batch_size=batch_size, shuffle=True)
+
+    def ave_logit_diff(self,
+        logits: Float[Tensor, 'batch seq d_vocab'],
+        io_tokenIDs,
+        s_tokenIDs,
+        per_prompt: bool = False
+    ):
+        '''
+            Return average logit difference between correct and incorrect answers
+        '''
+        # Get logits for indirect objects
+        io_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], io_tokenIDs]
+        s_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], s_tokenIDs]
+        # Get logits for subject
+        logit_diff = io_logits - s_logits
+        return logit_diff if per_prompt else logit_diff.mean()
+
+    def get_ioi_metric(self, model, N=25):
+        '''
+        Calculate the ioi_metric on part of the dataset.
+        '''
+        # probably is train?
+        clean_toks = self.clean_data.toks[:N]
+        corr_toks = self.corr_data.toks[:N]
+        clean_io_tokenIDs = self.clean_data.io_tokenIDs[:N]
+        clean_s_tokenIDs = self.clean_data.s_tokenIDs[:N]
+
+        clean_logits = model(clean_toks)
+        corrupt_logits = model(corr_toks)
+        clean_logit_diff = self.ave_logit_diff(clean_logits, clean_dataset).item()
+        corrupt_logit_diff = ave_logit_diff(corrupt_logits, corr_dataset).item()
+
+    # def ioi_metric(
+    #     logits: Float[Tensor, "batch seq_len d_vocab"],
+    #     # corrupted_logit_diff: float = corrupt_logit_diff,
+    #     # clean_logit_diff: float = clean_logit_diff,
+    #     # ioi_dataset: IOIDataset = clean_dataset
+    #     corrupted_logit_diff=None,
+    #     clean_logit_diff=None,
+    #     ioi_dataset=None
+    # ):
+        # # if corrupted_logit_diff is None:
+            
+        # patched_logit_diff = ave_logit_diff(logits, ioi_dataset)
+        # return (patched_logit_diff - corrupted_logit_diff) / (clean_logit_diff - corrupted_logit_diff)
+    
+
+    def abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
+        return abs(ioi_metric(logits))
+
+    def negative_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
+        return -ioi_metric(logits)
+
+    def negative_abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
+        return -abs_ioi_metric(logits)
+
+    # Get clean and corrupt logit differences
+    with t.no_grad():
+        clean_metric = ioi_metric(clean_logits, corrupt_logit_diff, clean_logit_diff, clean_dataset)
+        corrupt_metric = ioi_metric(corrupt_logits, corrupt_logit_diff, clean_logit_diff, corr_dataset)
+
+    print(f'Clean direction: {clean_logit_diff}, Corrupt direction: {corrupt_logit_diff}')
+    print(f'Clean metric: {clean_metric}, Corrupt metric: {corrupt_metric}')
