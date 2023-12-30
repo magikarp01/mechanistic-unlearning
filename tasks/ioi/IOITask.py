@@ -1139,6 +1139,7 @@ class IOITask(IOITask_old):
         self.handle_multitoken_labels = handle_multitoken_labels
         self.device = device
 
+
         if prep_acdcpp:
             self.clean_data = IOIData(
                 prompt_type=prompt_type,
@@ -1155,7 +1156,7 @@ class IOITask(IOITask_old):
             self.corr_iter = iter(self.corr_loader)
             self.clean_logit_diff = None
             self.corrupt_logit_diff = None
-        
+
 
 
     def ave_logit_diff(self,
@@ -1166,8 +1167,9 @@ class IOITask(IOITask_old):
         Return average logit difference between correct and incorrect answers
         '''
         # Get logits for indirect objects
-        io_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], self.io_tokenIDs]
-        s_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], self.s_tokenIDs]
+        # print(f"{logits.shape=}, {self.clean_data.word_idx['end'].shape=}, {len(self.clean_data.io_tokenIDs)=}, {len(self.clean_data.s_tokenIDs)=}")
+        io_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], self.clean_data.io_tokenIDs]
+        s_logits = logits[range(logits.size(0)), self.clean_data.word_idx['end'], self.clean_data.s_tokenIDs]
         # Get logits for subject
         logit_diff = io_logits - s_logits
         return logit_diff if per_prompt else logit_diff.mean()
@@ -1179,7 +1181,7 @@ class IOITask(IOITask_old):
         clean_logits = model(self.clean_data.toks)
         corrupt_logits = model(self.corr_data.toks)
         self.clean_logit_diff = self.ave_logit_diff(clean_logits).item()
-        self.corrupt_logit_diff = self.ave_logit_diff(corrupt_logits).item()
+        self.corrupted_logit_diff = self.ave_logit_diff(corrupt_logits).item()
 
     def get_ioi_metric(self, logits, model=None, N=25):
         '''

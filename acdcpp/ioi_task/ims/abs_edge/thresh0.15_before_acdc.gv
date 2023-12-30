@@ -1,0 +1,391 @@
+strict digraph root {
+	graph [compound=True,
+		nodesep=0.1,
+		ranksep=0.1
+	];
+	node [fixedsize=true,
+		height=.5,
+		width=1.5
+	];
+	subgraph cluster_6 {
+		graph [color=invis,
+			rank=same
+		];
+		"6_invis"	[style=invis];
+		"<a6.9>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<m6>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph "cluster_-1" {
+		graph [color=invis,
+			rank=same
+		];
+		"-1_invis"	[style=invis];
+		embed	[color=black,
+			fillcolor="#7f7f7f",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_11 {
+		graph [color=invis,
+			rank=same
+		];
+		"11_invis"	[style=invis];
+		"<a11.10>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_7 {
+		graph [color=invis,
+			rank=same
+		];
+		"7_invis"	[style=invis];
+		"<a7.9>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_9 {
+		graph [color=invis,
+			rank=same
+		];
+		"9_invis"	[style=invis];
+		"<a9.9>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a9.6>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_8 {
+		graph [color=invis,
+			rank=same
+		];
+		"8_invis"	[style=invis];
+		"<a8.10>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a8.6>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_12 {
+		graph [color=invis,
+			rank=same
+		];
+		"12_invis"	[style=invis];
+		"<resid_post>"	[color=black,
+			fillcolor="#7f7f7f",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_3 {
+		graph [color=invis,
+			rank=same
+		];
+		"3_invis"	[style=invis];
+		"<a3.0>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<m3>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_1 {
+		graph [color=invis,
+			rank=same
+		];
+		"1_invis"	[style=invis];
+		"<m1>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_0 {
+		graph [color=invis,
+			rank=same
+		];
+		"0_invis"	[style=invis];
+		"<m0>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_10 {
+		graph [color=invis,
+			rank=same
+		];
+		"10_invis"	[style=invis];
+		"<a10.10>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a10.7>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a10.6>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a10.1>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a10.0>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_4 {
+		graph [color=invis,
+			rank=same
+		];
+		"4_invis"	[style=invis];
+		"<a4.11>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<m4>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_5 {
+		graph [color=invis,
+			rank=same
+		];
+		"5_invis"	[style=invis];
+		"<a5.5>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<m5>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	"-1_invis" -> "0_invis"	[style=invis,
+		weight=1000];
+	"11_invis" -> "12_invis"	[style=invis,
+		weight=1000];
+	"10_invis" -> "11_invis"	[style=invis,
+		weight=1000];
+	"9_invis" -> "10_invis"	[style=invis,
+		weight=1000];
+	"8_invis" -> "9_invis"	[style=invis,
+		weight=1000];
+	"7_invis" -> "8_invis"	[style=invis,
+		weight=1000];
+	"6_invis" -> "7_invis"	[style=invis,
+		weight=1000];
+	"5_invis" -> "6_invis"	[style=invis,
+		weight=1000];
+	"4_invis" -> "5_invis"	[style=invis,
+		weight=1000];
+	"3_invis" -> "4_invis"	[style=invis,
+		weight=1000];
+	"2_invis" -> "3_invis"	[style=invis,
+		weight=1000];
+	"0_invis" -> "1_invis"	[style=invis,
+		weight=1000];
+	"<a11.10>" -> "<resid_post>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=1.5825930833816528,
+		weight=10];
+	"<a10.10>" -> "<a11.10>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.5606559813022614,
+		weight=10];
+	"<a10.10>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.8626594841480255,
+		weight=10];
+	"<a10.7>" -> "<a11.10>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=1.8107432126998901,
+		weight=10];
+	"<a10.7>" -> "<resid_post>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=3.131249785423279,
+		weight=10];
+	"<a10.6>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.6310457289218903,
+		weight=10];
+	"<a10.1>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.7274635881185532,
+		weight=10];
+	"<a10.0>" -> "<a11.10>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.4824739694595337,
+		weight=10];
+	"<a10.0>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=1.2222023606300354,
+		weight=10];
+	"<a9.9>" -> "<a11.10>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=1.853069543838501,
+		weight=10];
+	"<a9.9>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=4.690706491470337,
+		weight=10];
+	"<a9.9>" -> "<a10.7>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=1.2427040934562683,
+		weight=10];
+	"<a9.6>" -> "<a11.10>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.9467948377132416,
+		weight=10];
+	"<a9.6>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=2.7497241497039795,
+		weight=10];
+	"<a9.6>" -> "<a10.7>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.7953741252422333,
+		weight=10];
+	"<a9.6>" -> "<a10.0>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.4641055762767792,
+		weight=10];
+	"<a8.10>" -> "<resid_post>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.6318946480751038,
+		weight=10];
+	"<m0>" -> "<a11.10>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.9978741109371185,
+		weight=10];
+	"<m0>" -> "<a10.7>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.6646078079938889,
+		weight=10];
+	"<m0>" -> "<a6.9>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=1.2041412591934204,
+		weight=10];
+	"<m0>" -> "<a7.9>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.5246931463479996,
+		weight=10];
+	"<m0>" -> "<m5>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.7193899601697922,
+		weight=10];
+	"<m0>" -> "<m4>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=1.1780669689178467,
+		weight=10];
+	"<m0>" -> "<m3>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.6635952293872833,
+		weight=10];
+	"<a8.6>" -> "<a10.0>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.45996107161045074,
+		weight=10];
+	"<a8.6>" -> "<a9.9>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.4799826443195343,
+		weight=10];
+	"<a5.5>" -> "<a8.10>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.5228234678506851,
+		weight=10];
+	"<a5.5>" -> "<a8.6>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=1.408610075712204,
+		weight=10];
+	"<a5.5>" -> "<a6.9>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.9683430790901184,
+		weight=10];
+	"<a5.5>" -> "<a7.9>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.6001489609479904,
+		weight=10];
+	"<a5.5>" -> "<m5>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=1.2593151926994324,
+		weight=10];
+	"<a5.5>" -> "<m6>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.7410137504339218,
+		weight=10];
+	"<a6.9>" -> "<a8.6>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.48210275173187256,
+		weight=10];
+	"<m5>" -> "<m6>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.6870489120483398,
+		weight=10];
+	"<a4.11>" -> "<a6.9>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.704516664147377,
+		weight=10];
+	"<a4.11>" -> "<m5>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.6142972558736801,
+		weight=10];
+	"<a4.11>" -> "<m4>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.4727476090192795,
+		weight=10];
+	"<a3.0>" -> "<m5>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.8649730682373047,
+		weight=10];
+	"<a3.0>" -> "<m4>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.7345721125602722,
+		weight=10];
+	"<m1>" -> "<m4>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=0.5003520548343658,
+		weight=10];
+	embed -> "<m0>"	[color="#d62728",
+		minlen=0.5,
+		penwidth=2.085775136947632,
+		weight=10];
+}
