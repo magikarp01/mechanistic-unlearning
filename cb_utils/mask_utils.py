@@ -8,31 +8,44 @@ from itertools import cycle
 # from eval import evaluate_model
 import plotly.express as px
 
-default_param_names = ['output_mask',
- 'blocks.0.edge_mask_attentions',
- 'blocks.0.edge_mask_mlp',
- 'blocks.1.edge_mask_attentions',
- 'blocks.1.edge_mask_mlp',
- 'blocks.2.edge_mask_attentions',
- 'blocks.2.edge_mask_mlp',
- 'blocks.3.edge_mask_attentions',
- 'blocks.3.edge_mask_mlp',
- 'blocks.4.edge_mask_attentions',
- 'blocks.4.edge_mask_mlp',
- 'blocks.5.edge_mask_attentions',
- 'blocks.5.edge_mask_mlp',
- 'blocks.6.edge_mask_attentions',
- 'blocks.6.edge_mask_mlp',
- 'blocks.7.edge_mask_attentions',
- 'blocks.7.edge_mask_mlp',
- 'blocks.8.edge_mask_attentions',
- 'blocks.8.edge_mask_mlp',
- 'blocks.9.edge_mask_attentions',
- 'blocks.9.edge_mask_mlp',
- 'blocks.10.edge_mask_attentions',
- 'blocks.10.edge_mask_mlp',
- 'blocks.11.edge_mask_attentions',
- 'blocks.11.edge_mask_mlp']
+def get_default_gpt2_param_names(num_layers=12):
+    """
+    Get default param names for GPT2 model with num_layers layers.
+    """
+    """default_param_names = ['output_mask',
+    'blocks.0.edge_mask_attentions',
+    'blocks.0.edge_mask_mlp',
+    'blocks.1.edge_mask_attentions',
+    'blocks.1.edge_mask_mlp',
+    'blocks.2.edge_mask_attentions',
+    'blocks.2.edge_mask_mlp',
+    'blocks.3.edge_mask_attentions',
+    'blocks.3.edge_mask_mlp',
+    'blocks.4.edge_mask_attentions',
+    'blocks.4.edge_mask_mlp',
+    'blocks.5.edge_mask_attentions',
+    'blocks.5.edge_mask_mlp',
+    'blocks.6.edge_mask_attentions',
+    'blocks.6.edge_mask_mlp',
+    'blocks.7.edge_mask_attentions',
+    'blocks.7.edge_mask_mlp',
+    'blocks.8.edge_mask_attentions',
+    'blocks.8.edge_mask_mlp',
+    'blocks.9.edge_mask_attentions',
+    'blocks.9.edge_mask_mlp',
+    'blocks.10.edge_mask_attentions',
+    'blocks.10.edge_mask_mlp',
+    'blocks.11.edge_mask_attentions',
+    'blocks.11.edge_mask_mlp']"""
+    default_param_names = ['output_mask']
+    for i in range(num_layers):
+        default_param_names.append(f'blocks.{i}.edge_mask_attentions')
+        default_param_names.append(f'blocks.{i}.edge_mask_mlp')
+    return default_param_names
+
+def get_default_edge_mask_dict(num_layers=12, num_heads=12):
+
+
 
 def load_mask_into_model(model, mask):
     # load in place
@@ -47,11 +60,14 @@ def reset_mask(model):
         if param.requires_grad:
             param.data = torch.ones_like(param.data).to(param.device)
 
-def get_nodes_and_edges(mask_params, param_names=default_param_names, edge_0=True):
+def get_nodes_and_edges(mask_params, param_names=None, edge_0=True):
     """
     If edge_0 is True, then edges are between nodes with mask value 0. Else, edges are between nodes with mask value 1.
     Returns all_possible_nodes, nodes_with_edges, edges, mask_dict
     """
+    if param_names is None:
+        param_names = get_default_gpt2_param_names()
+
     # calculate which nodes will be in the graph
     connected_nodes = set()
     # add embed node at position
