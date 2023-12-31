@@ -7,54 +7,17 @@ strict digraph root {
 		height=.5,
 		width=1.5
 	];
-	subgraph cluster_6 {
-		graph [color=invis,
-			rank=same
-		];
-		"6_invis"	[style=invis];
-		"<a6.9>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-		"<m6>"	[color=black,
-			fillcolor="#ff7f0e",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-	}
-	subgraph "cluster_-1" {
-		graph [color=invis,
-			rank=same
-		];
-		"-1_invis"	[style=invis];
-		embed	[color=black,
-			fillcolor="#7f7f7f",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-	}
-	subgraph cluster_11 {
-		graph [color=invis,
-			rank=same
-		];
-		"11_invis"	[style=invis];
-		"<a11.10>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-	}
 	subgraph cluster_7 {
 		graph [color=invis,
 			rank=same
 		];
 		"7_invis"	[style=invis];
-		"<a7.9>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
+	}
+	subgraph cluster_1 {
+		graph [color=invis,
+			rank=same
+		];
+		"1_invis"	[style=invis];
 	}
 	subgraph cluster_9 {
 		graph [color=invis,
@@ -72,17 +35,44 @@ strict digraph root {
 			shape=box,
 			style="filled, rounded"];
 	}
-	subgraph cluster_8 {
+	subgraph cluster_0 {
 		graph [color=invis,
 			rank=same
 		];
-		"8_invis"	[style=invis];
-		"<a8.10>"	[color=black,
+		"0_invis"	[style=invis];
+		"<m0>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_5 {
+		graph [color=invis,
+			rank=same
+		];
+		"5_invis"	[style=invis];
+		"<a5.5>"	[color=black,
 			fillcolor="#1f77b4",
 			fontname=Helvetica,
 			shape=box,
 			style="filled, rounded"];
-		"<a8.6>"	[color=black,
+		"<m5>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_6 {
+		graph [color=invis,
+			rank=same
+		];
+		"6_invis"	[style=invis];
+		"<m6>"	[color=black,
+			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+		"<a6.9>"	[color=black,
 			fillcolor="#1f77b4",
 			fontname=Helvetica,
 			shape=box,
@@ -99,40 +89,13 @@ strict digraph root {
 			shape=box,
 			style="filled, rounded"];
 	}
-	subgraph cluster_3 {
+	subgraph "cluster_-1" {
 		graph [color=invis,
 			rank=same
 		];
-		"3_invis"	[style=invis];
-		"<a3.0>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-		"<m3>"	[color=black,
-			fillcolor="#ff7f0e",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-	}
-	subgraph cluster_1 {
-		graph [color=invis,
-			rank=same
-		];
-		"1_invis"	[style=invis];
-		"<m1>"	[color=black,
-			fillcolor="#ff7f0e",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-	}
-	subgraph cluster_0 {
-		graph [color=invis,
-			rank=same
-		];
-		"0_invis"	[style=invis];
-		"<m0>"	[color=black,
-			fillcolor="#ff7f0e",
+		"-1_invis"	[style=invis];
+		embed	[color=black,
+			fillcolor="#7f7f7f",
 			fontname=Helvetica,
 			shape=box,
 			style="filled, rounded"];
@@ -152,17 +115,18 @@ strict digraph root {
 			fontname=Helvetica,
 			shape=box,
 			style="filled, rounded"];
-		"<a10.6>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
-		"<a10.1>"	[color=black,
-			fillcolor="#1f77b4",
-			fontname=Helvetica,
-			shape=box,
-			style="filled, rounded"];
 		"<a10.0>"	[color=black,
+			fillcolor="#1f77b4",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_11 {
+		graph [color=invis,
+			rank=same
+		];
+		"11_invis"	[style=invis];
+		"<a11.10>"	[color=black,
 			fillcolor="#1f77b4",
 			fontname=Helvetica,
 			shape=box,
@@ -184,18 +148,35 @@ strict digraph root {
 			shape=box,
 			style="filled, rounded"];
 	}
-	subgraph cluster_5 {
+	subgraph cluster_3 {
 		graph [color=invis,
 			rank=same
 		];
-		"5_invis"	[style=invis];
-		"<a5.5>"	[color=black,
+		"3_invis"	[style=invis];
+		"<a3.0>"	[color=black,
 			fillcolor="#1f77b4",
 			fontname=Helvetica,
 			shape=box,
 			style="filled, rounded"];
-		"<m5>"	[color=black,
+	}
+	subgraph cluster_2 {
+		graph [color=invis,
+			rank=same
+		];
+		"2_invis"	[style=invis];
+		"<m2>"	[color=black,
 			fillcolor="#ff7f0e",
+			fontname=Helvetica,
+			shape=box,
+			style="filled, rounded"];
+	}
+	subgraph cluster_8 {
+		graph [color=invis,
+			rank=same
+		];
+		"8_invis"	[style=invis];
+		"<a8.6>"	[color=black,
+			fillcolor="#1f77b4",
 			fontname=Helvetica,
 			shape=box,
 			style="filled, rounded"];
@@ -222,170 +203,104 @@ strict digraph root {
 		weight=1000];
 	"2_invis" -> "3_invis"	[style=invis,
 		weight=1000];
+	"1_invis" -> "2_invis"	[style=invis,
+		weight=1000];
 	"0_invis" -> "1_invis"	[style=invis,
 		weight=1000];
 	"<a11.10>" -> "<resid_post>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=1.5825930833816528,
-		weight=10];
-	"<a10.10>" -> "<a11.10>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.5606559813022614,
+		penwidth=0.8239023685455322,
 		weight=10];
 	"<a10.10>" -> "<resid_post>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=0.8626594841480255,
+		penwidth=0.5535016357898712,
 		weight=10];
 	"<a10.7>" -> "<a11.10>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=1.8107432126998901,
+		penwidth=0.9794479608535767,
 		weight=10];
 	"<a10.7>" -> "<resid_post>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=3.131249785423279,
-		weight=10];
-	"<a10.6>" -> "<resid_post>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.6310457289218903,
-		weight=10];
-	"<a10.1>" -> "<resid_post>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.7274635881185532,
-		weight=10];
-	"<a10.0>" -> "<a11.10>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.4824739694595337,
+		penwidth=1.9192675352096558,
 		weight=10];
 	"<a10.0>" -> "<resid_post>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=1.2222023606300354,
+		penwidth=0.6125486344099045,
 		weight=10];
 	"<a9.9>" -> "<a11.10>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=1.853069543838501,
+		penwidth=0.8935505747795105,
 		weight=10];
 	"<a9.9>" -> "<resid_post>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=4.690706491470337,
+		penwidth=2.7265888452529907,
 		weight=10];
 	"<a9.9>" -> "<a10.7>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=1.2427040934562683,
-		weight=10];
-	"<a9.6>" -> "<a11.10>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.9467948377132416,
+		penwidth=0.5866371095180511,
 		weight=10];
 	"<a9.6>" -> "<resid_post>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=2.7497241497039795,
-		weight=10];
-	"<a9.6>" -> "<a10.7>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.7953741252422333,
-		weight=10];
-	"<a9.6>" -> "<a10.0>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.4641055762767792,
-		weight=10];
-	"<a8.10>" -> "<resid_post>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.6318946480751038,
+		penwidth=1.2909940481185913,
 		weight=10];
 	"<m0>" -> "<a11.10>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.9978741109371185,
+		penwidth=0.7029306292533875,
 		weight=10];
 	"<m0>" -> "<a10.7>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.6646078079938889,
-		weight=10];
-	"<m0>" -> "<a6.9>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=1.2041412591934204,
-		weight=10];
-	"<m0>" -> "<a7.9>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.5246931463479996,
+		penwidth=0.5544009804725647,
 		weight=10];
 	"<m0>" -> "<m5>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.7193899601697922,
+		penwidth=0.5722399055957794,
+		weight=10];
+	"<m0>" -> "<a6.9>"	[color="#2ca02c",
+		minlen=0.5,
+		penwidth=0.7949736714363098,
 		weight=10];
 	"<m0>" -> "<m4>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=1.1780669689178467,
+		penwidth=0.927332729101181,
 		weight=10];
-	"<m0>" -> "<m3>"	[color="#d62728",
+	"<m0>" -> "<m2>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.6635952293872833,
-		weight=10];
-	"<a8.6>" -> "<a10.0>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.45996107161045074,
-		weight=10];
-	"<a8.6>" -> "<a9.9>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.4799826443195343,
-		weight=10];
-	"<a5.5>" -> "<a8.10>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.5228234678506851,
+		penwidth=0.4655391722917557,
 		weight=10];
 	"<a5.5>" -> "<a8.6>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=1.408610075712204,
-		weight=10];
-	"<a5.5>" -> "<a6.9>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.9683430790901184,
-		weight=10];
-	"<a5.5>" -> "<a7.9>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.6001489609479904,
+		penwidth=0.7976143956184387,
 		weight=10];
 	"<a5.5>" -> "<m5>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=1.2593151926994324,
+		penwidth=0.7407875955104828,
 		weight=10];
 	"<a5.5>" -> "<m6>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.7410137504339218,
+		penwidth=0.5505520105361938,
 		weight=10];
-	"<a6.9>" -> "<a8.6>"	[color="#2ca02c",
+	"<a5.5>" -> "<a6.9>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.48210275173187256,
+		penwidth=0.6460818350315094,
 		weight=10];
 	"<m5>" -> "<m6>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.6870489120483398,
-		weight=10];
-	"<a4.11>" -> "<a6.9>"	[color="#2ca02c",
-		minlen=0.5,
-		penwidth=0.704516664147377,
+		penwidth=0.5787927210330963,
 		weight=10];
 	"<a4.11>" -> "<m5>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.6142972558736801,
+		penwidth=0.4667535871267319,
 		weight=10];
-	"<a4.11>" -> "<m4>"	[color="#d62728",
+	"<a4.11>" -> "<a6.9>"	[color="#2ca02c",
 		minlen=0.5,
-		penwidth=0.4727476090192795,
+		penwidth=0.5952064990997314,
 		weight=10];
 	"<a3.0>" -> "<m5>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=0.8649730682373047,
-		weight=10];
-	"<a3.0>" -> "<m4>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.7345721125602722,
-		weight=10];
-	"<m1>" -> "<m4>"	[color="#d62728",
-		minlen=0.5,
-		penwidth=0.5003520548343658,
+		penwidth=0.5089140236377716,
 		weight=10];
 	embed -> "<m0>"	[color="#d62728",
 		minlen=0.5,
-		penwidth=2.085775136947632,
+		penwidth=1.0304760932922363,
 		weight=10];
 }

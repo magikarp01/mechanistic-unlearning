@@ -177,10 +177,17 @@ def show(
             layer_to_subgraph[curr_layer] = g.add_subgraph(name=f'cluster_{curr_layer}', rank='same', color='invis')
             layer_to_subgraph[curr_layer].add_node(f'{curr_layer}_invis', style='invis')
             g.add_edge(f'{curr_layer - 1}_invis', f'{curr_layer}_invis', style='invis', weight=1000)
-            
-    layer_to_subgraph[max_layer + 1] = g.add_subgraph(name=f'cluster_{max_layer + 1}', rank='same', color='invis')  
-    layer_to_subgraph[max_layer + 1].add_node(f'{max_layer + 1}_invis', style='invis')
-    g.add_edge(f'{max_layer}_invis', f'{max_layer + 1}_invis', style='invis', weight=1000)
+    
+    for layer_key in range(max_layer + 2):
+        if layer_key not in layer_to_subgraph:
+            layer_to_subgraph[layer_key] = g.add_subgraph(name=f'cluster_{layer_key}', rank='same', color='invis')
+            layer_to_subgraph[layer_key].add_node(f'{layer_key}_invis', style='invis')
+            g.add_edge(f'{layer_key - 1}_invis', f'{layer_key}_invis', style='invis', weight=1000)
+    # layer_to_subgraph[max_layer + 1] = g.add_subgraph(name=f'cluster_{max_layer + 1}', rank='same', color='invis')  
+    # layer_to_subgraph[max_layer + 1].add_node(f'{max_layer + 1}_invis', style='invis')
+    # g.add_edge(f'{max_layer}_invis', f'{max_layer + 1}_invis', style='invis', weight=1000)
+    
+    print(layer_to_subgraph.keys())
     
     for child_hook_name in correspondence.edges:
         for child_index in correspondence.edges[child_hook_name]:
