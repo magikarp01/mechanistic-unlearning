@@ -8,3 +8,4 @@ ioi/models/masked_gpt2_mean_ablation_v6.pkl
 jupyter_logs/
 datasets/*
 !datasets/prepared/
+ims/

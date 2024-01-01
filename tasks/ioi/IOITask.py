@@ -1184,19 +1184,26 @@ class IOITask(IOITask_old):
         self.clean_logit_diff = self.ave_logit_diff(clean_logits, self.clean_data).item()
         self.corrupted_logit_diff = self.ave_logit_diff(corrupt_logits, self.corr_data).item()
 
-    def get_acdcpp_metric(self, logits, ioi_dataset=None, model=None, N=25):
+    def get_acdcpp_metric(self, model=None):
         '''
-        Calculate the ioi_metric on part of the dataset. logits is output of some kind of altered model run on clean_data typically. Model is the unaltered model for calculating the original logit difference.
-        '''
-        # probably should be train? new dataset
-        if ioi_dataset is None:
-            ioi_dataset = self.clean_data
+        Higher order function that returns the ioi_metric, using the baseline logit diffs previously calculated (or can be calculated within the function if model is passed in). Return function signature:
+            - logits is output of some kind of altered model
+            - 
 
-        if self.clean_logit_diff is None or self.corrupt_logit_diff is None:
+        '''
+
+        if self.clean_logit_diff is None or self.corrupted_logit_diff is None:
             assert model is not None, "Need to pass in model to get logit diffs, or call set_logit_diffs(model) elsewhere"
             self.set_logit_diffs(model)
-        patched_logit_diff = self.ave_logit_diff(logits, ioi_dataset)
-        return (patched_logit_diff - self.corrupted_logit_diff) / (self.clean_logit_diff - self.corrupted_logit_diff)
+
+        def ioi_metric(
+                logits: Float[Tensor, "batch seq_len d_vocab"], 
+                corrupted_logit_diff: float=self.corrupted_logit_diff,
+                clean_logit_diff: float=self.clean_logit_diff,
+                ioi_dataset: IOIData=self.clean_data):
+            patched_logit_diff = self.ave_logit_diff(logits, ioi_dataset)
+            return (patched_logit_diff - corrupted_logit_diff) / (clean_logit_diff - corrupted_logit_diff)
+        return ioi_metric
 
     # def abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
     #     return abs(ioi_metric(logits))
