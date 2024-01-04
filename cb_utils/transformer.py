@@ -245,7 +245,7 @@ class MLP(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False):
         """
-        frozen_mask_edges is a None or dictionary of the form: {'a': torch.tensor, 'm': torch.tensor}. Tells you what parts of mask to freeze (tensors are same shape as typical mask, 1s are not trained over while 0s are trained over).
+        frozen_mask_edges is a None or dictionary of the form: {'a': torch.tensor, 'm': torch.tensor}. Tells you what parts of mask to freeze (tensors are same shape as typical mask, 1s are not trained over while 0s are trained over if freeze_ones is True else vice-versa).
 
         """
         super().__init__()
@@ -367,7 +367,7 @@ class Unembed(nn.Module):
 """## Full Transformer"""
 
 
-def get_mask_dict(layer, n_heads, mask_dict_superset=None):
+def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
     attn_mask = torch.stack([mask_dict_superset[f'a{layer}.{h}'] for h in range(n_heads)], dim=1)
     mlp_mask = mask_dict_superset[f'm{layer}']
     return {'a': attn_mask, 'm': mlp_mask}
@@ -385,7 +385,7 @@ class DemoTransformer(nn.Module):
         for p in self.parameters():
             p.requires_grad = False
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i, 
-                                                      frozen_mask_edges=get_mask_dict(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, weight_mask_mlp=weight_masks_mlp) 
+                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, weight_mask_mlp=weight_masks_mlp) 
                                                       for i in range(cfg.n_layers)])
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
         self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)

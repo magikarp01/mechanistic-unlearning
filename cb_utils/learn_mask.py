@@ -1,57 +1,67 @@
 from cb_utils.models import DEVICE, load_demo_gpt2
-import tqdm
+from tqdm import tqdm
 from tasks.task import Task
 import torch
 from collections import defaultdict
+from typing import Optional, Union, Callable
 
-def clamp_weights(param_dict, edge_threshold=0.5, weight_threshold=0.5):
+def clamp_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5):
     """
     Clamp both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to clamp.
     """
-    for name, p in param_dict.items():
+    for name, p in zip(param_names, mask_params):
         if "edge_mask" in name:
             p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
         elif "weight_mask" in name:
             p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
 
 
-def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1):
+def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, verbose=False):
     """
     Evaluate a model on a set of Tasks. Returns a dictionary of task names to losses.
     """
     losses = {}
     with torch.no_grad():
         for task_name, task in eval_tasks.items():
-            print(f"Evaluating on {task_name}")
+            if verbose:
+                print(f"Evaluating on {task_name}")
             losses[task_name] = 0
             for i in range(num_eval_steps):
                 losses[task_name] += task.get_test_loss(model)
             losses[task_name] /= num_eval_steps
-            print(f"Loss on {task_name}: {losses[task_name]}")
+            if verbose:
+                print(f"Loss on {task_name}: {losses[task_name]}")
     return losses
 
 
-def train_masks(model, tasks: dict[str, Task],
-               optimizer: torch.optim.Optimizer,
-               mask_params: dict[str, torch.nn.parameter.Parameter],
-               task_weights: dict[str, float],
-               num_epochs: int, 
-               eval_tasks: dict[str, Task]=None,
-               steps_per_epoch=100,
-               evaluate_every=10, 
-               clamp_every=50, 
-               threshold=0.5, 
-               edge_mask_reg_strength=None | float | function, 
-               weight_mask_reg_strength=None | float | function,
-               num_eval_steps=1
-               ):
+def train_masks(model, 
+                optimizer: torch.optim.Optimizer,
+                tasks: dict[str, Task],
+                task_weights: dict[str, float],
+                num_epochs: int, 
+                param_names: Optional[list[str]]=None,
+                mask_params: Optional[list[torch.nn.parameter.Parameter]]=None,
+                eval_tasks: dict[str, Task]=None,
+                steps_per_epoch=100,
+                evaluate_every=10, 
+                clamp_every=50, 
+                threshold=0.5, 
+                edge_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None, 
+                weight_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None,
+                num_eval_steps=1,
+                verbose=False,
+                use_wandb=False,
+                
+                ):
     """
     Train a model using tasks (weight the overall loss by task_weights). For now, planned to be training differentiable binary masks over the weights and edges of the model.
     
     Parameters:
     model: DemoTransformer, the model to use for training and evaluation. If edge or weight mask should be frozen, do this to model before passing it in.
     optimizer: torch.optim.Optimizer, the optimizer to use for training. For now, planned to be over edge mask and weight mask parameters.
-    mask_params: dictionary of torch.nn.parameter.Parameter with names for keys, the parameters to optimize over. Should be edge masks and weight masks. Used for clamping and saving weights.
+
+    param_names: list of strings, the names of the parameters of the model that should be optimized (typically everything covered by optimizer). If None, defaults to params of model that are not frozen.
+    mask_params: list of torch.nn.parameter.Parameter, the parameters of the model that should be optimized (typically everything covered by optimizer). If None, defaults to params of model that are not frozen.
 
     tasks: dictionary of Tasks with names for keys, the tasks to train on
     task_weights: dictionary floats, the weights to use for each task
@@ -63,10 +73,18 @@ def train_masks(model, tasks: dict[str, Task],
     clamp_every: int, the number of steps between "clamping" weights. In this context, means setting all weights below a threshold to 0 and all weights above a threshold to 1.
     threshold: float, the threshold to use for clamping weights
 
-    edge_mask_reg_strength: float or function of epoch, the strength of the regularization on the edge masks. If None, no regularization on edge mask is used. Should be None if edge masks not being optimized.
+    edge_mask_reg_strength: float or function of epoch, the strength of the regularization on the edge masks. If None, no regularization on edge mask is used. Should be None if edge masks not being optimized. Baseline can be 1
     weight_mask_reg_strength: float or function of epoch, the strength of the regularization on the weight masks. If None, no regularization on weight mask is used. Should be None if weight masks not being optimized or if weight masks are being optimized in optimizer with some other regularization.
 
     """
+    if param_names is None or mask_params is None:
+        param_names = []
+        mask_params = []
+        for name, p in model.named_parameters():
+            if p.requires_grad:
+                param_names.append(name)
+                mask_params.append(p)
+
     if eval_tasks is None:
         eval_tasks = tasks
     
@@ -88,13 +106,13 @@ def train_masks(model, tasks: dict[str, Task],
             
             edge_reg_term = 0
             weight_reg_term = 0
-            for name, p in mask_params.items():
+            for name, p in zip(param_names, mask_params):
                 if "edge_mask" in name:
                     # get l1 norm of edge mask
-                    edge_reg_term += p.abs().sum()
+                    edge_reg_term += p.abs().mean()
 
                 elif "weight_mask" in name:
-                    weight_reg_term += p.abs().sum()
+                    weight_reg_term += p.abs().mean()
                 
             if edge_mask_reg_strength is not None:
                 if callable(edge_mask_reg_strength):
@@ -102,7 +120,7 @@ def train_masks(model, tasks: dict[str, Task],
                 else:
                     edge_reg_term = edge_mask_reg_strength
 
-                train_losses['edge_mask_reg'].append((epoch, step, edge_reg_term.item()))
+                train_losses['edge_mask_reg'].append((epoch, step, edge_reg_term))
                 total_loss += edge_reg_term * edge_mask_reg_strength
 
             if weight_mask_reg_strength is not None:
@@ -121,13 +139,18 @@ def train_masks(model, tasks: dict[str, Task],
             optimizer.step()
 
             if step % evaluate_every == 0:
-                print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
+                if verbose:
+                    print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
                 model.eval()
-                test_losses = evaluate_model(model, eval_tasks, num_eval_steps)
+                step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)
                 for task_name, task in eval_tasks.items():
-                    test_losses[task_name].append((epoch, step, test_losses[task_name]))
+                    test_losses[task_name].append((epoch, step, step_eval_losses[task_name]))
 
             if step % clamp_every == 0:
-                print(f"Clamping weights")
-                clamp_weights(mask_params, edge_threshold=threshold, weight_threshold=threshold)
+                if verbose:
+                    print(f"Clamping weights")
+                clamp_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+                if verbose:
+                    print("done clamping weights")
                 # torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+    return 
