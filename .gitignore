@@ -9,3 +9,4 @@ jupyter_logs/
 datasets/*
 !datasets/prepared/
 ims/
+wandb/

@@ -122,8 +122,22 @@ class PosEmbed(nn.Module):
 
 First, it's useful to visualize and play around with attention patterns - what exactly are we looking at here? (Click on a head to lock onto just showing that head's pattern, it'll make it easier to interpret)
 """
+def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
+    """
+    W is Parameter of shape (n_heads, ...). Returns baseline and frozen, and forward pass should be W_baseline.float() + W_frozen.float() * W 
+    """
+    # W_baseline = torch.nn.Parameter(torch.ones_like(W))
+    # W_baseline[unfrozen_heads] = 0
+    W_frozen = torch.nn.Parameter(torch.zeros_like(W, dtype=torch.bool), requires_grad=False)
+    W_frozen[unfrozen_heads] = True
+    W_baseline = ~W_frozen
+    return W_baseline, W_frozen
+
 class Attention(nn.Module):
-    def __init__(self, cfg, weight_mask=False):
+    def __init__(self, cfg, weight_mask=False, mask_heads=None):
+        """
+        weight_mask tells you if you want to apply a weight mask to this attention head. If mask_heads is not none, it should be a list of ints (heads to mask).
+        """
         super().__init__()
         self.cfg = cfg
         self.W_Q = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
@@ -140,12 +154,19 @@ class Attention(nn.Module):
         nn.init.normal_(self.W_O, std=self.cfg.init_range)
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
+        self.weight_mask = weight_mask
+        self.mask_heads = mask_heads
+
         if weight_mask:
             self.weight_mask_W_Q = nn.Parameter(torch.ones_like(self.W_Q), requires_grad=True)
             self.weight_mask_W_K = nn.Parameter(torch.ones_like(self.W_K), requires_grad=True)
             self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
             self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
-        self.weight_mask = weight_mask
+        if mask_heads is not None:
+            self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)
+            self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.weight_mask_W_K, self.mask_heads)
+            self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.weight_mask_W_V, self.mask_heads)
+            self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.weight_mask_W_O, self.mask_heads)
 
         self.register_buffer("IGNORE", torch.tensor(-1e5, dtype=torch.float32, device="cuda"))
     
@@ -154,15 +175,21 @@ class Attention(nn.Module):
         if self.cfg.debug: print("Normalized_resid_pre:", normalized_resid_pre.shape)
 
         if self.weight_mask:
-            W_Q = self.W_Q * self.weight_mask_W_Q
-            W_K = self.W_K * self.weight_mask_W_K
-            W_V = self.W_V * self.weight_mask_W_V
-            W_O = self.W_O * self.weight_mask_W_O
-        else:
-            W_Q = self.W_Q
-            W_K = self.W_K
-            W_V = self.W_V
-            W_O = self.W_O
+            if self.mask_heads is not None:
+                weight_mask_W_Q = self.weight_mask_W_Q_baseline.float() + self.weight_mask_W_Q_frozen.float() * self.weight_mask_W_Q
+                weight_mask_W_K = self.weight_mask_W_K_baseline.float() + self.weight_mask_W_K_frozen.float() * self.weight_mask_W_K
+                weight_mask_W_V = self.weight_mask_W_V_baseline.float() + self.weight_mask_W_V_frozen.float() * self.weight_mask_W_V
+                weight_mask_W_O = self.weight_mask_W_O_baseline.float() + self.weight_mask_W_O_frozen.float() * self.weight_mask_W_O
+            else:
+                weight_mask_W_Q = self.weight_mask_W_Q
+                weight_mask_W_K = self.weight_mask_W_K
+                weight_mask_W_V = self.weight_mask_W_V
+                weight_mask_W_O = self.weight_mask_W_O
+
+            W_Q = self.W_Q * weight_mask_W_Q
+            W_K = self.W_K * weight_mask_W_K
+            W_V = self.W_V * weight_mask_W_V
+            W_O = self.W_O * weight_mask_W_O
         q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + self.b_Q
 
         k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_K) + self.b_K
@@ -243,16 +270,17 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False):
+    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False, weight_mask_attn_heads=None):
         """
         frozen_mask_edges is a None or dictionary of the form: {'a': torch.tensor, 'm': torch.tensor}. Tells you what parts of mask to freeze (tensors are same shape as typical mask, 1s are not trained over while 0s are trained over if freeze_ones is True else vice-versa).
 
+        weight_mask_attn_heads is list of what heads to selectively unfreeze in weight mask
         """
         super().__init__()
         self.cfg = cfg
 
         self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg, weight_mask=weight_mask_attn)
+        self.attn = Attention(cfg, weight_mask=weight_mask_attn, mask_heads=weight_mask_attn_heads)
         self.ln2 = LayerNorm(cfg)
         self.mlp = MLP(cfg, weight_mask=weight_mask_mlp)
 
@@ -373,7 +401,11 @@ def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
     return {'a': attn_mask, 'm': mlp_mask}
 
 class DemoTransformer(nn.Module):
-    def __init__(self, cfg, means, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False):
+    def __init__(self, cfg, means, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False, weight_mask_attn_dict=None, weight_mask_mlp_dict=None):
+        """
+        weight_mask_attn_dict, if not None, should be dictionary of layer: list of heads to mask. If want to use this, weight_masks_attn should be True.
+        weight_mask_mlp_dict, if not None, should be dictionary of layer: bool, whether or not to mask that layer's MLP. Takes precendence over weight_masks_mlp.
+        """
         super().__init__()
         self.cfg = cfg
         self.embed = Embed(cfg)
@@ -384,8 +416,12 @@ class DemoTransformer(nn.Module):
         self.weight_masks_mlp = weight_masks_mlp
         for p in self.parameters():
             p.requires_grad = False
+        assert (weight_masks_attn) or (weight_mask_attn_dict is None), "weight_mask_attn_dict should be None if weight_masks_attn is False"
+        assert (weight_masks_mlp) or (weight_mask_mlp_dict is None), "weight_mask_mlp_dict should be None if weight_masks_mlp is False"
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i, 
-                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, weight_mask_mlp=weight_masks_mlp) 
+                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, 
+                                                      weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
+                                                      weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None) 
                                                       for i in range(cfg.n_layers)])
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
         self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)
