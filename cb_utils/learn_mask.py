@@ -7,9 +7,9 @@ from collections import defaultdict
 from typing import Optional, Union, Callable
 import wandb
 
-def clamp_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5):
+def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5):
     """
-    Clamp both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to clamp.
+    discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
     """
     num_ablated_edges = 0
     for name, p in zip(param_names, mask_params):
@@ -51,7 +51,7 @@ def train_masks(model,
                 eval_tasks: dict[str, Task]=None,
                 steps_per_epoch=100,
                 evaluate_every=10, 
-                clamp_every=50, 
+                discretize_every=50, 
                 threshold=0.5, 
                 edge_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None, 
                 weight_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None,
@@ -77,8 +77,8 @@ def train_masks(model,
     eval_tasks: either None or a dictionary of tasks with task names. If none, evaluate on the training tasks.
     steps_per_epoch: int, the maximum number of steps to train for each epoch
     evaluate_every: int, the number of steps between evaluations
-    clamp_every: int, the number of steps between "clamping" weights. In this context, means setting all weights below a threshold to 0 and all weights above a threshold to 1.
-    threshold: float, the threshold to use for clamping weights
+    discretize_every: int, the number of steps between "discretizeing" weights. In this context, means setting all weights below a threshold to 0 and all weights above a threshold to 1.
+    threshold: float, the threshold to use for discretizeing weights
 
     edge_mask_reg_strength: float or function of epoch, the strength of the regularization on the edge masks. If None, no regularization on edge mask is used. Should be None if edge masks not being optimized. Baseline can be 1
     weight_mask_reg_strength: float or function of epoch, the strength of the regularization on the weight masks. If None, no regularization on weight mask is used. Should be None if weight masks not being optimized or if weight masks are being optimized in optimizer with some other regularization.
@@ -100,13 +100,15 @@ def train_masks(model,
                    config={
                        "epochs": num_epochs,
                         "steps_per_epoch": steps_per_epoch,
+                        "edge_mask_reg_strength": edge_mask_reg_strength,
+                        "weight_mask_reg_strength": weight_mask_reg_strength,
                    }
                    )
 
     # model = load_demo_gpt2(means=means, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     train_losses = defaultdict(list)
     test_losses = defaultdict(list)
-    for epoch in tqdm_notebook(range(num_epochs+1)):
+    for epoch in tqdm(range(num_epochs+1)):
         for step in range(steps_per_epoch):
             if verbose:
                 print(f"Epoch {epoch}, step {step}")
@@ -171,6 +173,8 @@ def train_masks(model,
             total_loss.backward()
             # torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
+            for p in mask_params:
+                p.data.clamp_(0,1)
             if use_wandb:
                 wandb.log({"total_loss": total_loss.item()}, step=epoch*steps_per_epoch + step)
 
@@ -184,10 +188,10 @@ def train_masks(model,
                 if use_wandb:
                     wandb.log({f"test_loss_{task_name}": step_eval_losses[task_name]}, step=epoch*steps_per_epoch + step)
 
-        if epoch % clamp_every == 0:
+        if epoch % discretize_every == 0:
             if verbose:
-                print(f"Clamping weights")
-            num_ablated_edges = clamp_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+                print(f"discretizeing weights")
+            num_ablated_edges = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
             if verbose:
                 print(f"Number of ablated edges: {num_ablated_edges}")
             if use_wandb:

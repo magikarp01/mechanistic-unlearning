@@ -15,6 +15,7 @@ import numpy as np
 import math
 from easy_transformer.utils import gelu_new
 import tqdm.auto as tqdm
+from typing import List
 
 @dataclass
 class Config:
@@ -190,6 +191,12 @@ class Attention(nn.Module):
             W_K = self.W_K * weight_mask_W_K
             W_V = self.W_V * weight_mask_W_V
             W_O = self.W_O * weight_mask_W_O
+        else:
+            W_Q = self.W_Q
+            W_K = self.W_K
+            W_V = self.W_V
+            W_O = self.W_O
+
         q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + self.b_Q
 
         k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_K) + self.b_K
