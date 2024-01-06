@@ -10,3 +10,4 @@ datasets/*
 !datasets/prepared/
 ims/
 wandb/
+masks/

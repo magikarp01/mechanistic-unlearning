@@ -96,14 +96,19 @@ def train_masks(model,
         eval_tasks = tasks
     
     if use_wandb:
-        wandb.init(project="mech_unlearning", 
-                   config={
-                       "epochs": num_epochs,
-                        "steps_per_epoch": steps_per_epoch,
-                        "edge_mask_reg_strength": edge_mask_reg_strength,
-                        "weight_mask_reg_strength": weight_mask_reg_strength,
-                   }
-                   )
+        # Initialize a config dictionary with existing configuration
+        config = {
+            "epochs": num_epochs,
+            "steps_per_epoch": steps_per_epoch,
+            "edge_mask_reg_strength": edge_mask_reg_strength,
+            "weight_mask_reg_strength": weight_mask_reg_strength,
+        }
+
+        # Update the config dictionary with task_weights
+        config.update(task_weights)
+
+        # Initialize wandb with the updated config
+        wandb.init(project="mech_unlearning", config=config)
 
     # model = load_demo_gpt2(means=means, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     train_losses = defaultdict(list)
