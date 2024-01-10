@@ -12,15 +12,16 @@ def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_thre
     discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
     """
     num_ablated_edges = 0
+    num_ablated_weights = 0
     for name, p in zip(param_names, mask_params):
         if "edge_mask" in name or name == "output_mask":
             p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
             num_ablated_edges += (p.data == 0).sum().item()
         elif "weight_mask" in name:
             p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
-            num_ablated_edges += (p.data == 0).sum().item()
+            num_ablated_weights += (p.data == 0).sum().item()
     
-    return num_ablated_edges
+    return num_ablated_edges, num_ablated_weights
 
 
 def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, verbose=False):
@@ -58,7 +59,7 @@ def train_masks(model,
                 num_eval_steps=1,
                 verbose=False,
                 use_wandb=False,
-
+                wandb_config=None,
                 ):
     """
     Train a model using tasks (weight the overall loss by task_weights). For now, planned to be training differentiable binary masks over the weights and edges of the model.
@@ -83,6 +84,7 @@ def train_masks(model,
     edge_mask_reg_strength: float or function of epoch, the strength of the regularization on the edge masks. If None, no regularization on edge mask is used. Should be None if edge masks not being optimized. Baseline can be 1
     weight_mask_reg_strength: float or function of epoch, the strength of the regularization on the weight masks. If None, no regularization on weight mask is used. Should be None if weight masks not being optimized or if weight masks are being optimized in optimizer with some other regularization.
 
+    wandb_config: dictionary of additional things to add to wandb config
     """
     if param_names is None or mask_params is None:
         param_names = []
@@ -103,6 +105,8 @@ def train_masks(model,
             "edge_mask_reg_strength": edge_mask_reg_strength,
             "weight_mask_reg_strength": weight_mask_reg_strength,
         }
+        if wandb_config is not None:
+            config.update(wandb_config)
 
         # Update the config dictionary with task_weights
         config.update(task_weights)
@@ -195,12 +199,14 @@ def train_masks(model,
 
         if epoch % discretize_every == 0:
             if verbose:
-                print(f"discretizeing weights")
-            num_ablated_edges = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+                print(f"discretizeing edges and weights")
+            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
             if verbose:
                 print(f"Number of ablated edges: {num_ablated_edges}")
+                print(f"Number of ablated weights: {num_ablated_weights}")
             if use_wandb:
                 wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
+                wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
             
     if use_wandb:
         wandb.finish()

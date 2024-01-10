@@ -1,4 +1,3 @@
-from cb_utils.models import load_gpt2_weights, load_demo_gpt2, tokenizer
 from torch.optim import AdamW
 import torch
 import pickle
@@ -225,15 +224,15 @@ def get_node_name(node_name, show_full_index=False):
 
 def get_edge_mask_template(num_layers=12, num_heads=12):
     edge_mask_template = {}
-    edge_mask_template["embed"] = torch.zeros(size=(0,))
+    edge_mask_template["embed"] = torch.ones(size=(0,))
     num_prev_components = 1
     for layer in range(num_layers):
         for head in range(num_heads):
-            edge_mask_template[f"a{layer}.{head}"] = torch.zeros(size=(num_prev_components,))
+            edge_mask_template[f"a{layer}.{head}"] = torch.ones(size=(num_prev_components,))
         num_prev_components += num_heads
-        edge_mask_template[f"m{layer}"] = torch.zeros(size=(num_prev_components,))
+        edge_mask_template[f"m{layer}"] = torch.ones(size=(num_prev_components,))
         num_prev_components += 1
-    edge_mask_template["output"] = torch.zeros(size=(num_prev_components,))
+    edge_mask_template["output"] = torch.ones(size=(num_prev_components,))
     return edge_mask_template
 
 # Convert edges back to edge mask
@@ -311,3 +310,40 @@ def convert_mask_dict_to_params(mask_dict):
         mask_params.append(torch.stack(attn_tensors, dim=1))
         mask_params.append(mask_dict[f"m{layer}"])
     return mask_params
+
+def get_nodes_from_edges(edges_set):
+    """
+    edges_set looks like {((0, 'a0.10'), (-1, 'embed')),
+    ((0, 'a0.9'), (-1, 'embed')),
+    ((0, 'm0'), (-1, 'embed'))}
+    Get all nodes in edges_set.
+    """
+    nodes = set()
+    for edge in edges_set:
+        for node in edge:
+            nodes.add(node)
+    return nodes
+
+def get_mask_components(nodes_set, num_layers=12, num_heads=12):
+    """
+    nodes_set looks like {(-1, 'embed'),
+    (0, 'a0.0'),
+    (0, 'a0.1'),
+    (0, 'a0.2'),
+    (0, 'a0.3'),
+    (0, 'a0.4'),
+    (0, 'a0.5'),
+    (0, 'm0'),
+    ...,
+    (12, 'output')}
+    Prepare the inputs to weight_mask_attn_dict and weight_mask_mlp_dict. weight_mask_attn_dict should be a dictionary, mapping layer number to list of attention heads that are part of the nodes set. weight_mask_mlp_dict should be a dictionary, mapping layer number to bool, True if the MLP is part of the nodes set.
+    """
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+    for layer in range(num_layers):
+        weight_mask_attn_dict[layer] = []
+        for head in range(num_heads):
+            if (layer, f"a{layer}.{head}") in nodes_set:
+                weight_mask_attn_dict[layer].append(head)
+        weight_mask_mlp_dict[layer] = (layer, f"m{layer}") in nodes_set
+    return weight_mask_attn_dict, weight_mask_mlp_dict

@@ -224,14 +224,14 @@ print(torch.cuda.max_memory_allocated(device=device) / 1e9)
 from cb_utils.learn_mask import train_masks
 
 epochs_left = 500
-steps_per_epoch = 10
+steps_per_epoch = 50
 lr = .05 # free
 weight_decay = 0
 evaluate_every = 1
 discretize_every = 50 # 5 # free
 threshold = 0.5
 use_wandb = True
-edge_mask_reg_strength = 100
+edge_mask_reg_strength = 1000
 weight_mask_reg_strength = None
 
 optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)

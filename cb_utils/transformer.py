@@ -16,6 +16,7 @@ import math
 from easy_transformer.utils import gelu_new
 import tqdm.auto as tqdm
 from typing import List
+from cb_utils.mask_utils import get_edge_mask_template
 
 @dataclass
 class Config:
@@ -131,7 +132,8 @@ def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
     # W_baseline[unfrozen_heads] = 0
     W_frozen = torch.nn.Parameter(torch.zeros_like(W, dtype=torch.bool), requires_grad=False)
     W_frozen[unfrozen_heads] = True
-    W_baseline = ~W_frozen
+    # W_baseline = ~W_frozen
+    W_baseline = torch.nn.Parameter(~W_frozen, requires_grad=False)
     return W_baseline, W_frozen
 
 class Attention(nn.Module):
@@ -164,7 +166,7 @@ class Attention(nn.Module):
             self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
             self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
         if mask_heads is not None:
-            self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)
+            self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)            
             self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.weight_mask_W_K, self.mask_heads)
             self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.weight_mask_W_V, self.mask_heads)
             self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.weight_mask_W_O, self.mask_heads)
@@ -408,10 +410,18 @@ def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
     return {'a': attn_mask, 'm': mlp_mask}
 
 class DemoTransformer(nn.Module):
-    def __init__(self, cfg, means, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False, weight_mask_attn_dict=None, weight_mask_mlp_dict=None):
+    def __init__(self, cfg, means, 
+                 edge_masks=False, 
+                 mask_dict_superset=None, 
+                 weight_masks_attn=False, 
+                 weight_masks_mlp=False, 
+                 weight_mask_attn_dict=None, 
+                 weight_mask_mlp_dict=None):
         """
+        edge_masks: if True, then have trainable masks for edges. If False, then no trainable masks for edges.
+        mask_dict_superset: if not None, should be dictionary od 
         weight_mask_attn_dict, if not None, should be dictionary of layer: list of heads to mask. If want to use this, weight_masks_attn should be True.
-        weight_mask_mlp_dict, if not None, should be dictionary of layer: bool, whether or not to mask that layer's MLP. Takes precendence over weight_masks_mlp.
+        weight_mask_mlp_dict, if not None, should be dictionary of layer: bool, whether or not to mask that layer's MLP. Takes precendence over weight_masks_mlp if not None.
         """
         super().__init__()
         self.cfg = cfg
@@ -423,13 +433,26 @@ class DemoTransformer(nn.Module):
         self.weight_masks_mlp = weight_masks_mlp
         for p in self.parameters():
             p.requires_grad = False
-        assert (weight_masks_attn) or (weight_mask_attn_dict is None), "weight_mask_attn_dict should be None if weight_masks_attn is False"
-        assert (weight_masks_mlp) or (weight_mask_mlp_dict is None), "weight_mask_mlp_dict should be None if weight_masks_mlp is False"
+
+        if mask_dict_superset is not None:
+            assert edge_masks, "edge_masks should be True if mask_dict_superset is not None (mask_dict_superset values take precedence over global edge_masks value)"
+        else:
+            if not edge_masks: # don't want to train edge masks
+                # make our own mask_dict template, and everything should be 1 so that they're all frozen
+                # can be optimized in the future, but this is a shortcut for now
+                mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads)
+
+        if weight_mask_attn_dict is not None:
+            assert weight_masks_attn, "weight_masks_attn should be True if weight_mask_attn_dict is not None (weight_mask_attn_dict values take precedence over global weight_masks_attn value)"
+        if weight_mask_mlp_dict is not None:
+            assert (weight_masks_mlp) or (weight_mask_mlp_dict is None), "weight_masks_mlp should be True if weight_mask_mlp_dict is not None (weight_mask_mlp_dict values take precedence over global weight_masks_mlp value)"
+
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i, 
                                                       frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, 
                                                       weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
                                                       weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None) 
                                                       for i in range(cfg.n_layers)])
+        
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
         self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)
 
