@@ -36,6 +36,7 @@ def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, ve
             losses[task_name] = 0
             for i in range(num_eval_steps):
                 losses[task_name] += task.get_test_loss(model)
+                losses[f"{task_name}_acc"] = task.get_test_accuracy(model)
             losses[task_name] /= num_eval_steps
             if verbose:
                 print(f"Loss on {task_name}: {losses[task_name]}")

@@ -8,7 +8,7 @@ Python 3.10.13
 mask_learning.py will download GPT2-medium in huggingface transformers library
 
 ## Tasks
-Masks should be trained using "Task" objects. Task 
+Masks should be trained using "Task" objects. do git pull https://github.com/magikarp01/tasks.git
 
 # Circuit Breaking: Removing Model Behaviors with Targeted Ablation
 
