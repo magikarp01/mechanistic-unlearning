@@ -279,11 +279,12 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False, weight_mask_attn_heads=None):
+    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False, weight_mask_attn_heads=None, freeze_base_weights=True):
         """
         frozen_mask_edges is a None or dictionary of the form: {'a': torch.tensor, 'm': torch.tensor}. Tells you what parts of mask to freeze (tensors are same shape as typical mask, 1s are not trained over while 0s are trained over if freeze_ones is True else vice-versa).
 
         weight_mask_attn_heads is list of what heads to selectively unfreeze in weight mask
+        freeze_base_weights tells you whether or not to freeze the base weights, being attn.W_Q, attn.W_K, attn.W_V, attn.W_O, attn.b_Q, attn.b_K, attn.b_V, attn.b_O, mlp.W_in, mlp.W_out, mlp.b_in, mlp.b_out
         """
         super().__init__()
         self.cfg = cfg
@@ -298,8 +299,15 @@ class TransformerBlock(nn.Module):
         self.weight_mask_mlp = weight_mask_mlp
 
         for name, p in self.named_parameters():
-            if "weight_mask" not in name:
-                p.requires_grad = False
+            if "weight_mask" in name:
+                continue
+            elif not freeze_base_weights:
+                if "W_Q" in name or "W_K" in name or "W_V" in name or "W_O" in name or "b_Q" in name or "b_K" in name or "b_V" in name or "b_O" in name:
+                    continue
+                if "W_in" in name or "W_out" in name or "b_in" in name or "b_out" in name:
+                    continue
+
+            p.requires_grad = False
 
         prev_nodes = (cfg.n_heads + 1) * prev_layers + 1
         edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads))
@@ -416,7 +424,8 @@ class DemoTransformer(nn.Module):
                  weight_masks_attn=False, 
                  weight_masks_mlp=False, 
                  weight_mask_attn_dict=None, 
-                 weight_mask_mlp_dict=None):
+                 weight_mask_mlp_dict=None,
+                 freeze_base_weights=True):
         """
         edge_masks: if True, then have trainable masks for edges. If False, then no trainable masks for edges.
         mask_dict_superset: if not None, should be dictionary od 
@@ -448,10 +457,12 @@ class DemoTransformer(nn.Module):
             assert (weight_masks_mlp) or (weight_mask_mlp_dict is None), "weight_masks_mlp should be True if weight_mask_mlp_dict is not None (weight_mask_mlp_dict values take precedence over global weight_masks_mlp value)"
 
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i, 
-                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, weight_mask_attn=weight_masks_attn, 
-                                                      weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
-                                                      weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None) 
-                                                      for i in range(cfg.n_layers)])
+            frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, 
+            weight_mask_attn=weight_masks_attn, 
+            weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
+            weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None, 
+            freeze_base_weights=freeze_base_weights) 
+            for i in range(cfg.n_layers)])
         
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
         self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)

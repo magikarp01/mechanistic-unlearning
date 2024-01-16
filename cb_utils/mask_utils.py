@@ -347,3 +347,26 @@ def get_mask_components(nodes_set, num_layers=12, num_heads=12):
                 weight_mask_attn_dict[layer].append(head)
         weight_mask_mlp_dict[layer] = (layer, f"m{layer}") in nodes_set
     return weight_mask_attn_dict, weight_mask_mlp_dict
+
+
+def get_masks_from_acdcpp_exp(acdcpp_exp, threshold=0.08):
+    """
+    acdcpp_exp is an instance of ACDCPPExperiment. threshold is a float, one of the thresholds specified in the thresholds list in acdcpp_exp. Formats the output into a nodes set, an edges set, an edge mask dict for edge masking/circuit breaking, and weight mask dicts for attn and mlp weight masking.
+    """
+    pruned_heads, num_passes, acdcpp_pruned_attrs, acdc_pruned_attrs, edges_after_acdcpp, edges_after_acdc = acdcpp_exp.run()
+
+    acdcpp_edges = set()
+    for edge in edges_after_acdcpp[threshold]:
+        # split the edge into two nodes, e.g. blocks.1.attn.hook_result[:, :, 10]blocks.0.hook_mlp_in[:] into blocks.1.attn.hook_result[:, :, 10] and blocks.0.hook_mlp_in[:]
+        node_1 = get_node_name(edge.split("]")[0]+"]", show_full_index=False)
+        node_2 = get_node_name(edge.split("]")[1]+"]", show_full_index=False)
+        if node_1 != node_2:
+            acdcpp_edges.add((node_1, node_2))
+
+    edge_mask_template = get_edge_mask_template()
+    acdcpp_mask_dict = get_mask_from_edges(acdcpp_edges, edge_mask_template=edge_mask_template, num_layers=12, num_heads=12)
+    acdcpp_nodes = get_nodes_from_edges(acdcpp_edges)
+    acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_mask_components(acdcpp_nodes, num_layers=12, num_heads=12)
+
+    return acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict
+

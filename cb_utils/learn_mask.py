@@ -6,6 +6,10 @@ import torch
 from collections import defaultdict
 from typing import Optional, Union, Callable
 import wandb
+import os
+
+# for getting datetime
+from datetime import datetime
 
 def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5):
     """
@@ -54,6 +58,7 @@ def train_masks(model,
                 steps_per_epoch=100,
                 evaluate_every=10, 
                 discretize_every=50, 
+                save_every=None,
                 threshold=0.5, 
                 edge_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None, 
                 weight_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None,
@@ -61,6 +66,7 @@ def train_masks(model,
                 verbose=False,
                 use_wandb=False,
                 wandb_config=None,
+                save_dir=None
                 ):
     """
     Train a model using tasks (weight the overall loss by task_weights). For now, planned to be training differentiable binary masks over the weights and edges of the model.
@@ -173,7 +179,7 @@ def train_masks(model,
                 else:
                     weight_mask_reg_strength = weight_mask_reg_strength
 
-                train_losses['weight_mask_reg'].append((epoch, step, weight_reg_term.item()))
+                train_losses['weight_mask_reg'].append((epoch, step, weight_reg_term))
                 if use_wandb:
                     wandb.log({"weight_mask_reg": weight_reg_term}, step=epoch*steps_per_epoch + step)
                 total_loss -= weight_reg_term * weight_mask_reg_strength
@@ -188,16 +194,6 @@ def train_masks(model,
             if use_wandb:
                 wandb.log({"total_loss": total_loss.item()}, step=epoch*steps_per_epoch + step)
 
-        if epoch % evaluate_every == 0:
-            if verbose:
-                print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
-            model.eval()
-            step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)
-            for task_name, task in eval_tasks.items():
-                test_losses[task_name].append((epoch, step, step_eval_losses[task_name]))
-                if use_wandb:
-                    wandb.log({f"test_loss_{task_name}": step_eval_losses[task_name]}, step=epoch*steps_per_epoch + step)
-
         if epoch % discretize_every == 0:
             if verbose:
                 print(f"discretizeing edges and weights")
@@ -209,6 +205,29 @@ def train_masks(model,
                 wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
                 wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
             
+        if epoch % evaluate_every == 0:
+            if verbose:
+                print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
+            model.eval()
+            step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)
+            for task_name, task in eval_tasks.items():
+                test_losses[task_name].append((epoch, step, step_eval_losses[task_name]))
+                if use_wandb:
+                    wandb.log({f"test_loss_{task_name}": step_eval_losses[task_name]}, step=epoch*steps_per_epoch + step)
+
+        if save_every is not None and epoch % save_every == 0:
+            # save params
+            if save_dir is None:
+                # get date and time to save
+                now = datetime.now()
+                dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
+                model_path = f"masks/mask_params_{dt_string}_{epoch=}.pt"
+            else:
+                # make sure save_dir exists
+                os.makedirs(save_dir, exist_ok=True)
+                model_path = f"{save_dir}/mask_params_{epoch=}.pt"
+            torch.save(mask_params, model_path)
+
     if use_wandb:
         wandb.finish()
     return train_losses, test_losses

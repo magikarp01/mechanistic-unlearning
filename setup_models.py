@@ -16,6 +16,7 @@
 
 import os
 import sys
+import pickle
 sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
 sys.path.append('acdcpp/')
 from acdc import TLACDCExperiment
@@ -75,12 +76,8 @@ model.set_use_attn_result(True)
 
 
 from tasks.ioi.IOITask import IOITask_old, IOITask
-ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25)
+ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
 ioi_task.set_logit_diffs(model)
-
-
-# In[5]:
-
 
 ioi_metric = ioi_task.get_acdcpp_metric()
 def negative_abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
@@ -92,23 +89,10 @@ with t.no_grad():
     clean_logit_diff = ioi_task.ave_logit_diff(clean_logits, ioi_task.clean_data).item()
     corrupt_logit_diff = ioi_task.ave_logit_diff(corrupt_logits, ioi_task.corr_data).item()
 
-
-# In[6]:
-
-
-# Get clean and corrupt logit differences
-with t.no_grad():
-    clean_metric = ioi_metric(clean_logits, corrupt_logit_diff, clean_logit_diff, ioi_task.clean_data)
-    corrupt_metric = ioi_metric(corrupt_logits, corrupt_logit_diff, clean_logit_diff, ioi_task.corr_data)
-
-print(f'Clean direction: {clean_logit_diff}, Corrupt direction: {corrupt_logit_diff}')
-print(f'Clean metric: {clean_metric}, Corrupt metric: {corrupt_metric}')
-
-
 # In[7]:
 
-
 from ACDCPPExperiment import ACDCPPExperiment
+from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 THRESHOLDS = [0.08, .15]#np.arange(0.005, 0.155, 0.005)
 RUN_NAME = 'abs_edge'
 
@@ -130,43 +114,7 @@ acdcpp_exp = ACDCPPExperiment(
 )
 # e=acdcpp_exp.setup_exp(0.0)
 
-pruned_heads, num_passes, acdcpp_pruned_attrs, acdc_pruned_attrs, edges_after_acdcpp, edges_after_acdc = acdcpp_exp.run()
-
-
-# In[8]:
-
-
-import pickle
-with open("masks/ioi_acdcpp_edges.pkl", "wb") as f:
-    pickle.dump(edges_after_acdcpp, f)
-
-
-# In[9]:
-
-
-from cb_utils.mask_utils import get_node_name
-
-acdcpp_edges = set()
-for edge in edges_after_acdcpp[0.08]:
-    # split the edge into two nodes, e.g. blocks.1.attn.hook_result[:, :, 10]blocks.0.hook_mlp_in[:] into blocks.1.attn.hook_result[:, :, 10] and blocks.0.hook_mlp_in[:]
-    node_1 = get_node_name(edge.split("]")[0]+"]", show_full_index=False)
-    node_2 = get_node_name(edge.split("]")[1]+"]", show_full_index=False)
-    if node_1 != node_2:
-        acdcpp_edges.add((node_1, node_2))
-
-
-# In[10]:
-
-
-from cb_utils.mask_utils import get_edge_mask_template, get_mask_from_edges, convert_mask_dict_to_params
-edge_mask_template = get_edge_mask_template()
-acdcpp_mask_dict = get_mask_from_edges(acdcpp_edges, edge_mask_template=edge_mask_template, num_layers=12, num_heads=12)
-
-
-# In[11]:
-
-
-convert_mask_dict_to_params(acdcpp_mask_dict)
+acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=0.08)
 
 
 # In[12]:
@@ -182,8 +130,16 @@ else:
     with open("data/gpt2_means.pkl", "rb") as f:
         means = pickle.load(f)[0]
 
-model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
+edge_masks = False
+weight_masks_attn = True
+weight_masks_mlp = True
+freeze_base_weights = True
 
+# if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
+mask_dict_superset = None if not edge_masks else acdcpp_mask_dict
+# model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
+
+model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=(acdcpp_weight_mask_attn_dict if weight_masks_attn else None), weight_mask_mlp_dict=(acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None), freeze_base_weights=freeze_base_weights)
 
 # In[13]:
 
@@ -192,13 +148,20 @@ from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, ToxicTask
 batch_size = 64
 ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False)
 ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=ioi_uniform_type)
-sports = SportsTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
+
+ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=1) # slightly different template
+
+ioi_task_3 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
+
+sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
 owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
+
+
 
 # train_tasks = {"ioi": ioi, "owt": owt}
 train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt}
 task_weights = {"ioi_uniform": .5, "owt": 1} # I think means preserve OWT, corrupt IOI
-eval_tasks = {"ioi": ioi, "ioi_uniform": ioi_uniform, "sports": sports, "owt": owt}
+eval_tasks = {"ioi": ioi, "ioi_uniform": ioi_uniform, "sports": sports, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3}
 
 
 # In[14]:
@@ -212,39 +175,53 @@ for name, p in model.named_parameters():
         mask_params.append(p)
 
 
-# In[15]:
-
-
-print(torch.cuda.max_memory_allocated(device=device) / 1e9)
-
 
 # In[16]:
 
 
 from cb_utils.learn_mask import train_masks
 
-epochs_left = 500
-steps_per_epoch = 50
-lr = .05 # free
+run_name = f"ioi_uniform_{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{freeze_base_weights=}"
+# if edge_masks:
+#     run_name += "_edge_masking"
+# if weight_masks_attn:
+#     run_name += "_weight_masking_attn"
+# if weight_masks_mlp:
+#     run_name += "_weight_masking_mlp"
+# if freeze_base_weights:
+#     run_name += "_freeze_base_weights"
+
+print(run_name)
+epochs_left = 200
+steps_per_epoch = 20
+lr = 1e-2 # free
 weight_decay = 0
 evaluate_every = 1
 discretize_every = 50 # 5 # free
 threshold = 0.5
 use_wandb = True
-edge_mask_reg_strength = 1000
-weight_mask_reg_strength = None
+edge_mask_reg_strength = 50
+weight_mask_reg_strength = 50
+save_every = 20
+save_path = f"masks/{run_name}"
+
+wandb_config = {
+    "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "freeze_base_weights": freeze_base_weights, 
+    "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
 
 optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
 train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch,
             # param_names=param_names, mask_params=mask_params, 
-            task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=None, verbose=False, use_wandb=use_wandb)
+            task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
+            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path,)
 
 
 # In[17]:
 
 
 import pickle
-with open(f"masks/trained_mask_params_{epochs_left=}_{edge_mask_reg_strength=}_{ioi_uniform_type=}.pkl", "wb") as f:
+# with open(f"masks/trained_mask_params_{epochs_left=}_{edge_mask_reg_strength=}_{ioi_uniform_type=}/final_params.pkl", "wb") as f:
+with open(f"{save_path}/final_params.pkl", "wb") as f:
     pickle.dump(mask_params, f)
 
 
