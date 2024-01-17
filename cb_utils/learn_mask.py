@@ -32,7 +32,7 @@ def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, ve
     """
     Evaluate a model on a set of Tasks. Returns a dictionary of task names to losses.
     """
-    losses = {}
+    losses = defaultdict(float)
     with torch.no_grad():
         for task_name, task in eval_tasks.items():
             if verbose:
@@ -40,8 +40,9 @@ def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, ve
             losses[task_name] = 0
             for i in range(num_eval_steps):
                 losses[task_name] += task.get_test_loss(model)
-                losses[f"{task_name}_acc"] = task.get_test_accuracy(model)
+                losses[f"{task_name}_acc"] += task.get_test_accuracy(model)
             losses[task_name] /= num_eval_steps
+            losses[f"{task_name}_acc"] /= num_eval_steps
             if verbose:
                 print(f"Loss on {task_name}: {losses[task_name]}")
     return losses
@@ -205,15 +206,33 @@ def train_masks(model,
                 wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
                 wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
             
+
         if epoch % evaluate_every == 0:
             if verbose:
                 print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
+            
+            # Save a copy of the original weights
+            original_weights = [p.data.clone() for p in mask_params]
+            
+            # Discretize weights for evaluation
+            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+
+            if verbose:
+                print(f"{num_ablated_edges=}, {num_ablated_weights=}")
+
             model.eval()
             step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)
-            for task_name, task in eval_tasks.items():
-                test_losses[task_name].append((epoch, step, step_eval_losses[task_name]))
+            # for task_name, task in eval_tasks.items():
+            for task_name in step_eval_losses.keys():
+                # test_losses[task_name].append((epoch, step, step_eval_losses[task_name]))
+                test_losses[task_name].append(step_eval_losses[task_name])
                 if use_wandb:
                     wandb.log({f"test_loss_{task_name}": step_eval_losses[task_name]}, step=epoch*steps_per_epoch + step)
+
+            # Restore the original weights after evaluation
+            for p, original_weight in zip(mask_params, original_weights):
+                p.data = original_weight
+
 
         if save_every is not None and epoch % save_every == 0:
             # save params
