@@ -183,7 +183,6 @@ class Attention(nn.Module):
             self.b_untrainable_Q = nn.Parameter(self.b_Q, requires_grad=False)
             self.b_untrainable_K = nn.Parameter(self.b_K, requires_grad=False)
             self.b_untrainable_V = nn.Parameter(self.b_V, requires_grad=False)
-            self.b_untrainable_O = nn.Parameter(self.b_O, requires_grad=False)
 
             self.W_untrainable_Q_baseline, self.W_untrainable_Q_frozen = make_partly_differentiable_mask(self.W_untrainable_Q, self.mask_heads)            
             self.W_untrainable_K_baseline, self.W_untrainable_K_frozen = make_partly_differentiable_mask(self.W_untrainable_K, self.mask_heads)
@@ -192,7 +191,6 @@ class Attention(nn.Module):
             self.b_untrainable_Q_baseline, self.b_untrainable_Q_frozen = make_partly_differentiable_mask(self.b_untrainable_Q, self.mask_heads)            
             self.b_untrainable_K_baseline, self.b_untrainable_K_frozen = make_partly_differentiable_mask(self.b_untrainable_K, self.mask_heads)
             self.b_untrainable_V_baseline, self.b_untrainable_V_frozen = make_partly_differentiable_mask(self.b_untrainable_V, self.mask_heads)
-            self.b_untrainable_O_baseline, self.b_untrainable_O_frozen = make_partly_differentiable_mask(self.b_untrainable_O, self.mask_heads)
             # in forward function, W_Q = W_untrainable_Q_baseline*self.W_untrainable_Q + W_untrainable_Q_frozen*W_Q
 
         self.register_buffer("IGNORE", torch.tensor(-1e5, dtype=torch.float32, device="cuda"))
@@ -208,17 +206,17 @@ class Attention(nn.Module):
         b_Q = self.b_Q
         b_K = self.b_K
         b_V = self.b_V
-        b_O = self.b_O
+        # no self.b_O because there is no head dimension for b_O, so it shouldn't be selectively frozen
+        
 
         if self.train_base_weights:
-            self.W_Q = self.W_untrainable_Q_baseline*self.W_untrainable_Q + self.W_untrainable_Q_frozen*W_Q
-            self.W_K = self.W_untrainable_K_baseline*self.W_untrainable_K + self.W_untrainable_K_frozen*W_K
-            self.W_V = self.W_untrainable_V_baseline*self.W_untrainable_V + self.W_untrainable_V_frozen*W_V
-            self.W_O = self.W_untrainable_O_baseline*self.W_untrainable_O + self.W_untrainable_O_frozen*W_O
-            self.b_Q = self.b_untrainable_Q_baseline*self.b_untrainable_Q + self.b_untrainable_Q_frozen*b_Q
-            self.b_K = self.b_untrainable_K_baseline*self.b_untrainable_K + self.b_untrainable_K_frozen*b_K
-            self.b_V = self.b_untrainable_V_baseline*self.b_untrainable_V + self.b_untrainable_V_frozen*b_V
-            self.b_O = self.b_untrainable_O_baseline*self.b_untrainable_O + self.b_untrainable_O_frozen*b_O
+            W_Q = self.W_untrainable_Q_baseline*self.W_untrainable_Q + self.W_untrainable_Q_frozen*W_Q
+            W_K = self.W_untrainable_K_baseline*self.W_untrainable_K + self.W_untrainable_K_frozen*W_K
+            W_V = self.W_untrainable_V_baseline*self.W_untrainable_V + self.W_untrainable_V_frozen*W_V
+            W_O = self.W_untrainable_O_baseline*self.W_untrainable_O + self.W_untrainable_O_frozen*W_O
+            b_Q = self.b_untrainable_Q_baseline*self.b_untrainable_Q + self.b_untrainable_Q_frozen*b_Q
+            b_K = self.b_untrainable_K_baseline*self.b_untrainable_K + self.b_untrainable_K_frozen*b_K
+            b_V = self.b_untrainable_V_baseline*self.b_untrainable_V + self.b_untrainable_V_frozen*b_V
 
         if self.weight_mask:
             if self.mask_heads is not None:
@@ -237,16 +235,16 @@ class Attention(nn.Module):
             W_V = W_V * weight_mask_W_V
             W_O = W_O * weight_mask_W_O
 
-        q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + self.b_Q
+        q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + b_Q
 
-        k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_K) + self.b_K
+        k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_K) + b_K
         
         attn_scores = einsum("batch query_pos n_heads d_head, batch key_pos n_heads d_head -> batch n_heads query_pos key_pos", q, k)
         attn_scores = attn_scores / math.sqrt(self.cfg.d_head)
         attn_scores = self.apply_causal_mask(attn_scores)
 
         pattern = attn_scores.softmax(dim=-1) # [batch, n_head, query_pos, key_pos]
-        v = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_V) + self.b_V
+        v = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_V) + b_V
 
         z = einsum("batch n_heads query_pos key_pos, batch key_pos n_heads d_head -> batch query_pos n_heads d_head", pattern, v)
 
@@ -329,8 +327,14 @@ class TransformerBlock(nn.Module):
         super().__init__()
         self.cfg = cfg
 
+        mask_heads = None
+        if weight_mask_attn_heads is not None:
+            mask_heads = weight_mask_attn_heads
+        elif train_base_attn_dict is not None:
+            mask_heads = train_base_attn_dict
+
         self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg, weight_mask=weight_mask_attn, mask_heads=weight_mask_attn_heads)
+        self.attn = Attention(cfg, weight_mask=weight_mask_attn, train_base_weights=train_base_weights, mask_heads=mask_heads)
         self.ln2 = LayerNorm(cfg)
         self.mlp = MLP(cfg, weight_mask=weight_mask_mlp)
 
@@ -511,7 +515,8 @@ class DemoTransformer(nn.Module):
             weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
             weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None, 
             train_base_weights=train_base_weights,
-            
+            train_base_attn_dict=base_weight_attn_dict[i] if base_weight_attn_dict is not None else None,
+            train_base_mlp=base_weight_mlp_dict[i] if base_weight_mlp_dict is not None else False
             ) 
             for i in range(cfg.n_layers)])
         
