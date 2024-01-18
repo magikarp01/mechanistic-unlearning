@@ -143,7 +143,8 @@ parser = argparse.ArgumentParser(description="Set model parameters")
 parser.add_argument('--edge_masks', action='store_true', help='Set edge masks')
 parser.add_argument('--weight_masks_attn', action='store_true', help='Set weight masks for attention')
 parser.add_argument('--weight_masks_mlp', action='store_true', help='Set weight masks for MLP')
-parser.add_argument('--freeze_base_weights', action='store_true', help='Set freeze base weights')
+parser.add_argument('--train_base_weights', action='store_true', help='Train base weights')
+parser.add_argument('--localize_acdcpp', action='store_true', help='Localize training to acdcpp mask')
 
 parser.add_argument('--use_uniform', action='store_true', help='Set use uniform')
 parser.add_argument('--ioi_uniform_type', type=str, default="IO_S", help='Set IOI uniform type')
@@ -171,13 +172,24 @@ args = parser.parse_args()
 edge_masks = args.edge_masks
 weight_masks_attn = args.weight_masks_attn
 weight_masks_mlp = args.weight_masks_mlp
-freeze_base_weights = args.freeze_base_weights
+train_base_weights = args.train_base_weights
+localize_acdcpp = args.localize_acdcpp
 
 # if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
 mask_dict_superset = None if not edge_masks else acdcpp_mask_dict
 # model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
 
-model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=(acdcpp_weight_mask_attn_dict if weight_masks_attn else None), weight_mask_mlp_dict=(acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None), freeze_base_weights=freeze_base_weights)
+if localize_acdcpp:
+    weight_mask_attn_dict = acdcpp_weight_mask_attn_dict if weight_masks_attn else None
+    weight_mask_mlp_dict = acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None
+
+    base_weight_attn_dict = acdcpp_weight_mask_attn_dict if train_base_weights else None
+    base_weight_mlp_dict = acdcpp_weight_mask_mlp_dict if train_base_weights else None
+
+else:
+    weight_mask_attn_dict = None
+    weight_mask_mlp_dict = None
+model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights)
 
 # In[13]:
 
@@ -229,7 +241,7 @@ from cb_utils.learn_mask import train_masks
 # Now you can use these arguments in your code
 run_name = args.run_name
 if run_name is None:
-    run_name = f"{ioi_uniform=}_{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{freeze_base_weights=}"
+    run_name = f"{ioi_uniform=}_{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{train_base_weights=}_{localize_acdcpp=}"
 print(run_name)
 epochs_left = args.epochs_left
 steps_per_epoch = args.steps_per_epoch
@@ -248,7 +260,7 @@ if args.save_path is None:
 
 
 wandb_config = {
-    "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "freeze_base_weights": freeze_base_weights, 
+    "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp,
     "ioi_uniform_type": ioi_uniform_type, "ioi_task_weight": ioi_task_weight, "use_uniform": use_uniform, 
     "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
 

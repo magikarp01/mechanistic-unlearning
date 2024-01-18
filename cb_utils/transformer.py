@@ -137,9 +137,11 @@ def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
     return W_baseline, W_frozen
 
 class Attention(nn.Module):
-    def __init__(self, cfg, weight_mask=False, mask_heads=None):
+    def __init__(self, cfg, weight_mask=False, train_base_weights=False, mask_heads=None):
         """
-        weight_mask tells you if you want to apply a weight mask to this attention head. If mask_heads is not none, it should be a list of ints (heads to mask).
+        weight_mask tells you if you want to apply a weight mask to this attention head. 
+        train_base_weights tells you whether or not to train the base weights, being attn.W_Q, attn.W_K, attn.W_V, attn.W_O, attn.b_Q, attn.b_K, attn.b_V, attn.b_O
+        If mask_heads is not none, it should be a list of ints (heads to mask).
         """
         super().__init__()
         self.cfg = cfg
@@ -158,6 +160,7 @@ class Attention(nn.Module):
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
         self.weight_mask = weight_mask
+        self.train_base_weights = train_base_weights
         self.mask_heads = mask_heads
 
         if weight_mask:
@@ -165,17 +168,57 @@ class Attention(nn.Module):
             self.weight_mask_W_K = nn.Parameter(torch.ones_like(self.W_K), requires_grad=True)
             self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
             self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
-        if mask_heads is not None:
-            self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)            
-            self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.weight_mask_W_K, self.mask_heads)
-            self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.weight_mask_W_V, self.mask_heads)
-            self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.weight_mask_W_O, self.mask_heads)
+
+            if mask_heads is not None:
+                self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)            
+                self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.weight_mask_W_K, self.mask_heads)
+                self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.weight_mask_W_V, self.mask_heads)
+                self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.weight_mask_W_O, self.mask_heads)
+        
+        if self.train_base_weights and mask_heads is not None:
+            self.W_untrainable_Q = nn.Parameter(self.W_Q, requires_grad=False)
+            self.W_untrainable_K = nn.Parameter(self.W_K, requires_grad=False)
+            self.W_untrainable_V = nn.Parameter(self.W_V, requires_grad=False)
+            self.W_untrainable_O = nn.Parameter(self.W_O, requires_grad=False)
+            self.b_untrainable_Q = nn.Parameter(self.b_Q, requires_grad=False)
+            self.b_untrainable_K = nn.Parameter(self.b_K, requires_grad=False)
+            self.b_untrainable_V = nn.Parameter(self.b_V, requires_grad=False)
+            self.b_untrainable_O = nn.Parameter(self.b_O, requires_grad=False)
+
+            self.W_untrainable_Q_baseline, self.W_untrainable_Q_frozen = make_partly_differentiable_mask(self.W_untrainable_Q, self.mask_heads)            
+            self.W_untrainable_K_baseline, self.W_untrainable_K_frozen = make_partly_differentiable_mask(self.W_untrainable_K, self.mask_heads)
+            self.W_untrainable_V_baseline, self.W_untrainable_V_frozen = make_partly_differentiable_mask(self.W_untrainable_V, self.mask_heads)
+            self.W_untrainable_O_baseline, self.W_untrainable_O_frozen = make_partly_differentiable_mask(self.W_untrainable_O, self.mask_heads)
+            self.b_untrainable_Q_baseline, self.b_untrainable_Q_frozen = make_partly_differentiable_mask(self.b_untrainable_Q, self.mask_heads)            
+            self.b_untrainable_K_baseline, self.b_untrainable_K_frozen = make_partly_differentiable_mask(self.b_untrainable_K, self.mask_heads)
+            self.b_untrainable_V_baseline, self.b_untrainable_V_frozen = make_partly_differentiable_mask(self.b_untrainable_V, self.mask_heads)
+            self.b_untrainable_O_baseline, self.b_untrainable_O_frozen = make_partly_differentiable_mask(self.b_untrainable_O, self.mask_heads)
+            # in forward function, W_Q = W_untrainable_Q_baseline*self.W_untrainable_Q + W_untrainable_Q_frozen*W_Q
 
         self.register_buffer("IGNORE", torch.tensor(-1e5, dtype=torch.float32, device="cuda"))
     
     def forward(self, normalized_resid_pre):
         # normalized_resid_pre: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_pre:", normalized_resid_pre.shape)
+
+        W_Q = self.W_Q
+        W_K = self.W_K
+        W_V = self.W_V
+        W_O = self.W_O
+        b_Q = self.b_Q
+        b_K = self.b_K
+        b_V = self.b_V
+        b_O = self.b_O
+
+        if self.train_base_weights:
+            self.W_Q = self.W_untrainable_Q_baseline*self.W_untrainable_Q + self.W_untrainable_Q_frozen*W_Q
+            self.W_K = self.W_untrainable_K_baseline*self.W_untrainable_K + self.W_untrainable_K_frozen*W_K
+            self.W_V = self.W_untrainable_V_baseline*self.W_untrainable_V + self.W_untrainable_V_frozen*W_V
+            self.W_O = self.W_untrainable_O_baseline*self.W_untrainable_O + self.W_untrainable_O_frozen*W_O
+            self.b_Q = self.b_untrainable_Q_baseline*self.b_untrainable_Q + self.b_untrainable_Q_frozen*b_Q
+            self.b_K = self.b_untrainable_K_baseline*self.b_untrainable_K + self.b_untrainable_K_frozen*b_K
+            self.b_V = self.b_untrainable_V_baseline*self.b_untrainable_V + self.b_untrainable_V_frozen*b_V
+            self.b_O = self.b_untrainable_O_baseline*self.b_untrainable_O + self.b_untrainable_O_frozen*b_O
 
         if self.weight_mask:
             if self.mask_heads is not None:
@@ -189,15 +232,10 @@ class Attention(nn.Module):
                 weight_mask_W_V = self.weight_mask_W_V
                 weight_mask_W_O = self.weight_mask_W_O
 
-            W_Q = self.W_Q * weight_mask_W_Q
-            W_K = self.W_K * weight_mask_W_K
-            W_V = self.W_V * weight_mask_W_V
-            W_O = self.W_O * weight_mask_W_O
-        else:
-            W_Q = self.W_Q
-            W_K = self.W_K
-            W_V = self.W_V
-            W_O = self.W_O
+            W_Q = W_Q * weight_mask_W_Q
+            W_K = W_K * weight_mask_W_K
+            W_V = W_V * weight_mask_W_V
+            W_O = W_O * weight_mask_W_O
 
         q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + self.b_Q
 
@@ -279,12 +317,14 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False, weight_mask_attn_heads=None, freeze_base_weights=True):
+    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, weight_mask_attn=False, weight_mask_mlp=False, weight_mask_attn_heads=None, train_base_weights=False, train_base_attn_dict=None, train_base_mlp=False):
         """
         frozen_mask_edges is a None or dictionary of the form: {'a': torch.tensor, 'm': torch.tensor}. Tells you what parts of mask to freeze (tensors are same shape as typical mask, 1s are not trained over while 0s are trained over if freeze_ones is True else vice-versa).
 
         weight_mask_attn_heads is list of what heads to selectively unfreeze in weight mask
         freeze_base_weights tells you whether or not to freeze the base weights, being attn.W_Q, attn.W_K, attn.W_V, attn.W_O, attn.b_Q, attn.b_K, attn.b_V, attn.b_O, mlp.W_in, mlp.W_out, mlp.b_in, mlp.b_out
+
+        train_base_weights takes precedence over train_base_attn_dict and train_base_mlp (but an assert statement still checks for compatibility). If train_base_weights is True, then train_base_attn_dict and train_base_mlp are used to selectively train weights.
         """
         super().__init__()
         self.cfg = cfg
@@ -301,11 +341,13 @@ class TransformerBlock(nn.Module):
         for name, p in self.named_parameters():
             if "weight_mask" in name:
                 continue
-            elif not freeze_base_weights:
-                if "W_Q" in name or "W_K" in name or "W_V" in name or "W_O" in name or "b_Q" in name or "b_K" in name or "b_V" in name or "b_O" in name:
-                    continue
-                if "W_in" in name or "W_out" in name or "b_in" in name or "b_out" in name:
-                    continue
+            elif train_base_weights:
+                if train_base_attn_dict is not None: # then don't freeze attn params
+                    if "W_Q" in name or "W_K" in name or "W_V" in name or "W_O" in name or "b_Q" in name or "b_K" in name or "b_V" in name or "b_O" in name:
+                        continue
+                if train_base_mlp: # then don't freeze mlp params
+                    if "W_in" in name or "W_out" in name or "b_in" in name or "b_out" in name:
+                        continue
 
             p.requires_grad = False
 
@@ -425,12 +467,19 @@ class DemoTransformer(nn.Module):
                  weight_masks_mlp=False, 
                  weight_mask_attn_dict=None, 
                  weight_mask_mlp_dict=None,
-                 freeze_base_weights=True):
+                 train_base_weights=True,
+                 base_weight_attn_dict=None,
+                 base_weight_mlp_dict=None,
+                 ):
         """
         edge_masks: if True, then have trainable masks for edges. If False, then no trainable masks for edges.
         mask_dict_superset: if not None, should be dictionary od 
         weight_mask_attn_dict, if not None, should be dictionary of layer: list of heads to mask. If want to use this, weight_masks_attn should be True.
         weight_mask_mlp_dict, if not None, should be dictionary of layer: bool, whether or not to mask that layer's MLP. Takes precendence over weight_masks_mlp if not None.
+        
+        freeze_base_weights: if True, then freeze all the base weights of the transformer (W_in, W_out, W_Q, etc of attn and mlps)
+        base_weight_attn_dict, if not None, should be dictionary of layer: list of weights to freeze. If want to use this, freeze_base_weights should be False.
+
         """
         super().__init__()
         self.cfg = cfg
@@ -461,7 +510,9 @@ class DemoTransformer(nn.Module):
             weight_mask_attn=weight_masks_attn, 
             weight_mask_mlp=weight_mask_mlp_dict[i] if weight_mask_mlp_dict is not None else weight_masks_mlp, 
             weight_mask_attn_heads=weight_mask_attn_dict[i] if weight_mask_attn_dict is not None else None, 
-            freeze_base_weights=freeze_base_weights) 
+            train_base_weights=train_base_weights,
+            
+            ) 
             for i in range(cfg.n_layers)])
         
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
