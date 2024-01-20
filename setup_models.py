@@ -175,21 +175,26 @@ weight_masks_mlp = args.weight_masks_mlp
 train_base_weights = args.train_base_weights
 localize_acdcpp = args.localize_acdcpp
 
-# if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
-mask_dict_superset = None if not edge_masks else acdcpp_mask_dict
-# model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
 
+# if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
+# model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
 if localize_acdcpp:
+    mask_dict_superset = acdcpp_mask_dict if edge_masks else None
     weight_mask_attn_dict = acdcpp_weight_mask_attn_dict if weight_masks_attn else None
     weight_mask_mlp_dict = acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None
-
     base_weight_attn_dict = acdcpp_weight_mask_attn_dict if train_base_weights else None
     base_weight_mlp_dict = acdcpp_weight_mask_mlp_dict if train_base_weights else None
 
 else:
+    mask_dict_superset = None
     weight_mask_attn_dict = None
     weight_mask_mlp_dict = None
-model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights)
+    base_weight_attn_dict = None
+    base_weight_mlp_dict = None
+
+
+# model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights)
+model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
 
 # In[13]:
 
@@ -241,7 +246,10 @@ from cb_utils.learn_mask import train_masks
 # Now you can use these arguments in your code
 run_name = args.run_name
 if run_name is None:
-    run_name = f"{ioi_uniform=}_{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{train_base_weights=}_{localize_acdcpp=}"
+    run_name = f"{use_uniform=}"
+    if use_uniform:
+        run_name += f"_{ioi_uniform_type=}_"
+    run_name += f"{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{train_base_weights=}_{localize_acdcpp=}"
 print(run_name)
 epochs_left = args.epochs_left
 steps_per_epoch = args.steps_per_epoch
