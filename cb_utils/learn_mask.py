@@ -195,7 +195,7 @@ def train_masks(model,
             if use_wandb:
                 wandb.log({"total_loss": total_loss.item()}, step=epoch*steps_per_epoch + step)
 
-        if epoch % discretize_every == 0:
+        if discretize_every is not None and epoch % discretize_every == 0:
             if verbose:
                 print(f"discretizeing edges and weights")
             num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
@@ -207,7 +207,7 @@ def train_masks(model,
                 wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
             
 
-        if epoch % evaluate_every == 0:
+        if evaluate_every is not None and epoch % evaluate_every == 0:
             if verbose:
                 print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
             
@@ -244,8 +244,8 @@ def train_masks(model,
             else:
                 # make sure save_dir exists
                 os.makedirs(save_dir, exist_ok=True)
-                model_path = f"{save_dir}/mask_params_{epoch=}.pt"
-            torch.save(mask_params, model_path)
+                model_path = f"{save_dir}/mask_params_{epoch=}.pth"
+            torch.save(model.state_dict(), model_path)
 
     if use_wandb:
         wandb.finish()

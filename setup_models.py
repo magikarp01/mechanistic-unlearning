@@ -21,16 +21,10 @@ sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
 sys.path.append('acdcpp/')
 from acdc import TLACDCExperiment
 from acdcpp.ACDCPPExperiment import ACDCPPExperiment
-
-
-# In[2]:
-
-
 import os
 import sys
 import re
 
-# import acdc
 from acdc.TLACDCExperiment import TLACDCExperiment
 from acdc.acdc_utils import TorchIndex, EdgeType
 import numpy as np
@@ -38,25 +32,70 @@ import torch as t
 from torch import Tensor
 import einops
 import itertools
-
 from transformer_lens import HookedTransformer, ActivationCache
-
 import tqdm.notebook as tqdm
 import plotly
 from rich import print as rprint
 from rich.table import Table
-
 from jaxtyping import Float, Bool
 from typing import Callable, Tuple, Union, Dict, Optional
-
 import torch
 
 device = t.device('cuda') if t.cuda.is_available() else t.device('cpu')
 print(f'Device: {device}')
+from ACDCPPExperiment import ACDCPPExperiment
+from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 
 
 # In[3]:
 
+import json
+import argparse
+import os
+
+# Create the parser
+parser = argparse.ArgumentParser(description="Set model parameters")
+
+# Add the arguments
+parser.add_argument('--config_dir', type=str, required=True, help='Path to the directory with configuration file')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Load the configuration file
+with open(args.config_dir+"/config.json", 'r') as f:
+    config = json.load(f)
+
+# Now you can use these arguments in your code
+edge_masks = config['edge_masks']
+weight_masks_attn = config['weight_masks_attn']
+weight_masks_mlp = config['weight_masks_mlp']
+train_base_weights = config['train_base_weights']
+localize_acdcpp = config['localize_acdcpp']
+localize_task = config['localize_task'] # "ioi" or "induction" for now
+use_uniform = config['use_uniform']
+ioi_uniform_type = config['ioi_uniform_type']
+ioi_task_weight = config['ioi_task_weight']
+epochs_left = config['epochs_left']
+steps_per_epoch = config['steps_per_epoch']
+lr = config['lr']
+weight_decay = config['weight_decay']
+evaluate_every = config['evaluate_every']
+discretize_every = config['discretize_every']
+threshold = config['threshold']
+use_wandb = config['use_wandb']
+edge_mask_reg_strength = config['edge_mask_reg_strength']
+weight_mask_reg_strength = config['weight_mask_reg_strength']
+num_eval_steps = config['num_eval_steps']
+save_every = config['save_every']
+
+# If save_path is None, set it to the directory of the config file
+if config['save_path'] is None:
+    save_path = args.config_dir + f"/ckpts"
+else:
+    save_path = config['save_path']
+
+# In[3.5]
 
 # set up pipeline from acdcpp to edge mask
 model = HookedTransformer.from_pretrained(
@@ -71,9 +110,7 @@ model.set_use_split_qkv_input(True)
 model.set_use_attn_result(True)
 
 
-
 # In[4]:
-
 
 from tasks.ioi.IOITask import IOITask_old, IOITask
 ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
@@ -91,8 +128,6 @@ with t.no_grad():
 
 # In[7]:
 
-from ACDCPPExperiment import ACDCPPExperiment
-from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 THRESHOLDS = [0.08, .15]#np.arange(0.005, 0.155, 0.005)
 RUN_NAME = 'abs_edge'
 
@@ -130,50 +165,7 @@ else:
     with open("data/gpt2_means.pkl", "rb") as f:
         means = pickle.load(f)[0]
 
-# edge_masks = False
-# weight_masks_attn = True
-# weight_masks_mlp = True
-# freeze_base_weights = True
-import argparse
-
-# Create the parser
-parser = argparse.ArgumentParser(description="Set model parameters")
-
-# Add the arguments
-parser.add_argument('--edge_masks', action='store_true', help='Set edge masks')
-parser.add_argument('--weight_masks_attn', action='store_true', help='Set weight masks for attention')
-parser.add_argument('--weight_masks_mlp', action='store_true', help='Set weight masks for MLP')
-parser.add_argument('--train_base_weights', action='store_true', help='Train base weights')
-parser.add_argument('--localize_acdcpp', action='store_true', help='Localize training to acdcpp mask')
-
-parser.add_argument('--use_uniform', action='store_true', help='Set use uniform')
-parser.add_argument('--ioi_uniform_type', type=str, default="IO_S", help='Set IOI uniform type')
-parser.add_argument('--ioi_task_weight', type=float, default=-.2, help='How much to weigh IOI or IOI Uniform task, should be negative for IOI and positive for IOI Uniform')
-
-parser.add_argument('--run_name', type=str, default=None, help='Set run name')
-parser.add_argument('--epochs_left', type=int, default=200, help='Set epochs left')
-parser.add_argument('--steps_per_epoch', type=int, default=20, help='Set steps per epoch')
-parser.add_argument('--lr', type=float, default=1e-2, help='Set learning rate')
-parser.add_argument('--weight_decay', type=float, default=0, help='Set weight decay')
-parser.add_argument('--evaluate_every', type=int, default=2, help='Set evaluate every')
-parser.add_argument('--discretize_every', type=int, default=40, help='Set discretize every')
-parser.add_argument('--threshold', type=float, default=0.5, help='Set threshold')
-parser.add_argument('--use_wandb', action='store_true', help='Set use wandb')
-parser.add_argument('--edge_mask_reg_strength', type=int, default=50, help='Set edge mask reg strength')
-parser.add_argument('--weight_mask_reg_strength', type=int, default=50, help='Set weight mask reg strength')
-parser.add_argument('--save_every', type=int, default=20, help='Set save every')
-parser.add_argument('--save_path', type=str, default=None, help='Set save path')
-
-
-# Parse the arguments
-args = parser.parse_args()
-
-# Now you can use these arguments in your code
-edge_masks = args.edge_masks
-weight_masks_attn = args.weight_masks_attn
-weight_masks_mlp = args.weight_masks_mlp
-train_base_weights = args.train_base_weights
-localize_acdcpp = args.localize_acdcpp
+#%%
 
 
 # if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
@@ -198,9 +190,6 @@ model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=ma
 
 # In[13]:
 
-use_uniform = args.use_uniform
-ioi_uniform_type = args.ioi_uniform_type
-ioi_task_weight = args.ioi_task_weight
 from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask
 batch_size = 80
 ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False)
@@ -241,31 +230,6 @@ for name, p in model.named_parameters():
 
 
 from cb_utils.learn_mask import train_masks
-
-
-# Now you can use these arguments in your code
-run_name = args.run_name
-if run_name is None:
-    run_name = f"{use_uniform=}"
-    if use_uniform:
-        run_name += f"_{ioi_uniform_type=}_"
-    run_name += f"{edge_masks=}_{weight_masks_attn=}_{weight_masks_mlp=}_{train_base_weights=}_{localize_acdcpp=}"
-print(run_name)
-epochs_left = args.epochs_left
-steps_per_epoch = args.steps_per_epoch
-lr = args.lr
-weight_decay = args.weight_decay
-evaluate_every = args.evaluate_every
-discretize_every = args.discretize_every
-threshold = args.threshold
-use_wandb = args.use_wandb
-edge_mask_reg_strength = args.edge_mask_reg_strength
-weight_mask_reg_strength = args.weight_mask_reg_strength
-save_every = args.save_every
-save_path = args.save_path
-if args.save_path is None:
-    save_path = f"masks/{run_name}"
-
 
 wandb_config = {
     "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp,
