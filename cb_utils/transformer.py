@@ -218,6 +218,7 @@ class Attention(nn.Module):
             b_K = self.b_untrainable_K_baseline*self.b_untrainable_K + self.b_untrainable_K_frozen*b_K
             b_V = self.b_untrainable_V_baseline*self.b_untrainable_V + self.b_untrainable_V_frozen*b_V
 
+
         if self.weight_mask:
             if self.mask_heads is not None:
                 weight_mask_W_Q = self.weight_mask_W_Q_baseline.float() + self.weight_mask_W_Q_frozen.float() * self.weight_mask_W_Q
