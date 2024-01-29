@@ -209,7 +209,6 @@ class Attention(nn.Module):
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
         self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=torch.float32, device=device))
-        self.debug_q = None
         if cfg.positional_embedding_type == "rotary":
             self.rotary_embed = RotaryEmbed(cfg)
             sin, cos = self.rotary_embed.calculate_sin_cos_rotary(
@@ -224,26 +223,29 @@ class Attention(nn.Module):
     def forward(self, normalized_resid_pre):
         # normalized_resid_pre: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_pre:", normalized_resid_pre.shape)
-
         q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, self.W_Q) + self.b_Q
 
         k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, self.W_K) + self.b_K
         
         if self.cfg.positional_embedding_type == "rotary":
             q = self.rotary_embed.apply_rotary(q, rotary_cos=self.rotary_cos, rotary_sin=self.rotary_sin)
-            self.debug_q = q.clone()
             k = self.rotary_embed.apply_rotary(k, rotary_cos=self.rotary_cos, rotary_sin=self.rotary_sin)
 
         attn_scores = einsum("batch query_pos n_heads d_head, batch key_pos n_heads d_head -> batch n_heads query_pos key_pos", q, k)
         attn_scores = attn_scores / math.sqrt(self.cfg.d_head)
         attn_scores = self.apply_causal_mask(attn_scores)
-
         pattern = attn_scores.softmax(dim=-1) # [batch, n_head, query_pos, key_pos]
+        pattern = torch.where(torch.isnan(pattern), torch.zeros_like(pattern), pattern)
         v = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, self.W_V) + self.b_V
-
         z = einsum("batch n_heads query_pos key_pos, batch key_pos n_heads d_head -> batch query_pos n_heads d_head", pattern, v)
-
-        attn_out = einsum("batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos n_heads d_model", z, self.W_O) + (self.b_O / cfg.n_heads)
+        # print(z)
+        # print('----')
+        # print(self.W_O)
+        attn_out = einops.einsum(
+            z, 
+            self.W_O,
+            "batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos n_heads d_model"
+        ) + (self.b_O / self.cfg.n_heads)
         return attn_out
 
     def apply_causal_mask(self, attn_scores):
@@ -290,38 +292,42 @@ class TransformerBlock(nn.Module):
         edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads))
         self.edge_mask_attentions = torch.nn.Parameter(edge_mask_attentions_init, requires_grad=True)
 
-        edge_mask_mlp_init = torch.ones((prev_nodes + cfg.n_heads, ))
+        edge_mask_mlp_init = torch.ones((prev_nodes, ))# + cfg.n_heads, ))
         self.edge_mask_mlp = torch.nn.Parameter(edge_mask_mlp_init, requires_grad=True)
 
     def forward(self, resid_pre, means=False):
-
         # resid_pre [batch, position, d_model, prev_head_idx]
-        masked_residuals = einsum("batch position prev_head_idx d_model, prev_head_idx n_heads -> batch position n_heads d_model", resid_pre, self.edge_mask_attentions)
+
+        masked_resid_pre = einsum(
+            "batch position prev_head_idx d_model, prev_head_idx n_heads -> batch position n_heads d_model", 
+            resid_pre, 
+            self.edge_mask_attentions
+        )
         if isinstance(means, torch.Tensor):
-            masked_means = einsum("prev_head_idx d_model, prev_head_idx n_heads -> n_heads d_model", means[:self.edge_mask_attentions.shape[0]], 1 - self.edge_mask_attentions)
-            masked_residuals = masked_residuals + masked_means
+            masked_resid_pre_means = einsum("prev_head_idx d_model, prev_head_idx n_heads -> n_heads d_model", means[:self.edge_mask_attentions.shape[0]], 1 - self.edge_mask_attentions)
+            masked_resid_pre = masked_resid_pre + masked_resid_pre_means 
 
-        # print(self.edge_mask_attentions)
-        # torch.sum(masked_residuals, dim=2, keepdim=True)
-
-        normalized_resid_pre = self.ln1(masked_residuals, parallel=True)
-        # print(normalized_resid_pre[:,:,0])
-        # print(torch.allclose(normalized_resid_pre[:,:,torch.randperm(normalized_resid_pre.shape[2])],normalized_resid_pre))
+        # print(f'resid_pre: {resid_pre.shape}; masked_residuals: {masked_resid_pre.shape}')
+        
+        normalized_resid_pre = self.ln1(masked_resid_pre, parallel=True)
 
         attn_out = self.attn(normalized_resid_pre)
-
-        # self.saved_output = attn_out
-
         residual = torch.cat((resid_pre, attn_out), dim=2)
 
-        masked_mlp_residual = einsum("batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", residual, self.edge_mask_mlp)
+        masked_mlp_residual = einsum(
+            "batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", 
+            resid_pre, 
+            self.edge_mask_mlp
+        )
         
         normalized_resid_mid = self.ln2(masked_mlp_residual)
+
         mlp_out = self.mlp(normalized_resid_mid)
         mlp_out = einops.rearrange(mlp_out, "batch position d_model -> batch position 1 d_model")
 
         residual = torch.cat((residual, mlp_out), dim=2)
 
+        # residual should have resid_pre, attn_out, mlp_out cat 
         return residual
 
 """## Unembedding"""
@@ -362,12 +368,14 @@ class DemoTransformer(nn.Module):
     
     def forward(self, tokens, return_states=False):
         # tokens [batch, position]
+
         embed = self.embed(tokens)
         if self.cfg.positional_embedding_type == "learned":
             pos_embed = self.pos_embed(tokens)
             residual = embed + pos_embed
         else:
             residual = embed
+
         residual = einops.rearrange(residual, "batch position d_model -> batch position 1 d_model")
         
         for i, block in enumerate(self.blocks):

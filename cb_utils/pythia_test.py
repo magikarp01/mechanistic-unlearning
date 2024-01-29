@@ -12,11 +12,11 @@ device='mps:0'
 
 #%%
 model = HookedTransformer.from_pretrained(
-    "pythia-14m",
+    "pythia-70m",
     device=device,
     fold_ln=False
 )
-
+model.set_use_attn_result(True)
 #%%
 def tl_config_to_demo_config(tl_config, debug=False):
     return Config(
@@ -48,23 +48,60 @@ toks = model.tokenizer(
 ).input_ids.to(device)
 tl_logits = torch.softmax(model(toks)[0, -1, :], dim=0) # shape d_vocab
 py_logits = torch.softmax(demo_pythia(toks)[0][0, -1, :], dim=0) # shape d_vocab
+
+print(torch.allclose(
+    py_logits, 
+    tl_logits,
+    atol=1e-3
+))
 # %%
+hooks = [
+    "hook_resid_pre", 
+    "ln1.hook_normalized",
+    "attn.hook_rot_q",
+    "attn.hook_rot_k",
+    "attn.hook_v",
+    "attn.hook_z",
+    "hook_attn_out", 
+    "ln2.hook_normalized",
+    "hook_mlp_out"
+]
 _, cache = model.run_with_cache(
     toks,
     names_filter=
-    lambda name: "rot_q" in name
+    lambda name: any(HOOK in name for HOOK in hooks)
 )
 
 # %%
-for i in range(len(demo_pythia.blocks)):
-    pythia_rot_q = demo_pythia.blocks[i].attn.debug_q
-    tl_rot_q = cache[f'blocks.{i}.attn.hook_rot_q']
-    # See if similar
-    print(i)
-    print(torch.allclose(
-        pythia_rot_q, 
-        tl_rot_q,
-        atol=1
-    ))
+for HOOK in hooks:
+    print(f'Testing {HOOK}')
+    for i in range(len(demo_pythia.blocks)):
+        if HOOK == 'hook_resid_pre':
+            pythia = demo_pythia.blocks[i].debug_pre[:,:,0]
+        elif HOOK == 'ln1.hook_normalized':
+            pythia = demo_pythia.blocks[i].debug_ln1[:, :, 0]
+        elif HOOK == 'attn.hook_rot_q':
+            pythia = demo_pythia.blocks[i].attn.debug_q
+        elif HOOK == 'attn.hook_rot_k':
+            pythia = demo_pythia.blocks[i].attn.debug_k
+        elif HOOK == 'attn.hook_v':
+            pythia = demo_pythia.blocks[i].attn.debug_v
+        elif HOOK == 'attn.hook_z':
+            pythia = demo_pythia.blocks[i].attn.debug_z
+        elif HOOK == 'hook_attn_out':
+            pythia = demo_pythia.blocks[i].attn.debug_attn_out.sum(dim=-2)
+        elif HOOK == 'ln2.hook_normalized':
+            pythia = demo_pythia.blocks[i].debug_ln2
+        elif HOOK == 'hook_mlp_out':
+            pythia = demo_pythia.blocks[i].debug_mlp_out.squeeze()
 
-# %%
+        tl = cache[f'blocks.{i}.{HOOK}']
+        # See if similar
+        print(i)
+        print(torch.allclose(
+            pythia, 
+            tl,
+            atol=1e-3
+        ))
+
+
