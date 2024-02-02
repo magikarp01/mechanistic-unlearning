@@ -163,27 +163,29 @@ def train_masks(model,
 
             if edge_mask_reg_strength is not None:
                 if callable(edge_mask_reg_strength):
-                    edge_mask_reg_strength = edge_mask_reg_strength(epoch)
+                    edge_mask_reg_strength_val = edge_mask_reg_strength(epoch)
                 else:
-                    edge_mask_reg_strength = edge_mask_reg_strength
+                    edge_mask_reg_strength_val = edge_mask_reg_strength
                 
                 # if verbose:
                 #     print(f"{edge_reg_term=}, {tot_edge_params=}")
                 train_losses['edge_reg_term'].append((epoch, step, edge_reg_term))
                 if use_wandb:
                     wandb.log({"edge_reg_term": edge_reg_term}, step=epoch*steps_per_epoch + step)
-                total_loss -= edge_mask_reg_strength * edge_mask_reg_strength
+                    wandb.log({"edge_reg_term_scale": edge_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
+                total_loss -= edge_mask_reg_strength_val * edge_reg_term
 
             if weight_mask_reg_strength is not None:
                 if callable(weight_mask_reg_strength):
-                    weight_mask_reg_strength = weight_mask_reg_strength(epoch)
+                    weight_mask_reg_strength_val = weight_mask_reg_strength(epoch)
                 else:
-                    weight_mask_reg_strength = weight_mask_reg_strength
+                    weight_mask_reg_strength_val = weight_mask_reg_strength
 
                 train_losses['weight_mask_reg'].append((epoch, step, weight_reg_term))
                 if use_wandb:
                     wandb.log({"weight_mask_reg": weight_reg_term}, step=epoch*steps_per_epoch + step)
-                total_loss -= weight_reg_term * weight_mask_reg_strength
+                    wandb.log({"weight_mask_reg_scale": weight_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
+                total_loss -= weight_reg_term * weight_mask_reg_strength_val
             
 
             train_losses['total'].append((epoch, step, total_loss.item()))
@@ -205,7 +207,7 @@ def train_masks(model,
             if use_wandb:
                 wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
                 wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
-            
+
 
         if evaluate_every is not None and epoch % evaluate_every == 0:
             if verbose:
@@ -219,6 +221,9 @@ def train_masks(model,
 
             if verbose:
                 print(f"{num_ablated_edges=}, {num_ablated_weights=}")
+            if use_wandb:
+                wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
+                wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
 
             model.eval()
             step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)

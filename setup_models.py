@@ -96,6 +96,11 @@ if config['save_path'] is None:
 else:
     save_path = config['save_path']
 
+
+try:
+    scale_reg_strength = config['scale_reg_strength']
+except:
+    scale_reg_strength = False
 # In[3.5]
 
 # set up pipeline from acdcpp to edge mask
@@ -269,10 +274,18 @@ print(param_names)
 
 from cb_utils.learn_mask import train_masks
 
-wandb_config = {
-    "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp, "localize_task": localize_task,
-    "uniform_type": uniform_type, "unlrn_task_weight": unlrn_task_weight, "use_uniform": use_uniform, 
-    "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
+# wandb_config = {
+#     "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp, "localize_task": localize_task,
+#     "uniform_type": uniform_type, "unlrn_task_weight": unlrn_task_weight, "use_uniform": use_uniform, 
+#     "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
+# set wandb_config to config
+wandb_config = config
+
+if scale_reg_strength:
+    orig_edge_mask_reg_strength = edge_mask_reg_strength
+    orig_weight_mask_reg_strength = weight_mask_reg_strength
+    edge_mask_reg_strength = lambda epoch: orig_edge_mask_reg_strength * (epoch - 20)
+    weight_mask_reg_strength = lambda epoch: orig_weight_mask_reg_strength * (epoch - 20)
 
 optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
 train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch,
@@ -286,8 +299,10 @@ train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=opti
 
 import pickle
 # with open(f"masks/trained_mask_params_{epochs_left=}_{edge_mask_reg_strength=}_{uniform_type=}/final_params.pkl", "wb") as f:
-with open(f"{save_path}/final_params.pkl", "wb") as f:
-    pickle.dump(mask_params, f)
+# with open(f"{save_path}/final_params.pkl", "wb") as f:
+#     pickle.dump(mask_params, f)
+model_path = f"{save_path}/mask_params_final.pth"
+torch.save(model.state_dict(), model_path)
 
 with open(f"{save_path}/final_losses.pkl", "wb") as f:
     pickle.dump((train_losses, test_losses), f)

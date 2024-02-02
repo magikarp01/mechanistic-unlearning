@@ -1,6 +1,7 @@
 # %%
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
-from cb_utils.transformer import DemoTransformer, Config
+from cb_utils.transformer import DemoTransformer as GPT2DemoTransformer, Config as GPT2Config
+from cb_utils.pythia_transformer import DemoTransformer as PythiaDemoTransformer, Config as PythiaConfig
 from easy_transformer import EasyTransformer
 import torch
 import pickle
@@ -40,7 +41,7 @@ def import_finetuned_model(mode="finetuned", ratio=RATIO):
 def import_ablated_model(version, means):
     with open(f"models/masked_gpt2_mean_ablation_v{version}.pkl", "rb") as f: #"masked_gpt2.pkl", "rb") as f:
         gpt2_weights = pickle.load(f)() #()
-    demo_gpt2 = DemoTransformer(Config(debug=False), means)
+    demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False), means)
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.to(DEVICE)
     return demo_gpt2
@@ -59,8 +60,22 @@ def load_demo_gpt2(means, n_layers=12, n_heads=12, **kwargs):
         gpt2_weights = pickle.load(f)
     # demo_gpt2 = DemoTransformer(Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp,
     #                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
-    demo_gpt2 = DemoTransformer(Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
+    demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.cuda()
     return demo_gpt2
 
+
+# 2.8b: d_model = 2560, 32 layers, 32 heads
+def load_demo_pythia(means, n_layers=32, n_heads=32, d_model=2560, **kwargs):
+    with open("models/pythia_weights.pkl", "rb") as f:
+        pythia_weights = pickle.load(f)
+    if d_head is None:
+        d_head = d_model // n_heads
+    if d_mlp is None:
+        d_mlp = 4 * d_model
+    
+    demo_pythia = PythiaDemoTransformer(PythiaConfig(debug=False, n_layers=n_layers, n_heads=n_heads, d_model=d_model, d_head=d_head, d_mlp=d_mlp), means, **kwargs)
+    demo_pythia.load_state_dict(pythia_weights, strict=False)
+    demo_pythia.cuda()
+    return demo_pythia

@@ -10,4 +10,5 @@ datasets/*
 !datasets/prepared/
 ims/
 wandb/
+masks_old/
 masks/

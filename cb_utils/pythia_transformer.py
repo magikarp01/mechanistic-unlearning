@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import math
-from transformer_modules import gelu_new
+from cb_utils.transformer_modules import gelu_new
 import tqdm.auto as tqdm
 from transformer_lens.utils import get_offset_position_ids
 
