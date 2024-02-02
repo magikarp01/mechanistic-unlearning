@@ -5,6 +5,7 @@ einops
 seaborn
 fancy_einsum
 git+https://github.com/redwoodresearch/Easy-Transformer.git
+git+https://github.com/Aaquib111/edge-attribution-patching.git@minimal-implementation
 charset-normalizer==3.1.0
 detoxify
 cmapy
