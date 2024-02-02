@@ -64,7 +64,8 @@ class InstructionDataset(Dataset):
             delta = {}
             inst_tok_subs = instruction.get_tokenized_subs(self.tokenizer)
             for key, value in inst_tok_subs.items():
-                delta[key] = self._find_first_instance(value, self.toks[i].tolist()) + len(value) - 1
+                start_val = self._find_first_instance(value, self.toks[i].tolist())
+                delta[key] = slice(start_val, start_val + len(value))
             self.deltas.append(delta)
 
     def _find_first_instance(self, tokenized_key, tokenized_str):
