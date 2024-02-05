@@ -12,7 +12,7 @@ from tqdm import tqdm
 from transformer_lens import HookedTransformer
 from transformer_lens.hook_points import HookPoint
 
-from eap_graph import EAPGraph
+from localizations.eap.eap_graph import EAPGraph
 
 def EAP_corrupted_forward_hook(
     activations: Union[Float[Tensor, "batch_size seq_len n_heads d_model"], Float[Tensor, "batch_size seq_len d_model"]],
@@ -109,6 +109,8 @@ def EAP(
     upstream_nodes: List[str]=None,
     downstream_nodes: List[str]=None,
     batch_size: int=1,
+    clean_answers=None,
+    wrong_answers=None
 ):
 
     graph = EAPGraph(model.cfg, upstream_nodes, downstream_nodes)
@@ -165,7 +167,10 @@ def EAP(
         model.add_hook(downstream_hook_filter, clean_downstream_hook_fn, "bwd")
 
         clean_tokens = clean_tokens.to(model.cfg.device)
-        value = metric(model(clean_tokens[idx:idx+batch_size], return_type="logits"))
+        if clean_answers is not None:
+            value = metric(model(clean_tokens[idx:idx+batch_size], return_type="logits"), clean_answers[idx:idx+batch_size], wrong_answers[idx:idx+batch_size])
+        else:
+            value = metric(model(clean_tokens[idx:idx+batch_size], return_type="logits"))
         value.backward()
         
         # We delete the activation differences tensor to free up memory
