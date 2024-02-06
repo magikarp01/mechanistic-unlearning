@@ -17,7 +17,7 @@ import math
 from cb_utils.transformer_modules import gelu_new
 import tqdm.auto as tqdm
 from transformer_lens.utils import get_offset_position_ids
-
+from cb_utils.mask_utils import get_edge_mask_template
 from typing import Optional, Union, Tuple, List, Dict
 from jaxtyping import Float, Int
 
@@ -28,7 +28,7 @@ class Config:
     d_model: int = 768
     debug: bool = True
     layer_norm_eps: float = 1e-5
-    d_vocab: int = 50257
+    d_vocab: int = 50304
     init_range: float = 0.02
     n_ctx: int = 1024
     d_head: int = 64
@@ -276,7 +276,7 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int):
+    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True,):
         super().__init__()
         self.cfg = cfg
 
@@ -285,6 +285,8 @@ class TransformerBlock(nn.Module):
         self.ln2 = LayerNorm(cfg)
         self.mlp = MLP(cfg)
 
+        self.frozen_mask = True if frozen_mask_edges is not None else False
+
         for p in self.parameters():
             p.requires_grad = False
 
@@ -292,19 +294,41 @@ class TransformerBlock(nn.Module):
         edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads))
         self.edge_mask_attentions = torch.nn.Parameter(edge_mask_attentions_init, requires_grad=True)
 
+        if self.frozen_mask:
+            if freeze_ones:
+                self.edge_mask_attentions_baseline = torch.nn.Parameter(frozen_mask_edges['a'], requires_grad=False)
+                self.edge_mask_attentions_frozen = torch.nn.Parameter(1 - frozen_mask_edges['a'], requires_grad=False)
+            else:
+                self.edge_mask_attentions_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['a']), requires_grad=False)
+                self.edge_mask_attentions_frozen = torch.nn.Parameter(frozen_mask_edges['a'], requires_grad=False)
+
         edge_mask_mlp_init = torch.ones((prev_nodes, ))# + cfg.n_heads, ))
         self.edge_mask_mlp = torch.nn.Parameter(edge_mask_mlp_init, requires_grad=True)
+        
+        if self.frozen_mask:
+            if freeze_ones:
+                self.edge_mask_mlp_baseline = torch.nn.Parameter(frozen_mask_edges['m'], requires_grad=False)
+                self.edge_mask_mlp_frozen = torch.nn.Parameter(1 - frozen_mask_edges['m'], requires_grad=False)
+            else:
+                self.edge_mask_mlp_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['m']), requires_grad=False)
+                self.edge_mask_mlp_frozen = torch.nn.Parameter(frozen_mask_edges['m'], requires_grad=False)
+    
 
     def forward(self, resid_pre, means=False):
         # resid_pre [batch, position, d_model, prev_head_idx]
 
+        if self.frozen_mask:
+            attn_mask = self.edge_mask_attentions_baseline + self.edge_mask_attentions_frozen * self.edge_mask_attentions
+        else:
+            attn_mask = self.edge_mask_attentions
+
         masked_resid_pre = einsum(
             "batch position prev_head_idx d_model, prev_head_idx n_heads -> batch position n_heads d_model", 
             resid_pre, 
-            self.edge_mask_attentions
+            attn_mask
         )
         if isinstance(means, torch.Tensor):
-            masked_resid_pre_means = einsum("prev_head_idx d_model, prev_head_idx n_heads -> n_heads d_model", means[:self.edge_mask_attentions.shape[0]], 1 - self.edge_mask_attentions)
+            masked_resid_pre_means = einsum("prev_head_idx d_model, prev_head_idx n_heads -> n_heads d_model", means[:self.edge_mask_attentions.shape[0]], 1 - attn_mask)
             masked_resid_pre = masked_resid_pre + masked_resid_pre_means 
 
         # print(f'resid_pre: {resid_pre.shape}; masked_residuals: {masked_resid_pre.shape}')
@@ -314,10 +338,15 @@ class TransformerBlock(nn.Module):
         attn_out = self.attn(normalized_resid_pre)
         residual = torch.cat((resid_pre, attn_out), dim=2)
 
+        if self.frozen_mask:
+            mlp_mask = self.edge_mask_mlp_baseline + self.edge_mask_mlp_frozen * self.edge_mask_mlp
+        else:
+            mlp_mask = self.edge_mask_mlp
+
         masked_mlp_residual = einsum(
             "batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", 
             resid_pre, 
-            self.edge_mask_mlp
+            mlp_mask
         )
         
         normalized_resid_mid = self.ln2(masked_mlp_residual)
@@ -348,8 +377,15 @@ class Unembed(nn.Module):
 
 """## Full Transformer"""
 
+def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
+    attn_mask = torch.stack([mask_dict_superset[f'a{layer}.{h}'] for h in range(n_heads)], dim=1)
+    mlp_mask = mask_dict_superset[f'm{layer}']
+    return {'a': attn_mask, 'm': mlp_mask}
+
 class DemoTransformer(nn.Module):
-    def __init__(self, cfg, means):
+    def __init__(self, cfg, means,
+                 edge_masks=False, 
+                 mask_dict_superset=None, ):
         super().__init__()
         self.cfg = cfg
         self.embed = Embed(cfg)
@@ -361,9 +397,26 @@ class DemoTransformer(nn.Module):
         for p in self.parameters():
             p.requires_grad = False
 
-        self.blocks = nn.ModuleList([TransformerBlock(cfg, i) for i in range(cfg.n_layers)])
+
+        if mask_dict_superset is not None:
+            assert edge_masks, "edge_masks should be True if mask_dict_superset is not None (mask_dict_superset values take precedence over global edge_masks value)"
+        else:
+            if not edge_masks: # don't want to train edge masks
+                # make our own mask_dict template, and everything should be 1 so that they're all frozen
+                # can be optimized in the future, but this is a shortcut for now
+                mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads)
+            
+        self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
+                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, 
+                                                                  ) for i in range(cfg.n_layers)])
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
         self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)
+        self.frozen_mask = True if mask_dict_superset is not None else False
+        if self.frozen_mask:
+            self.output_mask_baseline = torch.nn.Parameter(mask_dict_superset['output'], requires_grad=False)
+            self.output_mask_frozen = torch.nn.Parameter(1 - mask_dict_superset['output'], requires_grad=False)
+
+
         self.means = means
     
     def forward(self, tokens, return_states=False):
@@ -389,7 +442,11 @@ class DemoTransformer(nn.Module):
         if return_states:
             return residual
         
-        residual = einsum("batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", residual, self.output_mask)
+        if self.frozen_mask:
+            output_mask = self.output_mask_baseline + self.output_mask_frozen * self.output_mask
+        else:
+            output_mask = self.output_mask
+        residual = einsum("batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", residual, output_mask)
         normalized_resid_final = self.ln_final(residual)
         logits = self.unembed(normalized_resid_final)
         # logits have shape [batch, position, logits]

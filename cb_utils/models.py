@@ -5,6 +5,7 @@ from cb_utils.pythia_transformer import DemoTransformer as PythiaDemoTransformer
 from easy_transformer import EasyTransformer
 import torch
 import pickle
+from transformer_lens import HookedTransformer
 
 # %%
 
@@ -66,16 +67,47 @@ def load_demo_gpt2(means, n_layers=12, n_heads=12, **kwargs):
     return demo_gpt2
 
 
+from cb_utils.pythia_transformer import DemoTransformer, Config
+def tl_config_to_demo_config(tl_config, debug=False):
+    return Config(
+            d_model = tl_config.d_model,
+            debug = debug,
+            layer_norm_eps = tl_config.eps,
+            d_vocab = tl_config.d_vocab,
+            init_range = tl_config.initializer_range,
+            n_ctx = tl_config.n_ctx,
+            d_head = tl_config.d_head,
+            d_mlp = tl_config.d_mlp,
+            n_heads = tl_config.n_heads,
+            n_layers = tl_config.n_layers,
+            positional_embedding_type = tl_config.positional_embedding_type,
+            rotary_dim=tl_config.rotary_dim,
+            rotary_base=10000,
+            dtype=tl_config.dtype,
+        )
+
 # 2.8b: d_model = 2560, 32 layers, 32 heads
-def load_demo_pythia(means, n_layers=32, n_heads=32, d_model=2560, **kwargs):
-    with open("models/pythia_weights.pkl", "rb") as f:
-        pythia_weights = pickle.load(f)
+def load_demo_pythia(means, n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, **kwargs):
+    # with open("models/pythia_weights.pkl", "rb") as f:
+    #     pythia_weights = pickle.load(f)
+    # reference_pythia = EasyTransformer.from_pretrained("EleutherAI/pythia-2.7b", fold_ln=False, center_unembed=False, center_writing_weights=False)
+    reference_pythia = HookedTransformer.from_pretrained(
+        "pythia-2.8b",
+        fold_ln=False
+    )
+    reference_pythia.set_use_attn_result(True)
     if d_head is None:
         d_head = d_model // n_heads
     if d_mlp is None:
         d_mlp = 4 * d_model
     
-    demo_pythia = PythiaDemoTransformer(PythiaConfig(debug=False, n_layers=n_layers, n_heads=n_heads, d_model=d_model, d_head=d_head, d_mlp=d_mlp), means, **kwargs)
-    demo_pythia.load_state_dict(pythia_weights, strict=False)
-    demo_pythia.cuda()
+    
+    # demo_pythia = PythiaDemoTransformer(PythiaConfig(debug=False, n_layers=n_layers, n_heads=n_heads, d_model=d_model, d_head=d_head, d_mlp=d_mlp), means, **kwargs)
+    # demo_pythia.load_state_dict(pythia_weights, strict=False)
+    # demo_pythia.cuda()
+    demo_pythia = PythiaDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, **kwargs)
+    demo_pythia.load_state_dict(reference_pythia.state_dict(), strict=False)
+    demo_pythia.to(DEVICE)
     return demo_pythia
+
+# %%

@@ -3,12 +3,12 @@ from turtle import position
 import torch
 
 from transformer_lens import HookedTransformer
-from pythia_transformer import DemoTransformer, Config
+from cb_utils.pythia_transformer import DemoTransformer, Config
 from IPython import get_ipython
 ipython = get_ipython()
 ipython.magic("load_ext autoreload")
 ipython.magic("autoreload 2")
-device='mps:0'
+device='cuda'
 
 #%%
 model = HookedTransformer.from_pretrained(
@@ -105,3 +105,5 @@ for HOOK in hooks:
         ))
 
 
+
+# %%

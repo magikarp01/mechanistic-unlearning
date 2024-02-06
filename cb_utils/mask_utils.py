@@ -370,3 +370,45 @@ def get_masks_from_acdcpp_exp(acdcpp_exp, threshold=0.08):
 
     return acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict
 
+def get_formatted_edges_from_eap(eap_edges):
+    converted_set = set()
+    for edge in eap_edges:
+        # Split the source and target node strings
+        src, tgt, _ = edge
+        
+        # Convert format for source and extract layer
+        if "mlp" in src:
+            layer = int(src.split(".")[1])
+            src = (layer, f"m{layer}")
+        elif "head" in src:
+            # print(f"{tgt.split('.')[1:3]}, {tgt}")
+            layer, head = src.split(".")[1:3]
+            src = (int(layer), f"a{layer}.{head}")
+        
+        # Convert format for target and extract layer
+        if "mlp" in tgt:
+            layer = int(tgt.split(".")[1])
+            tgt = (layer, f"m{layer}")
+        elif "head" in tgt:
+            # print(f"{tgt.split('.')[1:3]}, {tgt}")
+            layer, head = tgt.split(".")[1:3]
+            tgt = (int(layer), f"a{layer}.{head}")
+        
+        # Add to set with reversed order
+        converted_set.add((tgt, src))
+    
+    return converted_set
+
+
+def get_masks_from_eap_exp(graph, threshold=0.001, **kwargs):
+    """
+    graph is an instance of EAPGraph. threshold is a float, one of the thresholds specified in the thresholds list in graph. Formats the output into a nodes set, an edges set, an edge mask dict for edge masking/circuit breaking, and weight mask dicts for attn and mlp weight masking.
+    """
+    eap_unformatted_edges = graph.top_edges(n=len(graph.eap_scores.flatten()), threshold=threshold)
+    eap_edges = get_formatted_edges_from_eap(eap_unformatted_edges)
+    edge_mask_template = get_edge_mask_template(**kwargs)
+    eap_mask_dict = get_mask_from_edges(eap_edges, edge_mask_template=edge_mask_template, **kwargs)
+    eap_nodes = get_nodes_from_edges(eap_edges)
+    eap_weight_mask_attn_dict, eap_weight_mask_mlp_dict = get_mask_components(eap_nodes, **kwargs)
+
+    return eap_nodes, eap_edges, eap_mask_dict, eap_weight_mask_attn_dict, eap_weight_mask_mlp_dict

@@ -103,22 +103,22 @@ except:
     scale_reg_strength = False
 # In[3.5]
 
-# set up pipeline from acdcpp to edge mask
-model = HookedTransformer.from_pretrained(
-    'gpt2-small',
-    center_writing_weights=False,
-    center_unembed=False,
-    fold_ln=False,
-    device=device,
-)
-model.set_use_hook_mlp_in(True)
-model.set_use_split_qkv_input(True)
-model.set_use_attn_result(True)
-
 
 # In[4]:
-if localize_task == "ioi":
+if localize_task == "ioi" or localize_task == "induction":
+    # set up pipeline from acdcpp to edge mask
+    model = HookedTransformer.from_pretrained(
+        'gpt2-small',
+        center_writing_weights=False,
+        center_unembed=False,
+        fold_ln=False,
+        device=device,
+    )
+    model.set_use_hook_mlp_in(True)
+    model.set_use_split_qkv_input(True)
+    model.set_use_attn_result(True)
 
+if localize_task == "ioi":
     from tasks.ioi.IOITask import IOITask_old, IOITask
     ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
     ioi_task.set_logit_diffs(model)
@@ -148,6 +148,7 @@ if localize_task == "ioi":
         run_acdc=False,
         run_acdcpp=True,
     )
+    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
 
 elif localize_task == "induction":
     from tasks.induction.InductionTask import InductionTask
@@ -178,7 +179,10 @@ elif localize_task == "induction":
         run_acdcpp=True,
     )
 
-acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
+    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
+
+elif localize_task == "sports":
+    
 
 print(acdcpp_nodes)
 
