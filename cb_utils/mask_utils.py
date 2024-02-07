@@ -349,13 +349,15 @@ def get_mask_components(nodes_set, num_layers=12, num_heads=12):
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
 
-def get_masks_from_acdcpp_exp(acdcpp_exp, threshold=0.08):
+def get_masks_from_acdcpp_exp(acdcpp_exp, threshold=None):
     """
     acdcpp_exp is an instance of ACDCPPExperiment. threshold is a float, one of the thresholds specified in the thresholds list in acdcpp_exp. Formats the output into a nodes set, an edges set, an edge mask dict for edge masking/circuit breaking, and weight mask dicts for attn and mlp weight masking.
     """
     pruned_heads, num_passes, acdcpp_pruned_attrs, acdc_pruned_attrs, edges_after_acdcpp, edges_after_acdc = acdcpp_exp.run()
 
     acdcpp_edges = set()
+    if threshold is None:
+        threshold = list(edges_after_acdcpp.keys())[0]
     for edge in edges_after_acdcpp[threshold]:
         # split the edge into two nodes, e.g. blocks.1.attn.hook_result[:, :, 10]blocks.0.hook_mlp_in[:] into blocks.1.attn.hook_result[:, :, 10] and blocks.0.hook_mlp_in[:]
         node_1 = get_node_name(edge.split("]")[0]+"]", show_full_index=False)
@@ -412,3 +414,40 @@ def get_masks_from_eap_exp(graph, threshold=0.001, **kwargs):
     eap_weight_mask_attn_dict, eap_weight_mask_mlp_dict = get_mask_components(eap_nodes, **kwargs)
 
     return eap_nodes, eap_edges, eap_mask_dict, eap_weight_mask_attn_dict, eap_weight_mask_mlp_dict
+
+
+def get_masks_from_ct_nodes(nodes_set, **kwargs):
+    """
+    Using a set of nodes that are important as determined by Causal Tracing, get the nodes, edges, and masks. Nodes should come in presorted.
+    Assume node_set looks like {'a0.0', ..., 'm11'}. Want edges from later to earlier.
+
+    """
+    edges_set = set()
+    """
+    want: {((3, 'm3'), (3, 'a3.0')),
+    ((4, 'm4'), (0, 'm0')),
+    ((4, 'm4'), (3, 'a3.0')),
+    ((5, 'a5.9'), (0, 'm0')),}
+    """
+
+    for first_node_idx in range(len(nodes_set)):
+        if "a" in nodes_set[first_node_idx]:
+            first_layer = int(nodes_set[first_node_idx].split(".")[0][1:])
+        else:
+            first_layer = int(nodes_set[first_node_idx][1:])
+
+        for second_node_idx in range(first_node_idx):
+            # get layer, allowing for either a or m. if a, format is a{l}.{h}, if m, format is m{l}, get l
+            if "a" in nodes_set[second_node_idx]:
+                second_layer = int(nodes_set[second_node_idx].split(".")[0][1:])
+            else:
+                second_layer = int(nodes_set[second_node_idx][1:])
+
+            edges_set.add((first_layer, nodes_set[first_node_idx]), (second_layer, nodes_set[second_node_idx]))
+    
+    
+    edge_mask_template = get_edge_mask_template(**kwargs)
+    ct_mask_dict = get_mask_from_edges(edges_set, edge_mask_template=edge_mask_template, **kwargs)
+    ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict = get_mask_components(nodes_set, **kwargs)
+
+    return nodes_set, edges_set, ct_mask_dict, ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict

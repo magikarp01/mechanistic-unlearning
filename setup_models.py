@@ -67,56 +67,61 @@ with open(args.config_dir+"/config.json", 'r') as f:
     config = json.load(f)
 
 # Now you can use these arguments in your code
-edge_masks = config['edge_masks']
-weight_masks_attn = config['weight_masks_attn']
-weight_masks_mlp = config['weight_masks_mlp']
-train_base_weights = config['train_base_weights']
-localize_acdcpp = config['localize_acdcpp']
-localize_task = config['localize_task'] # "ioi" or "induction" for now
+edge_masks = config.get('edge_masks', False)
+weight_masks_attn = config.get('weight_masks_attn', False)
+weight_masks_mlp = config.get('weight_masks_mlp', False)
+train_base_weights = config.get('train_base_weights', False)
+# localize_acdcpp = config.get('localize_acdcpp', False)
+# localize_ct = config.get('localize_ct', False)
+# assert not (localize_acdcpp and localize_ct), "Cannot localize with both acdcpp and ct"
+# localization_method = config.get('localization_method', None)
+# assert "acdcpp" == localization_method or 
+localize_task = config.get('localize_task', "induction")
 
-use_uniform = config['use_uniform']
-uniform_type = config['uniform_type']
-unlrn_task_weight = config['unlrn_task_weight']
-epochs_left = config['epochs_left']
-steps_per_epoch = config['steps_per_epoch']
-lr = config['lr']
-weight_decay = config['weight_decay']
-evaluate_every = config['evaluate_every']
-discretize_every = config['discretize_every']
-threshold = config['threshold']
-use_wandb = config['use_wandb']
-edge_mask_reg_strength = config['edge_mask_reg_strength']
-weight_mask_reg_strength = config['weight_mask_reg_strength']
-num_eval_steps = config['num_eval_steps']
-save_every = config['save_every']
-
+use_uniform = config.get('use_uniform', False)
+uniform_type = config.get('uniform_type', "all_tokens")
+unlrn_task_weight = config.get('unlrn_task_weight', -0.2)
+epochs_left = config.get('epochs_left', 200)
+steps_per_epoch = config.get('steps_per_epoch', 20)
+lr = config.get('lr', 0.01)
+weight_decay = config.get('weight_decay', 0)
+evaluate_every = config.get('evaluate_every', 2)
+discretize_every = config.get('discretize_every', 40)
+threshold = config.get('threshold', 0.5)
+use_wandb = config.get('use_wandb', True)
+edge_mask_reg_strength = config.get('edge_mask_reg_strength', 100)
+weight_mask_reg_strength = config.get('weight_mask_reg_strength', 100)
+num_eval_steps = config.get('num_eval_steps', 10)
+save_every = config.get('save_every', None)
+# For 'save_path', since the default is not provided in the JSON, assuming None as default
+save_path = config.get('save_path', None)
+# Assuming 'scale_reg_strength' is also a parameter you want to load with a default value
+scale_reg_strength = config.get('scale_reg_strength', False)
+localization_dir_path = config.get('localization_dir_path', None)
 # If save_path is None, set it to the directory of the config file
 if config['save_path'] is None:
     save_path = args.config_dir + f"/ckpts"
-else:
-    save_path = config['save_path']
+
+# if localization_dir_path is None:
+#     localization_dir_path = "localizations/"
 
 
-try:
-    scale_reg_strength = config['scale_reg_strength']
-except:
-    scale_reg_strength = False
 # In[3.5]
 
 
 # In[4]:
-if localize_task == "ioi" or localize_task == "induction":
-    # set up pipeline from acdcpp to edge mask
-    model = HookedTransformer.from_pretrained(
-        'gpt2-small',
-        center_writing_weights=False,
-        center_unembed=False,
-        fold_ln=False,
-        device=device,
-    )
-    model.set_use_hook_mlp_in(True)
-    model.set_use_split_qkv_input(True)
-    model.set_use_attn_result(True)
+# if localize_task == "ioi" or localize_task == "induction":
+#     # set up pipeline from acdcpp to edge mask
+#     model = HookedTransformer.from_pretrained(
+#         'gpt2-small',
+#         center_writing_weights=False,
+#         center_unembed=False,
+#         fold_ln=False,
+#         device=device,
+#     )
+#     model.set_use_hook_mlp_in(True)
+#     model.set_use_split_qkv_input(True)
+#     model.set_use_attn_result(True)
 
 if localize_task == "ioi":
     from tasks.ioi.IOITask import IOITask_old, IOITask
@@ -181,7 +186,7 @@ elif localize_task == "induction":
 
     acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
 
-elif localize_task == "sports":
+# elif localize_task == "sports":
     
 
 print(acdcpp_nodes)
@@ -305,6 +310,7 @@ import pickle
 # with open(f"masks/trained_mask_params_{epochs_left=}_{edge_mask_reg_strength=}_{uniform_type=}/final_params.pkl", "wb") as f:
 # with open(f"{save_path}/final_params.pkl", "wb") as f:
 #     pickle.dump(mask_params, f)
+os.makedirs(save_path, exist_ok=True)
 model_path = f"{save_path}/mask_params_final.pth"
 torch.save(model.state_dict(), model_path)
 
