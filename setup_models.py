@@ -71,9 +71,11 @@ edge_masks = config.get('edge_masks', False)
 weight_masks_attn = config.get('weight_masks_attn', False)
 weight_masks_mlp = config.get('weight_masks_mlp', False)
 train_base_weights = config.get('train_base_weights', False)
-# localize_acdcpp = config.get('localize_acdcpp', False)
-# localize_ct = config.get('localize_ct', False)
-# assert not (localize_acdcpp and localize_ct), "Cannot localize with both acdcpp and ct"
+localize_acdcpp = config.get('localize_acdcpp', False)
+localize_ct = config.get('localize_ct', False)
+
+assert not (localize_acdcpp and localize_ct), "Cannot localize with both acdcpp and ct"
+
 # localization_method = config.get('localization_method', None)
 # assert "acdcpp" == localization_method or 
 localize_task = config.get('localize_task', "induction")
@@ -102,8 +104,13 @@ localization_dir_path = config.get('localization_dir_path', None)
 if config['save_path'] is None:
     save_path = args.config_dir + f"/ckpts"
 
-# if localization_dir_path is None:
-#     localization_dir_path = "localizations/"
+if localization_dir_path is None:
+    localization_method = None
+    if localize_acdcpp:
+        localization_method = "acdcpp"
+    elif localize_ct:
+        localization_method = "ct"
+    localization_dir_path = f"localizations/{localize_task}/{localization_method}/"
 
 
 # In[3.5]
@@ -122,7 +129,7 @@ if config['save_path'] is None:
 #     model.set_use_hook_mlp_in(True)
 #     model.set_use_split_qkv_input(True)
 #     model.set_use_attn_result(True)
-
+"""
 if localize_task == "ioi":
     from tasks.ioi.IOITask import IOITask_old, IOITask
     ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
@@ -185,6 +192,9 @@ elif localize_task == "induction":
     )
 
     acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
+"""
+with open(f"{localization_dir_path}", "rb") as f:
+    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
 
 # elif localize_task == "sports":
     
@@ -196,20 +206,12 @@ print(acdcpp_nodes)
 
 from cb_utils.transformer import DemoTransformer
 from cb_utils.models import load_demo_gpt2, tokenizer
-# means_ioi = True
-# if means_ioi:
-#     with open("data/gpt2_ioi_abc_means.pkl", "rb") as f:
-#         means = pickle.load(f)[0]
-# else:
-#     with open("data/gpt2_means.pkl", "rb") as f:
-#         means = pickle.load(f)[0]
-
 #%%
 
 
 # if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
 # model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
-if localize_acdcpp:
+if localize_acdcpp or localize_ct:
     mask_dict_superset = acdcpp_mask_dict if edge_masks else None
     weight_mask_attn_dict = acdcpp_weight_mask_attn_dict if weight_masks_attn else None
     weight_mask_mlp_dict = acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None
@@ -230,16 +232,16 @@ model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=ma
 
 from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
 batch_size = 80
-sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
+# sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
 owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
 greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
-ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False)
+ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
 induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
 if localize_task == "ioi":
-    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type)
+    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
 
-    ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=1) # slightly different template
+    ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
 
     ioi_task_3 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
 
@@ -251,7 +253,7 @@ if localize_task == "ioi":
         train_tasks = {"ioi": ioi, "owt": owt}
         task_weights = {"ioi": unlrn_task_weight, "owt": 1}
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "sports": sports, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
 
 elif localize_task == "induction":
     induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
@@ -264,7 +266,7 @@ elif localize_task == "induction":
         train_tasks = {"induction": induction, "owt": owt}
         task_weights = {"induction": unlrn_task_weight, "owt": 1}
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "sports": sports, "owt": owt, "greaterthan": greaterthan}
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "greaterthan": greaterthan}
 
 # In[14]:
 
