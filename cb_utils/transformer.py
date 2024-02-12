@@ -209,7 +209,7 @@ class Attention(nn.Module):
         # no self.b_O because there is no head dimension for b_O, so it shouldn't be selectively frozen
         
 
-        if self.train_base_weights:
+        if self.train_base_weights and self.mask_heads is not None:
             W_Q = self.W_untrainable_Q_baseline*self.W_untrainable_Q + self.W_untrainable_Q_frozen*W_Q
             W_K = self.W_untrainable_K_baseline*self.W_untrainable_K + self.W_untrainable_K_frozen*W_K
             W_V = self.W_untrainable_V_baseline*self.W_untrainable_V + self.W_untrainable_V_frozen*W_V

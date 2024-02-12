@@ -18,7 +18,7 @@ conda activate unlrn
 
 # python setup_models.py --config_dir=masks/induction/use_uniform=False_edge_masks=True_weight_masks_attn=False_weight_masks_mlp=False_train_base_weights=False_localize_acdcpp=False
 
-python setup_models.py --config_dir=masks/induction/use_uniform=False_edge_masks=True_weight_masks_attn=False_weight_masks_mlp=False_train_base_weights=False_localize_acdcpp=False
+python setup_models.py --config_dir=masks/induction_nonuniform/finetune_localize=none
 
 # localized masking
 # python setup_models.py --edge_masks --localize_acdcpp --ioi_task_weight=-.2 --use_wandb

@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Optional, Union, Callable
 import wandb
 import os
+import time
 
 # for getting datetime
 from datetime import datetime
@@ -144,7 +145,6 @@ def train_masks(model,
                 if use_wandb:
                     wandb.log({f"train_loss_{task_name}": loss.item()}, step=epoch*steps_per_epoch + step)
                 total_loss += loss * task_weights[task_name]
-            
             # Add regularization losses for edge and weight masks, l1
             
             edge_reg_term = 0
@@ -177,7 +177,7 @@ def train_masks(model,
                 train_losses['edge_reg_term'].append((epoch, step, edge_reg_term))
                 if use_wandb:
                     wandb.log({"edge_reg_term": edge_reg_term}, step=epoch*steps_per_epoch + step)
-                    wandb.log({"edge_reg_term_scale": edge_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
+                    # wandb.log({"edge_reg_term_scale": edge_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
                 total_loss -= edge_mask_reg_strength_val * edge_reg_term
 
             if weight_mask_reg_strength is not None:
@@ -189,7 +189,7 @@ def train_masks(model,
                 train_losses['weight_mask_reg'].append((epoch, step, weight_reg_term))
                 if use_wandb:
                     wandb.log({"weight_mask_reg": weight_reg_term}, step=epoch*steps_per_epoch + step)
-                    wandb.log({"weight_mask_reg_scale": weight_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
+                    # wandb.log({"weight_mask_reg_scale": weight_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
                 total_loss -= weight_reg_term * weight_mask_reg_strength_val
             
 

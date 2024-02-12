@@ -163,7 +163,7 @@ def get_patching_results(
     ).cpu()  # layer, hook_idx, position
 
     # TODO: batchify this
-    for layer in tqdm.tqdm(range(model.cfg.n_layers)):
+    for layer in range(model.cfg.n_layers):
         for position in range(len(tokens[0])):
             for hook_idx, hook_name in enumerate(hook_names):
                 if "mlp" in hook_name:
@@ -313,7 +313,7 @@ def get_causal_tracing_components(model, ioi_data, n):
         len(ioi_data.toks[0]),
     )
 
-    for data in ioi_data.ioi_prompts[:n]:
+    for data in tqdm.tqdm(ioi_data.ioi_prompts[:n]):
         patching_result += get_patching_results(
             model=model,
             prompt=data['text'],  # TODO: many prompts

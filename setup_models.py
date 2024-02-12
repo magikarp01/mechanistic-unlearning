@@ -193,14 +193,17 @@ elif localize_task == "induction":
 
     acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
 """
-with open(f"{localization_dir_path}", "rb") as f:
-    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
+if localize_acdcpp or localize_ct:
+    with open(f"{localization_dir_path}", "rb") as f:
+        acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
+else:
+    acdcpp_nodes = None
+    acdcpp_edges = None
+    acdcpp_mask_dict = None
+    acdcpp_weight_mask_attn_dict = None
+    acdcpp_weight_mask_mlp_dict = None
 
-# elif localize_task == "sports":
-    
-
-print(acdcpp_nodes)
-
+print(acdcpp_edges)
 # In[12]:
 
 
