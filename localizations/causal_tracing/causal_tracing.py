@@ -276,9 +276,9 @@ def convert_indices_to_names(
         layer, node = matrix_index
         node_name = node_names[node]
         if node_name == "MLP":
-            top_k_results.append(f"m.{layer}")
+            top_k_results.append((f"m.{layer}", score))
         else:
-            top_k_results.append(f"a.{layer}.{node}")
+            top_k_results.append((f"a.{layer}.{node}", score))
         if verbose:
             print(f"Layer {layer} {node_name}, Score {score}")
         # top_k_results.append(
@@ -291,38 +291,43 @@ def convert_indices_to_names(
     return top_k_results
 
 #%%
-%cd ../../
+# %cd ../../
 #%%
-from tasks import IOITask
-
-#%%
-device = torch.device("cuda:0" if torch.cuda.is_available() else "mps:0")
-NUM_SEEDS = 1
-NOISE_COEFFICIENT = 10
-model_name = "gpt2-small"
-hook_names = ["blocks.{layer}.hook_mlp_out", "blocks.{layer}.attn.hook_z"]
-model = HookedTransformer.from_pretrained(model_name, device=device)
-
-ioi_task = IOITask(batch_size=3, tokenizer=model.tokenizer)
-ioi_data = ioi_task.ioi_data
+# from tasks import IOITask
 
 #%%
-patching_result = torch.zeros(
-    model.cfg.n_layers,
-    model.cfg.n_heads + 1,
-    len(ioi_data.toks[0]),
-)
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "mps:0")
+# model_name = "gpt2-small"
+# model = HookedTransformer.from_pretrained(model_name, device=device)
 
-for data in ioi_data.ioi_prompts[:3]:
-    patching_result += get_patching_results(
-        model=model,
-        prompt=data['text'],  # TODO: many prompts
-        hook_names=hook_names,  # TODO: make this neater
-        subject=data['IO'],
-        num_seeds=NUM_SEEDS,
-        noise_coefficient=NOISE_COEFFICIENT,
+# ioi_task = IOITask(batch_size=100, tokenizer=model.tokenizer)
+# ioi_data = ioi_task.ioi_data
+
+def get_causal_tracing_components(model, ioi_data, n):
+    hook_names = ["blocks.{layer}.hook_mlp_out", "blocks.{layer}.attn.hook_z"]
+    NUM_SEEDS = 1
+    NOISE_COEFFICIENT = 10
+    patching_result = torch.zeros(
+        model.cfg.n_layers,
+        model.cfg.n_heads + 1,
+        len(ioi_data.toks[0]),
     )
 
-patching_result /= len(ioi_data)
-top_k = get_top_k_nodes(patching_result, k=10)
-top_k_results = convert_indices_to_names(top_k, verbose=True)
+    for data in ioi_data.ioi_prompts[:n]:
+        patching_result += get_patching_results(
+            model=model,
+            prompt=data['text'],  # TODO: many prompts
+            hook_names=hook_names,  # TODO: make this neater
+            subject=data['IO'],
+            num_seeds=NUM_SEEDS,
+            noise_coefficient=NOISE_COEFFICIENT,
+        )
+
+    patching_result /= len(ioi_data)
+    top_k = get_top_k_nodes(patching_result, k=145)
+    top_k_results = convert_indices_to_names(top_k, verbose=True)
+
+    return top_k_results
+
+# get_important_components(3)
+# %%
