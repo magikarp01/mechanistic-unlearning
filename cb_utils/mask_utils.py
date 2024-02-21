@@ -222,16 +222,23 @@ def get_node_name(node_name, show_full_index=False):
 
     return layer, name
 
-def get_edge_mask_template(num_layers=12, num_heads=12):
+def get_edge_mask_template(num_layers=12, num_heads=12, neox=False):
+    """
+    neox: MLP not after attn, instead they access same time, no edge between same layer attn and mlp
+    """
     edge_mask_template = {}
     edge_mask_template["embed"] = torch.ones(size=(0,))
     num_prev_components = 1
     for layer in range(num_layers):
         for head in range(num_heads):
             edge_mask_template[f"a{layer}.{head}"] = torch.ones(size=(num_prev_components,))
-        num_prev_components += num_heads
-        edge_mask_template[f"m{layer}"] = torch.ones(size=(num_prev_components,))
-        num_prev_components += 1
+        if neox:
+            edge_mask_template[f"m{layer}"] = torch.ones(size=(num_prev_components,))
+            num_prev_components += num_heads + 1
+        else:
+            num_prev_components += num_heads
+            edge_mask_template[f"m{layer}"] = torch.ones(size=(num_prev_components,))
+            num_prev_components += 1
     edge_mask_template["output"] = torch.ones(size=(num_prev_components,))
     return edge_mask_template
 
@@ -402,13 +409,25 @@ def get_formatted_edges_from_eap(eap_edges):
     return converted_set
 
 
-def get_masks_from_eap_exp(graph, threshold=0.001, **kwargs):
+def get_masks_from_eap_exp(graph, threshold=0.001, filter_neox=False, **kwargs, ):
     """
     graph is an instance of EAPGraph. threshold is a float, one of the thresholds specified in the thresholds list in graph. Formats the output into a nodes set, an edges set, an edge mask dict for edge masking/circuit breaking, and weight mask dicts for attn and mlp weight masking.
     """
     eap_unformatted_edges = graph.top_edges(n=len(graph.eap_scores.flatten()), threshold=threshold)
     eap_edges = get_formatted_edges_from_eap(eap_unformatted_edges)
-    edge_mask_template = get_edge_mask_template(**kwargs)
+    if filter_neox:
+        print(f"Old len: {len(eap_edges)}")
+        new_eap_edges = set()
+        for edge in eap_edges:
+            # if first node is mlp layer l and second node is attn layer l, don't add edge
+            if "m" in edge[0][1] and "a" in edge[1][1] and edge[0][0] == edge[1][0]:
+                continue
+            new_eap_edges.add(edge)
+        eap_edges = new_eap_edges
+        print(f"New len: {len(eap_edges)}")
+        
+
+    edge_mask_template = get_edge_mask_template(neox=filter_neox, **kwargs)
     eap_mask_dict = get_mask_from_edges(eap_edges, edge_mask_template=edge_mask_template, **kwargs)
     eap_nodes = get_nodes_from_edges(eap_edges)
     eap_weight_mask_attn_dict, eap_weight_mask_mlp_dict = get_mask_components(eap_nodes, **kwargs)

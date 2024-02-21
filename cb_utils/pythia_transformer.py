@@ -404,7 +404,7 @@ class DemoTransformer(nn.Module):
             if not edge_masks: # don't want to train edge masks
                 # make our own mask_dict template, and everything should be 1 so that they're all frozen
                 # can be optimized in the future, but this is a shortcut for now
-                mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads)
+                mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads, neox=True)
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
                                                       frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, 

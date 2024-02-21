@@ -97,6 +97,7 @@ num_eval_steps = config.get('num_eval_steps', 10)
 save_every = config.get('save_every', None)
 # For 'save_path', since the default is not provided in the JSON, assuming None as default
 save_path = config.get('save_path', None)
+save_efficient = config.get('save_efficient', True)
 # Assuming 'scale_reg_strength' is also a parameter you want to load with a default value
 scale_reg_strength = config.get('scale_reg_strength', False)
 localization_dir_path = config.get('localization_dir_path', None)
@@ -305,7 +306,7 @@ optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
 train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch,
             # param_names=param_names, mask_params=mask_params, 
             task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
-            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path,)
+            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient)
 
 
 # In[17]:
@@ -316,8 +317,13 @@ import pickle
 # with open(f"{save_path}/final_params.pkl", "wb") as f:
 #     pickle.dump(mask_params, f)
 os.makedirs(save_path, exist_ok=True)
-model_path = f"{save_path}/mask_params_final.pth"
-torch.save(model.state_dict(), model_path)
+if save_efficient:
+    model_path = f"{save_path}/mask_params_final.pkl"
+    with open(model_path, "wb") as f:
+        pickle.dump((param_names, mask_params), f)
+else:
+    model_path = f"{save_path}/mask_params_final.pth"
+    torch.save(model.state_dict(), model_path)
 
 with open(f"{save_path}/final_losses.pkl", "wb") as f:
     pickle.dump((train_losses, test_losses), f)

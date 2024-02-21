@@ -87,19 +87,28 @@ def tl_config_to_demo_config(tl_config, debug=False):
         )
 
 # 2.8b: d_model = 2560, 32 layers, 32 heads
-def load_demo_pythia(means, n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, **kwargs):
+def load_demo_pythia(means, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, **kwargs):
     # with open("models/pythia_weights.pkl", "rb") as f:
     #     pythia_weights = pickle.load(f)
     # reference_pythia = EasyTransformer.from_pretrained("EleutherAI/pythia-2.7b", fold_ln=False, center_unembed=False, center_writing_weights=False)
+    # if model_name == "pythia-2.8b":
+    #     n_layers = 32
+    #     n_heads = 32
+    #     d_model = 2560
+    # elif model_name == "pythia-1.4b":
+    #     n_layers = 24
+    #     n_heads = 16
+    #     d_model = 2048
+    # if d_head is None:
+    #     d_head = d_model // n_heads
+    # if d_mlp is None:
+    #     d_mlp = 4 * d_model
+
     reference_pythia = HookedTransformer.from_pretrained(
-        "pythia-2.8b",
+        model_name,
         fold_ln=False
     )
     reference_pythia.set_use_attn_result(True)
-    if d_head is None:
-        d_head = d_model // n_heads
-    if d_mlp is None:
-        d_mlp = 4 * d_model
     
     
     # demo_pythia = PythiaDemoTransformer(PythiaConfig(debug=False, n_layers=n_layers, n_heads=n_heads, d_model=d_model, d_head=d_head, d_mlp=d_mlp), means, **kwargs)

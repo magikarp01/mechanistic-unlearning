@@ -8,6 +8,7 @@ from typing import Optional, Union, Callable
 import wandb
 import os
 import time
+import pickle
 
 # for getting datetime
 from datetime import datetime
@@ -73,7 +74,8 @@ def train_masks(model,
                 verbose=False,
                 use_wandb=False,
                 wandb_config=None,
-                save_dir=None
+                save_dir=None,
+                save_efficient=False,
                 ):
     """
     Train a model using tasks (weight the overall loss by task_weights). For now, planned to be training differentiable binary masks over the weights and edges of the model.
@@ -250,12 +252,24 @@ def train_masks(model,
                 # get date and time to save
                 now = datetime.now()
                 dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
-                model_path = f"masks/mask_params_{dt_string}_{epoch=}.pt"
+                if save_efficient:
+                    model_path = f"masks/mask_params_{dt_string}_{epoch=}.pkl"
+                    with open(model_path, "wb") as f:
+                        pickle.dump((param_names, mask_params), f)
+                else:
+                    model_path = f"masks/mask_params_{dt_string}_{epoch=}.pth"
+                    torch.save(model.state_dict(), model_path)
+
             else:
                 # make sure save_dir exists
                 os.makedirs(save_dir, exist_ok=True)
-                model_path = f"{save_dir}/mask_params_{epoch=}.pth"
-            torch.save(model.state_dict(), model_path)
+                if save_efficient:
+                    model_path = f"{save_dir}/mask_params_{epoch=}.pkl"
+                    with open(model_path, "wb") as f:
+                        pickle.dump((param_names, mask_params), f)
+                else:
+                    model_path = f"{save_dir}/mask_params_{epoch=}.pth"
+                    torch.save(model.state_dict(), model_path)
 
     if use_wandb:
         wandb.finish()
