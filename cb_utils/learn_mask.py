@@ -64,6 +64,7 @@ def train_masks(model,
                 mask_params: Optional[list[torch.nn.parameter.Parameter]]=None,
                 eval_tasks: dict[str, Task]=None,
                 steps_per_epoch=100,
+                accum_grad_steps=1,
                 evaluate_every=10, 
                 discretize_every=50, 
                 save_every=None,
@@ -83,6 +84,8 @@ def train_masks(model,
     Parameters:
     model: DemoTransformer, the model to use for training and evaluation. If edge or weight mask should be frozen, do this to model before passing it in.
     optimizer: torch.optim.Optimizer, the optimizer to use for training. For now, planned to be over edge mask and weight mask parameters.
+
+    accum_grad_steps: int, the number of steps to accumulate gradients over before taking a step. This is useful for large batch sizes that don't fit in memory (use a small batch size in task, increase it effectively by increasing accum_grad_steps).
 
     param_names: list of strings, the names of the parameters of the model that should be optimized (typically everything covered by optimizer). If None, defaults to params of model that are not frozen.
     mask_params: list of torch.nn.parameter.Parameter, the parameters of the model that should be optimized (typically everything covered by optimizer). If None, defaults to params of model that are not frozen.
@@ -141,12 +144,18 @@ def train_masks(model,
             model.zero_grad()
             total_loss = 0
             for task_name, task in tasks.items():
-                loss = task.get_train_loss(model)
-                # add item (without gradients to avoid memory leak) to train_losses
-                train_losses[task_name].append((epoch, step, loss.item()))
+                task_loss = 0
+                for i in range(accum_grad_steps):
+                    # print(f"Current memory usage on {task_name}, {i}: ", torch.cuda.memory_allocated(device="cuda") / 1e9)
+                    loss = task.get_train_loss(model)
+                    # add item (without gradients to avoid memory leak) to train_losses
+                    train_losses[task_name].append((epoch, step, loss.item()))
+                    total_loss += loss.item() * task_weights[task_name]
+                    task_loss += loss.item()
+                    loss.backward()
                 if use_wandb:
-                    wandb.log({f"train_loss_{task_name}": loss.item()}, step=epoch*steps_per_epoch + step)
-                total_loss += loss * task_weights[task_name]
+                    wandb.log({f"train_loss_{task_name}": task_loss / accum_grad_steps}, step=epoch*steps_per_epoch + step)
+
             # Add regularization losses for edge and weight masks, l1
             
             edge_reg_term = 0
@@ -180,7 +189,13 @@ def train_masks(model,
                 if use_wandb:
                     wandb.log({"edge_reg_term": edge_reg_term}, step=epoch*steps_per_epoch + step)
                     # wandb.log({"edge_reg_term_scale": edge_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
-                total_loss -= edge_mask_reg_strength_val * edge_reg_term
+                edge_reg_loss = - edge_reg_term * edge_mask_reg_strength_val
+                try:
+                    total_loss += edge_reg_loss.item()
+                    edge_reg_loss.backward()
+                except:
+                    # with torch.no_grad():
+                    total_loss += edge_reg_loss
 
             if weight_mask_reg_strength is not None:
                 if callable(weight_mask_reg_strength):
@@ -192,17 +207,25 @@ def train_masks(model,
                 if use_wandb:
                     wandb.log({"weight_mask_reg": weight_reg_term}, step=epoch*steps_per_epoch + step)
                     # wandb.log({"weight_mask_reg_scale": weight_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
-                total_loss -= weight_reg_term * weight_mask_reg_strength_val
+                # total_loss -= weight_reg_term * weight_mask_reg_strength_val
+                weight_reg_loss = -weight_reg_term * weight_mask_reg_strength_val
+                try:
+                    total_loss += weight_reg_loss.item()
+                    weight_reg_loss.backward()
+
+                except:
+                    # with torch.no_grad():
+                    total_loss += weight_reg_loss
             
 
-            train_losses['total'].append((epoch, step, total_loss.item()))
-            total_loss.backward()
+            # train_losses['total'].append((epoch, step, total_loss.item()))
+            # total_loss.backward()
             # torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
             for p in mask_params:
                 p.data.clamp_(0,1)
-            if use_wandb:
-                wandb.log({"total_loss": total_loss.item()}, step=epoch*steps_per_epoch + step)
+            # if use_wandb:
+            #     wandb.log({"total_loss": total_loss.item()}, step=epoch*steps_per_epoch + step)
 
         if discretize_every is not None and epoch % discretize_every == 0:
             if verbose:
@@ -270,6 +293,8 @@ def train_masks(model,
                 else:
                     model_path = f"{save_dir}/mask_params_{epoch=}.pth"
                     torch.save(model.state_dict(), model_path)
+            
+            torch.cuda.empty_cache()
 
     if use_wandb:
         wandb.finish()

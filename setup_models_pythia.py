@@ -117,84 +117,6 @@ if localization_dir_path is None:
 
 # In[3.5]
 
-
-# In[4]:
-# if localize_task == "ioi" or localize_task == "induction":
-#     # set up pipeline from acdcpp to edge mask
-#     model = HookedTransformer.from_pretrained(
-#         'gpt2-small',
-#         center_writing_weights=False,
-#         center_unembed=False,
-#         fold_ln=False,
-#         device=device,
-#     )
-#     model.set_use_hook_mlp_in(True)
-#     model.set_use_split_qkv_input(True)
-#     model.set_use_attn_result(True)
-"""
-if localize_task == "ioi":
-    from tasks.ioi.IOITask import IOITask_old, IOITask
-    ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
-    ioi_task.set_logit_diffs(model)
-
-    ioi_metric = ioi_task.get_acdcpp_metric()
-    def negative_abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
-        return -abs(ioi_metric(logits))
-
-    # In[7]:
-
-    THRESHOLDS = [0.08, .15]#np.arange(0.005, 0.155, 0.005)
-    RUN_NAME = 'abs_edge'
-
-    acdcpp_exp = ACDCPPExperiment(
-        model=model,
-        clean_data=ioi_task.clean_data.toks,
-        corr_data=ioi_task.corr_data.toks,
-        acdc_metric=negative_abs_ioi_metric,
-        acdcpp_metric=ioi_metric,
-        thresholds=THRESHOLDS,
-        run_name=RUN_NAME,
-        verbose=False,
-        attr_absolute_val=True,
-        save_graphs_after=-100,
-        pruning_mode='edge',
-        no_pruned_nodes_attr=1,
-        run_acdc=False,
-        run_acdcpp=True,
-    )
-    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
-
-elif localize_task == "induction":
-    from tasks.induction.InductionTask import InductionTask
-    ind_task = InductionTask(batch_size=5, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
-    ind_task.set_logit_diffs(model)
-
-    ind_metric = ind_task.get_acdcpp_metric()
-    def negative_abs_ind_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
-        return -abs(ind_metric(logits))
-
-    THRESHOLDS = [0.05]#np.arange(0.005, 0.155, 0.005)
-    RUN_NAME = 'abs_edge'
-
-    acdcpp_exp = ACDCPPExperiment(
-        model=model,
-        clean_data=ind_task.clean_data,
-        corr_data=ind_task.corr_data,
-        acdc_metric=negative_abs_ind_metric,
-        acdcpp_metric=ind_metric,
-        thresholds=THRESHOLDS,
-        run_name=RUN_NAME,
-        verbose=False,
-        attr_absolute_val=True,
-        save_graphs_after=-100,
-        pruning_mode='edge',
-        no_pruned_nodes_attr=1,
-        run_acdc=False,
-        run_acdcpp=True,
-    )
-
-    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
-"""
 if localize_acdcpp or localize_ct:
     with open(f"{localization_dir_path}", "rb") as f:
         acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
@@ -210,7 +132,7 @@ print(acdcpp_edges)
 
 
 from cb_utils.transformer import DemoTransformer
-from cb_utils.models import load_demo_gpt2, tokenizer
+from cb_utils.models import load_demo_gpt2, tokenizer, load_demo_pythia
 #%%
 
 
@@ -231,47 +153,63 @@ else:
     base_weight_mlp_dict = None
 
 
-model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
+model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_masks=edge_masks, mask_dict_superset=mask_dict_superset,)
+# weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict) # these should be None so shouldn't matter
 
 # In[13]:
 
-from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
-batch_size = 80
-# sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
-owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
-greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
-ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
-induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
+from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
+test_batch_size = 32
+sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device)
+owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30)
+ioi = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
+induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
+train_batch_size=4
+owt_train = OWTTask(batch_size=4, tokenizer=tokenizer, device=device, ctx_length=30)
 if localize_task == "ioi":
-    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
 
-    ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
+    ioi_task_2 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
 
-    ioi_task_3 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
+    ioi_task_3 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
 
     # train_tasks = {"ioi": ioi, "owt": owt}
     if use_uniform:
-        train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt}
+        ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
+        train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt_train}
         task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
-    else:
-        train_tasks = {"ioi": ioi, "owt": owt}
+    else: 
+        ioi_train = IOITask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
+        train_tasks = {"ioi": ioi_train, "owt": owt_train}
         task_weights = {"ioi": unlrn_task_weight, "owt": 1}
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "sports": sports}
 
 elif localize_task == "induction":
-    induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
-    
     if use_uniform:
-        train_tasks = {"induction_uniform": induction_uniform, "owt": owt}
+        induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
+        train_tasks = {"induction_uniform": induction_uniform, "owt": owt_train}
         task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
 
     else:
-        train_tasks = {"induction": induction, "owt": owt}
+        induction_train = InductionTask(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
+        train_tasks = {"induction": induction_train, "owt": owt_train}
         task_weights = {"induction": unlrn_task_weight, "owt": 1}
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "greaterthan": greaterthan}
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
+
+elif localize_task == "sports":
+    if use_uniform:
+        sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
+        train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
+        task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
+    
+    else:
+        sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
+        train_tasks = {"sports": sports_train, "owt": owt_train}
+        task_weights = {"sports": unlrn_task_weight, "owt": 1}
+
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
 
 # In[14]:
 
