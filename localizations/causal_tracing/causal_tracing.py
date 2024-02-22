@@ -15,14 +15,18 @@ MAIN = __name__ == "__main__"
 #%%
 if MAIN:
     from tasks.induction.InductionTask import InductionTask
+    from tasks import IOITask
     
     model = HookedTransformer.from_pretrained(
-        'gelu-2L',
+        'gpt2-small',
     )
 
 
     ind_task = InductionTask(batch_size=5, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
     ind_task.set_logit_diffs(model)
+
+    ioi_train = IOITask(batch_size=16, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, nb_templates=4, prompt_type="ABBA")
+    ioi_train.set_logit_diffs(model)
 
 # %%
 def get_embedding_norm(model, tokens):
@@ -182,3 +186,4 @@ def causal_tracing_induction(model, ind_task):
         results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
 
     return results
+# %%

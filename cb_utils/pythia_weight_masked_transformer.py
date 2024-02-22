@@ -309,9 +309,9 @@ class Attention(nn.Module):
         attn_out = einops.einsum(
             z, 
             W_O,
-            "batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos d_model"
+            "batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos n_heads d_model"
         ) + (self.b_O / self.cfg.n_heads)
-        return attn_out
+        return attn_out.sum(dim=2)
     
     def discretize_weight_masks(self, threshold=0.5):
         """
