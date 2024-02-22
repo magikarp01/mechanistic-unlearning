@@ -152,8 +152,10 @@ else:
     base_weight_attn_dict = None
     base_weight_mlp_dict = None
 
-
-model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_masks=edge_masks, mask_dict_superset=mask_dict_superset,)
+if edge_masks:
+    model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_masks=edge_masks, mask_dict_superset=mask_dict_superset,)
+elif weight_masks_attn or weight_masks_mlp:
+    model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_mask=False, weight_mask=True, weight_masks_attn=True, weight_masks_mlp=True, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
 # weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict) # these should be None so shouldn't matter
 
 # In[13]:
@@ -210,6 +212,23 @@ elif localize_task == "sports":
         task_weights = {"sports": unlrn_task_weight, "owt": 1}
 
     eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
+
+elif localize_task == "sports_limited":
+    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, start_index=64, stop_index=-128, train_test_split=False)
+    if use_uniform:
+        forget_sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type, start_index=0, stop_index=64, train_test_split=False)
+        train_tasks = {"forget_sports_uniform": forget_sports_uniform, "maintain_sports": maintain_sports, "owt": owt_train}
+        task_weights = {"forget_sports_uniform": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
+
+    else:
+        forget_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, start_index=0, stop_index=64, train_test_split=False)
+        train_tasks = {"forget_sports": forget_sports, "maintain_sports": maintain_sports, "owt": owt_train}
+        task_weights = {"forget_sports": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
+
+    forget_sports_eval = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=0, stop_index=64, train_test_split=False)
+    maintain_sports_eval = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=64, stop_index=-128, train_test_split=False)
+    other_sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=-128, train_test_split=False)
+    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "forget_sports": forget_sports_eval, "maintain_sports": maintain_sports_eval, "other_sports": other_sports}
 
 # In[14]:
 

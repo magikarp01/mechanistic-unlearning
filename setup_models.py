@@ -118,83 +118,6 @@ if localization_dir_path is None:
 # In[3.5]
 
 
-# In[4]:
-# if localize_task == "ioi" or localize_task == "induction":
-#     # set up pipeline from acdcpp to edge mask
-#     model = HookedTransformer.from_pretrained(
-#         'gpt2-small',
-#         center_writing_weights=False,
-#         center_unembed=False,
-#         fold_ln=False,
-#         device=device,
-#     )
-#     model.set_use_hook_mlp_in(True)
-#     model.set_use_split_qkv_input(True)
-#     model.set_use_attn_result(True)
-"""
-if localize_task == "ioi":
-    from tasks.ioi.IOITask import IOITask_old, IOITask
-    ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
-    ioi_task.set_logit_diffs(model)
-
-    ioi_metric = ioi_task.get_acdcpp_metric()
-    def negative_abs_ioi_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
-        return -abs(ioi_metric(logits))
-
-    # In[7]:
-
-    THRESHOLDS = [0.08, .15]#np.arange(0.005, 0.155, 0.005)
-    RUN_NAME = 'abs_edge'
-
-    acdcpp_exp = ACDCPPExperiment(
-        model=model,
-        clean_data=ioi_task.clean_data.toks,
-        corr_data=ioi_task.corr_data.toks,
-        acdc_metric=negative_abs_ioi_metric,
-        acdcpp_metric=ioi_metric,
-        thresholds=THRESHOLDS,
-        run_name=RUN_NAME,
-        verbose=False,
-        attr_absolute_val=True,
-        save_graphs_after=-100,
-        pruning_mode='edge',
-        no_pruned_nodes_attr=1,
-        run_acdc=False,
-        run_acdcpp=True,
-    )
-    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
-
-elif localize_task == "induction":
-    from tasks.induction.InductionTask import InductionTask
-    ind_task = InductionTask(batch_size=5, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
-    ind_task.set_logit_diffs(model)
-
-    ind_metric = ind_task.get_acdcpp_metric()
-    def negative_abs_ind_metric(logits: Float[Tensor, "batch seq_len d_vocab"]):
-        return -abs(ind_metric(logits))
-
-    THRESHOLDS = [0.05]#np.arange(0.005, 0.155, 0.005)
-    RUN_NAME = 'abs_edge'
-
-    acdcpp_exp = ACDCPPExperiment(
-        model=model,
-        clean_data=ind_task.clean_data,
-        corr_data=ind_task.corr_data,
-        acdc_metric=negative_abs_ind_metric,
-        acdcpp_metric=ind_metric,
-        thresholds=THRESHOLDS,
-        run_name=RUN_NAME,
-        verbose=False,
-        attr_absolute_val=True,
-        save_graphs_after=-100,
-        pruning_mode='edge',
-        no_pruned_nodes_attr=1,
-        run_acdc=False,
-        run_acdcpp=True,
-    )
-
-    acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = get_masks_from_acdcpp_exp(acdcpp_exp, threshold=THRESHOLDS[0])
-"""
 if localize_acdcpp or localize_ct:
     with open(f"{localization_dir_path}", "rb") as f:
         acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
@@ -274,7 +197,6 @@ elif localize_task == "induction":
     eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "greaterthan": greaterthan}
 
 # In[14]:
-
 
 mask_params = []
 param_names = []

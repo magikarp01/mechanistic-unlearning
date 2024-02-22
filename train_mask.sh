@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=edge_none
-# #SBATCH --job-name=weight_mask
+# #SBATCH --job-name=e_none
+#SBATCH --job-name=w_no_sp
 # #SBATCH --job-name=ft_baseline
 #SBATCH --output=jupyter_logs/log-%J.txt
 #SBATCH --nodes=1
@@ -11,7 +11,7 @@
 source /data/phillip_guo/miniconda3/etc/profile.d/conda.sh
 conda activate unlrn
 
-python setup_models_pythia.py --config_dir=masks/sports/edge_masks_localize=none
+python setup_models_pythia.py --config_dir=masks/sports/weight_masks_localize=none
 
 # python setup_models.py --config_dir=masks/induction/use_uniform=True_edge_masks=True_weight_masks_attn=False_weight_masks_mlp=False_train_base_weights=False_localize_acdcpp=False
 

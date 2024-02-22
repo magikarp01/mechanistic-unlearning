@@ -108,7 +108,8 @@ def load_demo_pythia(means=False, model_name="pythia-2.8b", n_layers=32, n_heads
 
     reference_pythia = HookedTransformer.from_pretrained(
         model_name,
-        fold_ln=False
+        fold_ln=False,
+        device="cpu"
     )
     reference_pythia.set_use_attn_result(True)
     

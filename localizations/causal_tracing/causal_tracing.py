@@ -187,3 +187,12 @@ def causal_tracing_induction(model, ind_task):
 
     return results
 # %%
+induction_ct_results = causal_tracing_induction(model, ind_task)
+import pickle
+with open("causal_tracing/induction/gpt2_small_attrs.pkl", "wb") as f:
+    pickle.dump(induction_ct_results, f)
+# %%
+ioi_ct_results = causal_tracing_induction(model, ioi_train)
+import pickle
+with open("causal_tracing/ioi/gpt2_small_attrs.pkl", "wb") as f:
+    pickle.dump(ioi_ct_results, f)

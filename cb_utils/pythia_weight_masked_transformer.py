@@ -268,7 +268,7 @@ class Attention(nn.Module):
                 # print(f"{self.weight_mask_W_O_baseline.shape=}, {self.weight_mask_W_O_frozen.shape=}, {self.weight_mask_W_O.shape=}")
                 
 
-                weight_mask_W_Q = self.weight_mask_W_K_baseline + self.weight_mask_W_K_frozen * self.weight_mask_W_K
+                weight_mask_W_Q = self.weight_mask_W_Q_baseline + self.weight_mask_W_Q_frozen * self.weight_mask_W_Q
                 weight_mask_W_K = self.weight_mask_W_K_baseline + self.weight_mask_W_K_frozen * self.weight_mask_W_K
                 weight_mask_W_V = self.weight_mask_W_V_baseline + self.weight_mask_W_V_frozen * self.weight_mask_W_V
                 weight_mask_W_O = self.weight_mask_W_O_baseline + self.weight_mask_W_O_frozen * self.weight_mask_W_O
@@ -456,8 +456,8 @@ class DemoTransformer(nn.Module):
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
                 weight_mask_attn = weight_masks_attn,
-                weight_mask_mlp = weight_mask_mlp_dict[i] if weight_masks_mlp else False,
-                weight_mask_attn_heads = weight_mask_attn_dict[i] if weight_masks_attn else None) 
+                weight_mask_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else False,
+                weight_mask_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
             for i in range(cfg.n_layers)])
 
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1

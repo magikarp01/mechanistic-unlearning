@@ -165,6 +165,7 @@ def train_masks(model,
     test_losses = defaultdict(list)
     model.train()
     for epoch in tqdm(range(num_epochs+1)):
+        model.zero_grad()
         print("refreshing cuda memory")
         start = time.time()
         refresh_cuda_memory()
