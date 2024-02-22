@@ -1,5 +1,5 @@
 #%%
-%cd ../../
+# %cd ../../
 #%%
 from IPython import embed
 import torch
@@ -22,7 +22,7 @@ if MAIN:
     )
 
 
-    ind_task = InductionTask(batch_size=5, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
+    ind_task = InductionTask(batch_size=16, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
     ind_task.set_logit_diffs(model)
 
     ioi_train = IOITask(batch_size=16, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, nb_templates=4, prompt_type="ABBA")
@@ -189,10 +189,11 @@ def causal_tracing_induction(model, ind_task):
 # %%
 induction_ct_results = causal_tracing_induction(model, ind_task)
 import pickle
-with open("causal_tracing/induction/gpt2_small_attrs.pkl", "wb") as f:
+with open("localizations/causal_tracing/induction/gpt2_small_attrs.pkl", "wb") as f:
     pickle.dump(induction_ct_results, f)
 # %%
 ioi_ct_results = causal_tracing_induction(model, ioi_train)
 import pickle
-with open("causal_tracing/ioi/gpt2_small_attrs.pkl", "wb") as f:
+with open("localizations/causal_tracing/ioi/gpt2_small_attrs.pkl", "wb") as f:
     pickle.dump(ioi_ct_results, f)
+# %%

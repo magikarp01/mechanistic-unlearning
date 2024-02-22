@@ -462,7 +462,7 @@ def get_masks_from_ct_nodes(nodes_set, **kwargs):
             else:
                 second_layer = int(nodes_set[second_node_idx][1:])
 
-            edges_set.add((first_layer, nodes_set[first_node_idx]), (second_layer, nodes_set[second_node_idx]))
+            edges_set.add(((first_layer, nodes_set[first_node_idx]), (second_layer, nodes_set[second_node_idx])))
     
     
     edge_mask_template = get_edge_mask_template(**kwargs)
