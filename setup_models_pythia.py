@@ -166,7 +166,7 @@ ioi = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, pr
 induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
 train_batch_size=4
-owt_train = OWTTask(batch_size=4, tokenizer=tokenizer, device=device, ctx_length=30)
+owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30)
 if localize_task == "ioi":
 
     ioi_task_2 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template

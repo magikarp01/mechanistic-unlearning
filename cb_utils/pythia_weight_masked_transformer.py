@@ -50,13 +50,10 @@ class LayerNorm(nn.Module):
         self.w = nn.Parameter(torch.ones(cfg.d_model))
         self.b = nn.Parameter(torch.zeros(cfg.d_model))
     
-    def forward(self, residual, parallel=False):
-        # residual: [batch, position, n_heads, d_model]
+    def forward(self, residual):
+        # residual: [batch, position, d_model]
         if self.cfg.debug: print("Residual:", residual.shape)
-        if parallel:
-            pattern = "batch position n_heads d_model -> batch position n_heads 1"
-        else:
-            pattern = "batch position d_model -> batch position 1"
+        pattern = "batch position d_model -> batch position 1"
         residual = residual - einops.reduce(residual, pattern, "mean")
         # Calculate the variance, square root it. Add in an epsilon to prevent divide by zero.
         scale = (einops.reduce(residual.pow(2), pattern, "mean") + cfg.layer_norm_eps).sqrt()
@@ -176,6 +173,7 @@ class RotaryEmbed():
 
         return torch.cat([x_rotated, x_pass], dim=-1)
 
+
 """## Attention
 
 * **Step 1:** Produce an attention pattern - for each destination token, probability distribution over previous tokens (incl current token)
@@ -190,8 +188,24 @@ class RotaryEmbed():
 
 First, it's useful to visualize and play around with attention patterns - what exactly are we looking at here? (Click on a head to lock onto just showing that head's pattern, it'll make it easier to interpret)
 """
+def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
+    """
+    W is Parameter of shape (n_heads, ...). Returns baseline and frozen (both only 1d arrays of (n_heads,)), and forward pass should be W_baseline.float() + W_frozen.float() * W 
+    """
+    W_frozen = torch.nn.Parameter(torch.zeros(W.shape[0], dtype=torch.bool), requires_grad=False).to(device)
+
+    # unsqueeze to broadcast efficiently, until W_frozen has same shape as W
+    while len(W_frozen.shape) < len(W.shape):
+        W_frozen = W_frozen.unsqueeze(-1)
+    
+    W_frozen[unfrozen_heads] = True
+    # W_baseline = ~W_frozen
+    W_baseline = torch.nn.Parameter(~W_frozen, requires_grad=False)
+    # convert into float
+    return W_baseline.float(), W_frozen.float()
+
 class Attention(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, weight_mask=False, mask_heads=None):
         super().__init__()
         self.cfg = cfg
         self.W_Q = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
@@ -208,6 +222,22 @@ class Attention(nn.Module):
         nn.init.normal_(self.W_O, std=self.cfg.init_range)
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
+        self.weight_mask = weight_mask
+        self.mask_heads = mask_heads
+
+        if weight_mask is not None:
+            self.weight_mask_W_Q = nn.Parameter(torch.ones_like(self.W_Q), requires_grad=True)
+            self.weight_mask_W_K = nn.Parameter(torch.ones_like(self.W_K), requires_grad=True)
+            self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
+            self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
+
+            if mask_heads is not None:
+                self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.W_Q, mask_heads)
+                self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.W_K, mask_heads)
+                self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.W_V, mask_heads)
+                self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.W_O, mask_heads)
+
+
         self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=torch.float32, device=device))
         if cfg.positional_embedding_type == "rotary":
             self.rotary_embed = RotaryEmbed(cfg)
@@ -220,12 +250,47 @@ class Attention(nn.Module):
             self.register_buffer("rotary_sin", sin)
             self.register_buffer("rotary_cos", cos)
 
+    # def get_partially_frozen_matrix(self, baseline, frozen, W):
+    #     # baseline and frozen are 1d arrays of (n_heads,)
+    #     # W is Parameter of shape (n_heads, ...)
+    #     # must broadcast efficiently, self.weight_mask_W_Q_baseline.float() + self.weight_mask_W_Q_frozen.float() * self.weight_mask_W_Q throws an error
+    #     return torch.einsum("i,i...->i...", frozen.float(), W) + baseline.float().unsqueeze(-1).unsqueeze(-1)
+        
+
     def forward(self, normalized_resid_pre):
         # normalized_resid_pre: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_pre:", normalized_resid_pre.shape)
-        q = einsum("batch query_pos n_heads d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, self.W_Q) + self.b_Q
+        if self.weight_mask:
+            if self.mask_heads is not None:
+                # print(f"{self.weight_mask_W_Q_baseline.shape=}, {self.weight_mask_W_Q_frozen.shape=}, {self.weight_mask_W_Q.shape=}")
+                # print(f"{self.weight_mask_W_K_baseline.shape=}, {self.weight_mask_W_K_frozen.shape=}, {self.weight_mask_W_K.shape=}")
+                # print(f"{self.weight_mask_W_V_baseline.shape=}, {self.weight_mask_W_V_frozen.shape=}, {self.weight_mask_W_V.shape=}")
+                # print(f"{self.weight_mask_W_O_baseline.shape=}, {self.weight_mask_W_O_frozen.shape=}, {self.weight_mask_W_O.shape=}")
+                
 
-        k = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, self.W_K) + self.b_K
+                weight_mask_W_Q = self.weight_mask_W_K_baseline + self.weight_mask_W_K_frozen * self.weight_mask_W_K
+                weight_mask_W_K = self.weight_mask_W_K_baseline + self.weight_mask_W_K_frozen * self.weight_mask_W_K
+                weight_mask_W_V = self.weight_mask_W_V_baseline + self.weight_mask_W_V_frozen * self.weight_mask_W_V
+                weight_mask_W_O = self.weight_mask_W_O_baseline + self.weight_mask_W_O_frozen * self.weight_mask_W_O
+
+                # weight_mask_W_K = self.get_partially_frozen_matrix(self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen, self.W_K)
+                # weight_mask_W_V = self.get_partially_frozen_matrix(self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen, self.W_V)
+                # weight_mask_W_O = self.get_partially_frozen_matrix(self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen, self.W_O)
+
+            else:
+                weight_mask_W_Q = self.weight_mask_W_Q
+                weight_mask_W_K = self.weight_mask_W_K
+                weight_mask_W_V = self.weight_mask_W_V
+                weight_mask_W_O = self.weight_mask_W_O
+
+            W_Q = self.W_Q * weight_mask_W_Q
+            W_K = self.W_K * weight_mask_W_K
+            W_V = self.W_V * weight_mask_W_V
+            W_O = self.W_O * weight_mask_W_O
+        
+        q = einsum("batch query_pos d_model, n_heads d_model d_head -> batch query_pos n_heads d_head", normalized_resid_pre, W_Q) + self.b_Q
+
+        k = einsum("batch key_pos d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_K) + self.b_K
         
         if self.cfg.positional_embedding_type == "rotary":
             q = self.rotary_embed.apply_rotary(q, rotary_cos=self.rotary_cos, rotary_sin=self.rotary_sin)
@@ -236,18 +301,27 @@ class Attention(nn.Module):
         attn_scores = self.apply_causal_mask(attn_scores)
         pattern = attn_scores.softmax(dim=-1) # [batch, n_head, query_pos, key_pos]
         pattern = torch.where(torch.isnan(pattern), torch.zeros_like(pattern), pattern)
-        v = einsum("batch key_pos n_heads d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, self.W_V) + self.b_V
+        v = einsum("batch key_pos d_model, n_heads d_model d_head -> batch key_pos n_heads d_head", normalized_resid_pre, W_V) + self.b_V
         z = einsum("batch n_heads query_pos key_pos, batch key_pos n_heads d_head -> batch query_pos n_heads d_head", pattern, v)
         # print(z)
         # print('----')
         # print(self.W_O)
         attn_out = einops.einsum(
             z, 
-            self.W_O,
-            "batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos n_heads d_model"
+            W_O,
+            "batch query_pos n_heads d_head, n_heads d_head d_model -> batch query_pos d_model"
         ) + (self.b_O / self.cfg.n_heads)
         return attn_out
-
+    
+    def discretize_weight_masks(self, threshold=0.5):
+        """
+        Call to discretize weight masks. Sets all values below threshold to 0 and all values above threshold to 1.
+        """
+        assert self.weight_mask
+        for p in [self.weight_mask_W_Q, self.weight_mask_W_K, self.weight_mask_W_V, self.weight_mask_W_O]:
+            p.data[p.data < threshold] = 0
+            p.data[p.data >= threshold] = 1
+            
     def apply_causal_mask(self, attn_scores):
         # attn_scores: [batch, n_heads, query_pos, key_pos]
         mask = torch.triu(torch.ones(attn_scores.size(-2), attn_scores.size(-1), device=attn_scores.device), diagonal=1).bool()
@@ -256,7 +330,7 @@ class Attention(nn.Module):
 
 """## MLP"""
 class MLP(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, weight_mask=False):
         super().__init__()
         self.cfg = cfg
         self.W_in = nn.Parameter(torch.empty((cfg.d_model, cfg.d_mlp)))
@@ -265,100 +339,77 @@ class MLP(nn.Module):
         self.W_out = nn.Parameter(torch.empty((cfg.d_mlp, cfg.d_model)))
         nn.init.normal_(self.W_out, std=self.cfg.init_range)
         self.b_out = nn.Parameter(torch.zeros((cfg.d_model)))
-    
+
+        if weight_mask:
+            self.weight_mask_W_in = nn.Parameter(torch.ones_like(self.W_in), requires_grad=True)
+            self.weight_mask_W_out = nn.Parameter(torch.ones_like(self.W_out), requires_grad=True)
+            self.weight_mask_b_in = nn.Parameter(torch.ones_like(self.b_in), requires_grad=True)
+            self.weight_mask_b_out = nn.Parameter(torch.ones_like(self.b_out), requires_grad=True)
+        
+        self.weight_mask = weight_mask
+
+    def discretize_weight_masks(self, threshold=0.5):
+        """
+        Call to discretize weight masks. Sets all values below threshold to 0 and all values above threshold to 1.
+        """
+        assert self.weight_mask
+        for p in [self.weight_mask_W_in, self.weight_mask_W_out, self.weight_mask_b_in, self.weight_mask_b_out]:
+            p.data[p.data < threshold] = 0
+            p.data[p.data >= threshold] = 1
+            
     def forward(self, normalized_resid_mid):
+        if self.weight_mask:
+            W_in = self.W_in * self.weight_mask_W_in
+            W_out = self.W_out * self.weight_mask_W_out
+            b_in = self.b_in * self.weight_mask_b_in
+            b_out = self.b_out * self.weight_mask_b_out
+        else:
+            W_in = self.W_in
+            W_out = self.W_out
+            b_in = self.b_in
+            b_out = self.b_out
+
         # normalized_resid_mid: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_mid:", normalized_resid_mid.shape)
-        pre = einsum("batch position d_model, d_model d_mlp -> batch position d_mlp", normalized_resid_mid, self.W_in) + self.b_in
+        pre = einsum("batch position d_model, d_model d_mlp -> batch position d_mlp", normalized_resid_mid, W_in) + b_in
         post = gelu_new(pre)
-        mlp_out = einsum("batch position d_mlp, d_mlp d_model -> batch position d_model", post, self.W_out) + self.b_out
+        mlp_out = einsum("batch position d_mlp, d_mlp d_model -> batch position d_model", post, W_out) + b_out
         return mlp_out
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True,):
+    def __init__(self, cfg, prev_layers: int, weight_mask_attn=False, weight_mask_attn_heads=None, weight_mask_mlp=False):
+        """
+        If weight_mask_attn is True, then the attention weights will be masked over.
+            If weight_mask_attn_heads is not None, it should be a list of heads to mask over.
+        If weight_mask_mlp is True, then the MLP weights will be masked over.
+        """
+        assert not (not weight_mask_attn and weight_mask_attn_heads is not None), "If weight_mask_attn_heads is not None, weight_mask_attn must be True"
+
         super().__init__()
         self.cfg = cfg
 
         self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg)
+        self.attn = Attention(cfg, weight_mask=weight_mask_attn, mask_heads=weight_mask_attn_heads)
         self.ln2 = LayerNorm(cfg)
-        self.mlp = MLP(cfg)
+        self.mlp = MLP(cfg, weight_mask=weight_mask_mlp)
 
-        self.frozen_mask = True if frozen_mask_edges is not None else False
-
-        for p in self.parameters():
-            p.requires_grad = False
-
-        prev_nodes = (cfg.n_heads + 1) * prev_layers + 1
-        edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads))
-        self.edge_mask_attentions = torch.nn.Parameter(edge_mask_attentions_init, requires_grad=True)
-
-        if self.frozen_mask:
-            if freeze_ones:
-                self.edge_mask_attentions_baseline = torch.nn.Parameter(frozen_mask_edges['a'], requires_grad=False)
-                self.edge_mask_attentions_frozen = torch.nn.Parameter(1 - frozen_mask_edges['a'], requires_grad=False)
-            else:
-                self.edge_mask_attentions_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['a']), requires_grad=False)
-                self.edge_mask_attentions_frozen = torch.nn.Parameter(frozen_mask_edges['a'], requires_grad=False)
-
-        edge_mask_mlp_init = torch.ones((prev_nodes, ))# + cfg.n_heads, ))
-        self.edge_mask_mlp = torch.nn.Parameter(edge_mask_mlp_init, requires_grad=True)
-        
-        if self.frozen_mask:
-            if freeze_ones:
-                self.edge_mask_mlp_baseline = torch.nn.Parameter(frozen_mask_edges['m'], requires_grad=False)
-                self.edge_mask_mlp_frozen = torch.nn.Parameter(1 - frozen_mask_edges['m'], requires_grad=False)
-            else:
-                self.edge_mask_mlp_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['m']), requires_grad=False)
-                self.edge_mask_mlp_frozen = torch.nn.Parameter(frozen_mask_edges['m'], requires_grad=False)
-    
+        # for p in self.parameters():
+        #     p.requires_grad = False
+        for name, p in self.named_parameters():
+            if "weight_mask" in name and "frozen" not in name:
+                continue
+            p.requires_grad=False
 
     def forward(self, resid_pre, means=False):
-        # resid_pre [batch, position, d_model, prev_head_idx]
-
-        if self.frozen_mask:
-            attn_mask = self.edge_mask_attentions_baseline + self.edge_mask_attentions_frozen * self.edge_mask_attentions
-        else:
-            attn_mask = self.edge_mask_attentions
-
-        masked_resid_pre = einsum(
-            "batch position prev_head_idx d_model, prev_head_idx n_heads -> batch position n_heads d_model", 
-            resid_pre, 
-            attn_mask
-        )
-        if isinstance(means, torch.Tensor):
-            masked_resid_pre_means = einsum("prev_head_idx d_model, prev_head_idx n_heads -> n_heads d_model", means[:self.edge_mask_attentions.shape[0]], 1 - attn_mask)
-            masked_resid_pre = masked_resid_pre + masked_resid_pre_means 
-
-        # print(f'resid_pre: {resid_pre.shape}; masked_residuals: {masked_resid_pre.shape}')
-        
-        normalized_resid_pre = self.ln1(masked_resid_pre, parallel=True)
-        # print(f"{masked_resid_pre.shape}, {normalized_resid_pre.shape=}")
-
+        assert len(resid_pre.shape) == 3, f"resid_pre shape: {resid_pre.shape}"
+        normalized_resid_pre = self.ln1(resid_pre)
         attn_out = self.attn(normalized_resid_pre)
-        residual = torch.cat((resid_pre, attn_out), dim=2)
 
-        if self.frozen_mask:
-            mlp_mask = self.edge_mask_mlp_baseline + self.edge_mask_mlp_frozen * self.edge_mask_mlp
-        else:
-            mlp_mask = self.edge_mask_mlp
-
-        masked_mlp_residual = einsum(
-            "batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", 
-            resid_pre, 
-            mlp_mask
-        )
-        
-        normalized_resid_mid = self.ln2(masked_mlp_residual)
-        # print(f"{masked_mlp_residual.shape}, {normalized_resid_mid.shape=}")
-
+        normalized_resid_mid = self.ln2(resid_pre)
         mlp_out = self.mlp(normalized_resid_mid)
-        mlp_out = einops.rearrange(mlp_out, "batch position d_model -> batch position 1 d_model")
 
-        residual = torch.cat((residual, mlp_out), dim=2)
-
-        # residual should have resid_pre, attn_out, mlp_out cat 
+        residual = resid_pre + attn_out + mlp_out
         return residual
 
 """## Unembedding"""
@@ -385,9 +436,12 @@ def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
     return {'a': attn_mask, 'm': mlp_mask}
 
 class DemoTransformer(nn.Module):
-    def __init__(self, cfg, means,
-                 edge_masks=False, 
-                 mask_dict_superset=None, ):
+    def __init__(self, cfg, 
+                 weight_masks_attn=False, 
+                 weight_masks_mlp=False, 
+                 weight_mask_attn_dict=None, 
+                 weight_mask_mlp_dict=None,
+                 ):
         super().__init__()
         self.cfg = cfg
         self.embed = Embed(cfg)
@@ -399,27 +453,14 @@ class DemoTransformer(nn.Module):
         for p in self.parameters():
             p.requires_grad = False
 
-
-        if mask_dict_superset is not None:
-            assert edge_masks, "edge_masks should be True if mask_dict_superset is not None (mask_dict_superset values take precedence over global edge_masks value)"
-        else:
-            if not edge_masks: # don't want to train edge masks
-                # make our own mask_dict template, and everything should be 1 so that they're all frozen
-                # can be optimized in the future, but this is a shortcut for now
-                mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads, neox=True)
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
-                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, 
-                                                                  ) for i in range(cfg.n_layers)])
+                weight_mask_attn = weight_masks_attn,
+                weight_mask_mlp = weight_mask_mlp_dict[i] if weight_masks_mlp else False,
+                weight_mask_attn_heads = weight_mask_attn_dict[i] if weight_masks_attn else None) 
+            for i in range(cfg.n_layers)])
+
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
-        self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)
-        self.frozen_mask = True if mask_dict_superset is not None else False
-        if self.frozen_mask:
-            self.output_mask_baseline = torch.nn.Parameter(mask_dict_superset['output'], requires_grad=False)
-            self.output_mask_frozen = torch.nn.Parameter(1 - mask_dict_superset['output'], requires_grad=False)
-
-
-        self.means = means
     
     def forward(self, tokens, return_states=False):
         # tokens [batch, position]
@@ -431,11 +472,12 @@ class DemoTransformer(nn.Module):
         else:
             residual = embed
 
-        residual = einops.rearrange(residual, "batch position d_model -> batch position 1 d_model")
+        # residual = einops.rearrange(residual, "batch position d_model -> batch position 1 d_model")
         
         for i, block in enumerate(self.blocks):
             # print(i)
-            residual = block(residual, self.means)
+            assert len(residual.shape) == 3, f"residual shape: {residual.shape}"
+            residual = block(residual)
             # if hasattr(self,"saved_states"):
             #     self.saved_states = torch.cat((self.saved_states, block.saved_output.unsqueeze(0)), dim=0)
             # else:
@@ -444,50 +486,15 @@ class DemoTransformer(nn.Module):
         if return_states:
             return residual
         
-        if self.frozen_mask:
-            output_mask = self.output_mask_baseline + self.output_mask_frozen * self.output_mask
-        else:
-            output_mask = self.output_mask
-        residual = einsum("batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", residual, output_mask)
+        # if self.frozen_mask:
+        #     output_mask = self.output_mask_baseline + self.output_mask_frozen * self.output_mask
+        # else:
+        #     output_mask = self.output_mask
+        # residual = einsum("batch position prev_head_idx d_model, prev_head_idx -> batch position d_model", residual, output_mask)
+
         normalized_resid_final = self.ln_final(residual)
         logits = self.unembed(normalized_resid_final)
         # logits have shape [batch, position, logits]
         # with open("saved_states_new.pkl", "wb") as f:
         #     pickle.dump(self.saved_states, f)
         return [logits]
-
-# %%
-
-# """Take a test string - the intro paragraph of today's featured Wikipedia article. Let's calculate the loss!"""
-
-# model = demo_gpt2
-
-# test_string = """Mini scule is a species of microhylid frog endemic to Madagascar that was described in 2019. The scientific name of the species refers to its size, being a pun on the word minuscule. It is very small, measuring only 8.4 to 10.8 mm (0.33 to 0.43 in) in snout–vent length. It has bronze underparts with a brown groin and back of the thigh, cream upperparts with brown flecking, a dark brown side of the head, and a red iris. On the hind feet, the first toe is absent and the second and fifth toes are strongly reduced. The frog is known only from the Sainte Luce Reserve, where it inhabits areas with deep leaf litter near semi-permanent water bodies. Specimens of frogs from Mandena, the Vohimena mountains, the southern Anosy Mountains, and Tsitongambarika may also be of this species. Along with Mini mum and Mini ature, the other two species in its genus, it received media attention when first described due to the wordplay in its scientific name. (Full article...)"""
-
-# test_tokens = reference_gpt2.to_tokens(test_string).cuda()
-# demo_logits = demo_gpt2(test_tokens)
-
-# def lm_cross_entropy_loss(logits, tokens):
-#     # Measure next token loss
-#     # Logits have shape [batch, position, d_vocab]
-#     # Tokens have shape [batch, position]
-#     log_probs = logits.log_softmax(dim=-1)
-#     pred_log_probs = log_probs[:, :-1].gather(dim=-1, index=tokens[:, 1:].unsqueeze(-1)).squeeze(-1)
-#     return -pred_log_probs.mean()
-# loss = lm_cross_entropy_loss(demo_logits, test_tokens)
-# print(loss)
-# print("Loss as average prob", (-loss).exp())
-# print("Loss as 'uniform over this many variables'", (loss).exp())
-# print("Uniform loss over the vocab", math.log(demo_gpt2.cfg.d_vocab))
-
-# # %% 
-# """We can also greedily generate text:"""
-
-# test_string = "Breaking News: President Trump has been impeached by the House of Representatives for abuse of power and obstruction of Congress. The vote was 230 to 197, with 10 Republicans joining all Democrats in voting to impeach. The president is now only the third in American history to be impeached, and the first to be impeached twice. The House will now send the articles of impeachment to the Senate, where a trial will be held to determine whether to remove the president from office. The Senate is expected to begin the trial on"
-# for i in tqdm.tqdm(range(100)):
-#     test_tokens = reference_gpt2.to_tokens(test_string).cuda()
-#     demo_logits = demo_gpt2(test_tokens)
-#     test_string += reference_gpt2.tokenizer.decode(demo_logits[-1, -1].argmax())
-# print(test_string)
-
-# %%

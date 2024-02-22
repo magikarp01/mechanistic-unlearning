@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=edge_local
+#SBATCH --job-name=edge_none
 # #SBATCH --job-name=weight_mask
 # #SBATCH --job-name=ft_baseline
 #SBATCH --output=jupyter_logs/log-%J.txt

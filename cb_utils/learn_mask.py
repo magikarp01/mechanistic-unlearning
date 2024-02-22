@@ -9,6 +9,7 @@ import wandb
 import os
 import time
 import pickle
+import gc
 
 # for getting datetime
 from datetime import datetime
@@ -54,6 +55,32 @@ def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, ve
                 print(f"Loss on {task_name}: {losses[task_name]}")
     return losses
 
+def refresh_cuda_memory():
+    """
+    Re-allocate all cuda memory to help alleviate fragmentation
+    """
+    # Run a full garbage collect first so any dangling tensors are released
+    gc.collect()
+
+    # Then move all tensors to the CPU
+    locations = {}
+    for obj in gc.get_objects():
+        if not isinstance(obj, torch.Tensor):
+            continue
+
+        locations[obj] = obj.device
+        obj.data = obj.data.cpu()
+        if isinstance(obj, torch.nn.Parameter) and obj.grad is not None:
+            obj.grad.data = obj.grad.cpu()
+
+    # Now empty the cache to flush the allocator
+    torch.cuda.empty_cache()
+
+    # Finally move the tensors back to their associated GPUs
+    for tensor, device in locations.items():
+        tensor.data = tensor.to(device)
+        if isinstance(tensor, torch.nn.Parameter) and tensor.grad is not None:
+            tensor.grad.data = tensor.grad.to(device)
 
 def train_masks(model, 
                 optimizer: torch.optim.Optimizer,
@@ -136,17 +163,21 @@ def train_masks(model,
     # model = load_demo_gpt2(means=means, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     train_losses = defaultdict(list)
     test_losses = defaultdict(list)
+    model.train()
     for epoch in tqdm(range(num_epochs+1)):
+        print("refreshing cuda memory")
+        start = time.time()
+        refresh_cuda_memory()
+        print(f"finished refreshing, time taken: {time.time() - start}")
         for step in range(steps_per_epoch):
             if verbose:
                 print(f"Epoch {epoch}, step {step}")
-            model.train()
             model.zero_grad()
             total_loss = 0
             for task_name, task in tasks.items():
                 task_loss = 0
                 for i in range(accum_grad_steps):
-                    # print(f"Current memory usage on {task_name}, {i}: ", torch.cuda.memory_allocated(device="cuda") / 1e9)
+                    print(f"Current memory usage on {task_name}, {i}: ", torch.cuda.memory_allocated(device="cuda") / 1e9)
                     loss = task.get_train_loss(model)
                     # add item (without gradients to avoid memory leak) to train_losses
                     train_losses[task_name].append((epoch, step, loss.item()))

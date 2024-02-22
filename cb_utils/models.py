@@ -1,7 +1,9 @@
 # %%
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from cb_utils.transformer import DemoTransformer as GPT2DemoTransformer, Config as GPT2Config
-from cb_utils.pythia_transformer import DemoTransformer as PythiaDemoTransformer, Config as PythiaConfig
+from cb_utils.pythia_transformer import DemoTransformer as PythiaEdgeDemoTransformer, Config as PythiaConfig
+from cb_utils.pythia_weight_masked_transformer import DemoTransformer as PythiaWeightDemoTransformer
+
 from easy_transformer import EasyTransformer
 import torch
 import pickle
@@ -87,7 +89,7 @@ def tl_config_to_demo_config(tl_config, debug=False):
         )
 
 # 2.8b: d_model = 2560, 32 layers, 32 heads
-def load_demo_pythia(means, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, **kwargs):
+def load_demo_pythia(means=False, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, edge_mask=True, weight_mask=False, **kwargs):
     # with open("models/pythia_weights.pkl", "rb") as f:
     #     pythia_weights = pickle.load(f)
     # reference_pythia = EasyTransformer.from_pretrained("EleutherAI/pythia-2.7b", fold_ln=False, center_unembed=False, center_writing_weights=False)
@@ -114,7 +116,13 @@ def load_demo_pythia(means, model_name="pythia-2.8b", n_layers=32, n_heads=32, d
     # demo_pythia = PythiaDemoTransformer(PythiaConfig(debug=False, n_layers=n_layers, n_heads=n_heads, d_model=d_model, d_head=d_head, d_mlp=d_mlp), means, **kwargs)
     # demo_pythia.load_state_dict(pythia_weights, strict=False)
     # demo_pythia.cuda()
-    demo_pythia = PythiaDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, **kwargs)
+    if edge_mask:
+        demo_pythia = PythiaEdgeDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, **kwargs)
+    elif weight_mask:
+        demo_pythia = PythiaWeightDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), **kwargs)
+    else:
+        raise NotImplementedError("No mask type specified")
+
     demo_pythia.load_state_dict(reference_pythia.state_dict(), strict=False)
     demo_pythia.to(DEVICE)
     return demo_pythia

@@ -170,7 +170,7 @@ class Attention(nn.Module):
             self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
 
             if mask_heads is not None:
-                self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)            
+                self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.weight_mask_W_Q, self.mask_heads)
                 self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.weight_mask_W_K, self.mask_heads)
                 self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.weight_mask_W_V, self.mask_heads)
                 self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.weight_mask_W_O, self.mask_heads)
