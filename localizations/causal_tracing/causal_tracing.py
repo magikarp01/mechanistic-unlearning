@@ -15,18 +15,17 @@ MAIN = __name__ == "__main__"
 #%%
 if MAIN:
     from tasks.induction.InductionTask import InductionTask
-    from tasks import IOITask
-    
+    from tasks.ioi.IOITask import IOITask
+
     model = HookedTransformer.from_pretrained(
         'gpt2-small',
     )
 
-
     ind_task = InductionTask(batch_size=16, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
     ind_task.set_logit_diffs(model)
 
-    ioi_train = IOITask(batch_size=16, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, nb_templates=4, prompt_type="ABBA")
-    ioi_train.set_logit_diffs(model)
+    ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
+    ioi_task.set_logit_diffs(model)
 
 # %%
 def get_embedding_norm(model, tokens):
@@ -52,8 +51,14 @@ def patching_hook(act, hook, patch_cache, patch_layer, patch_head=None):
         if 'z' in hook.name:
             act[:, :, patch_head, :] = patch_cache[hook.name][:, :, patch_head, :]
         elif 'post' in hook.name:
-            act[:, :] = patch_cache[hook.name][:, :]
+            act = patch_cache[hook.name]
     return act
+
+def causal_tracing_ioi_metric(logits, io_toks, s_toks):
+    batch_size = logits.shape[0]
+    io_probs = torch.nn.functional.log_softmax(logits[list(range(batch_size)), io_toks], dim=-1)
+    s_probs = torch.nn.functional.log_softmax(logits[list(range(batch_size)), s_toks], dim=-1)
+    return (io_probs - s_probs).mean()
 
 def causal_tracing_ioi(model, ioi_task):
     # Create corrupt cache
@@ -82,31 +87,40 @@ def causal_tracing_ioi(model, ioi_task):
             subject_acts = act[torch.arange(act.shape[0])[:, None], s_indices, :, :]
             # Add noise with std 3 * s_norms
             noise = torch.randn_like(subject_acts) * 3 * s_norms[:, None, None, None]
-            act[torch.arange(act.shape[0])[:, None], s_indices, :, :] += noise
+            cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :, :] = cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :, :] + noise
         elif "post" in hook_name:
             act = cache[hook_name] # of shape (batch, seq_len, d_model)
             # Get activations of the subject tokens
             subject_acts = act[torch.arange(act.shape[0])[:, None], s_indices, :]
             # Add noise with std 3 * s_norms
             noise = torch.randn_like(subject_acts) * 3 * s_norms[:, None, None]
-            act[torch.arange(act.shape[0])[:, None], s_indices, :] += noise
+            cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :] = cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :] + noise
     
-    logit_diff_metric = ioi_task.get_acdcpp_metric(model)
+    # logit_diff_metric = ioi_task.get_acdcpp_metric(model)
+    logit_diff_metric = functools.partial(
+        causal_tracing_ioi_metric,
+        io_toks=ioi_task.clean_data.io_tokenIDs,
+        s_toks=ioi_task.clean_data.s_tokenIDs,
+    )
+
     results = {}
-    for layer in range(model.cfg.n_layers):
-        for head in range(model.cfg.n_heads):
+    for layer in tqdm(list(range(model.cfg.n_layers))):
+        for head in tqdm(list(range(model.cfg.n_heads))):
+            # print('Patching layer', layer, 'head', head)
             hook_fn = functools.partial(
                 patching_hook,
                 patch_cache=cache,
                 patch_layer=layer,
                 patch_head=head
             )
+            model.reset_hooks()
             patched_logits = model.run_with_hooks(
                 ioi_task.clean_data.toks,
                 fwd_hooks=[
                     (utils.get_act_name('z', layer), hook_fn)
                 ]
             )
+            model.reset_hooks()
             results[f'a{layer}.{head}'] = logit_diff_metric(patched_logits).item()
         # Do MLP
         hook_fn = functools.partial(
@@ -115,12 +129,14 @@ def causal_tracing_ioi(model, ioi_task):
             patch_layer=layer,
             patch_head=None
         )
+        model.reset_hooks()
         patched_logits = model.run_with_hooks(
             ioi_task.clean_data.toks,
             fwd_hooks=[
                 (utils.get_act_name('post', layer), hook_fn)
             ]
         )
+        model.reset_hooks()
         results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
 
     return results
@@ -146,12 +162,12 @@ def causal_tracing_induction(model, ind_task):
             ind_act = act[torch.arange(act.shape[0]), -2, :, :] 
             # Add noise with std 3 * s_norms
             noise = torch.randn_like(ind_act).to(device) * 3 * norms
-            act[torch.arange(act.shape[0]), -2, :, :] += noise
+            cache[hook_name][torch.arange(act.shape[0]), -2, :, :] += noise
         elif "post" in hook_name:
             act = cache[hook_name] # of shape (batch, seq_len, d_model)
             ind_act = act[torch.arange(act.shape[0]), -2, :]
             noise = torch.randn_like(ind_act).to(device) * 3 * norms
-            act[torch.arange(act.shape[0]), -2, :] += noise
+            cache[hook_name][torch.arange(act.shape[0]), -2, :] += noise
     
     logit_diff_metric = ind_task.get_acdcpp_metric(model)
     results = {}
@@ -175,7 +191,7 @@ def causal_tracing_induction(model, ind_task):
             patching_hook,
             patch_cache=cache,
             patch_layer=layer,
-            patch_head=None
+            patch_head=None,
         )
         patched_logits = model.run_with_hooks(
             ind_task.clean_data,
@@ -186,14 +202,4 @@ def causal_tracing_induction(model, ind_task):
         results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
 
     return results
-# %%
-induction_ct_results = causal_tracing_induction(model, ind_task)
-import pickle
-with open("localizations/causal_tracing/induction/gpt2_small_attrs.pkl", "wb") as f:
-    pickle.dump(induction_ct_results, f)
-# %%
-ioi_ct_results = causal_tracing_induction(model, ioi_train)
-import pickle
-with open("localizations/causal_tracing/ioi/gpt2_small_attrs.pkl", "wb") as f:
-    pickle.dump(ioi_ct_results, f)
 # %%
