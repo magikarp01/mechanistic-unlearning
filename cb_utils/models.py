@@ -1,8 +1,14 @@
 # %%
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from cb_utils.transformer import DemoTransformer as GPT2DemoTransformer, Config as GPT2Config
-from cb_utils.pythia_transformer import DemoTransformer as PythiaEdgeDemoTransformer, Config as PythiaConfig
-from cb_utils.pythia_weight_masked_transformer import DemoTransformer as PythiaWeightDemoTransformer
+from cb_utils.transformers.gpt2.edge_masked_transformer import DemoTransformer as GPT2EdgeDemoTransformer
+from cb_utils.transformers.gpt2.weight_masked_transformer import DemoTransformer as GPT2WeightDemoTransformer
+
+# from cb_utils.pythia_transformer import DemoTransformer as PythiaEdgeDemoTransformer, Config as PythiaConfig
+# from cb_utils.pythia_weight_masked_transformer import DemoTransformer as PythiaWeightDemoTransformer
+from cb_utils.transformers.pythia.edge_masked_transformer import DemoTransformer as PythiaEdgeDemoTransformer, Config as PythiaConfig
+from cb_utils.transformers.pythia.weight_masked_transformer import DemoTransformer as PythiaWeightDemoTransformer
+
 
 from easy_transformer import EasyTransformer
 import torch
@@ -67,7 +73,6 @@ def load_demo_gpt2(means, n_layers=12, n_heads=12, **kwargs):
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.cuda()
     return demo_gpt2
-
 
 from cb_utils.pythia_transformer import DemoTransformer, Config
 def tl_config_to_demo_config(tl_config, debug=False):
