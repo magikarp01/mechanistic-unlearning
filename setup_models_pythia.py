@@ -264,7 +264,7 @@ optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
 train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch, accum_grad_steps=accum_grad_steps,
             # param_names=param_names, mask_params=mask_params, 
             task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
-            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient)
+            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient, refresh_memory=True)
 
 
 # In[17]:

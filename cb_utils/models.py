@@ -64,12 +64,21 @@ def load_gpt2_weights():
 
 # %%
 # def load_demo_gpt2(means, edge_masks=True, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False, weight_mask_attn_dict=None, weight_mask_mlp_dict=None, n_layers=12, n_heads=12):
-def load_demo_gpt2(means, n_layers=12, n_heads=12, **kwargs):
+def load_demo_gpt2(means, n_layers=12, n_heads=12, edge_mask=False, weight_mask=False, **kwargs):
     with open("models/gpt2_weights.pkl", "rb") as f:
         gpt2_weights = pickle.load(f)
     # demo_gpt2 = DemoTransformer(Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp,
     #                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
-    demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
+    # demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
+    if edge_mask:
+        demo_gpt2 = GPT2EdgeDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
+        print("Loaded edge-masked transformer")
+    elif weight_mask:
+        demo_gpt2 = GPT2WeightDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), **kwargs)
+        print("Loaded weight-masked transformer")
+    else:
+        print("Unsure which transformer, loading default transformer")
+        demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.cuda()
     return demo_gpt2
@@ -95,21 +104,6 @@ def tl_config_to_demo_config(tl_config, debug=False):
 
 # 2.8b: d_model = 2560, 32 layers, 32 heads
 def load_demo_pythia(means=False, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, edge_mask=True, weight_mask=False, **kwargs):
-    # with open("models/pythia_weights.pkl", "rb") as f:
-    #     pythia_weights = pickle.load(f)
-    # reference_pythia = EasyTransformer.from_pretrained("EleutherAI/pythia-2.7b", fold_ln=False, center_unembed=False, center_writing_weights=False)
-    # if model_name == "pythia-2.8b":
-    #     n_layers = 32
-    #     n_heads = 32
-    #     d_model = 2560
-    # elif model_name == "pythia-1.4b":
-    #     n_layers = 24
-    #     n_heads = 16
-    #     d_model = 2048
-    # if d_head is None:
-    #     d_head = d_model // n_heads
-    # if d_mlp is None:
-    #     d_mlp = 4 * d_model
 
     reference_pythia = HookedTransformer.from_pretrained(
         model_name,

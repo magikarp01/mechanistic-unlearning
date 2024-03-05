@@ -121,12 +121,26 @@ if localization_dir_path is None:
 if localize_acdcpp or localize_ct:
     with open(f"{localization_dir_path}", "rb") as f:
         acdcpp_nodes, acdcpp_edges, acdcpp_mask_dict, acdcpp_weight_mask_attn_dict, acdcpp_weight_mask_mlp_dict = pickle.load(f)
+
+    mask_dict_superset = acdcpp_mask_dict if edge_masks else None
+    weight_mask_attn_dict = acdcpp_weight_mask_attn_dict if weight_masks_attn else None
+    weight_mask_mlp_dict = acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None
+    base_weight_attn_dict = acdcpp_weight_mask_attn_dict if train_base_weights else None
+    base_weight_mlp_dict = acdcpp_weight_mask_mlp_dict if train_base_weights else None
+
 else:
     acdcpp_nodes = None
     acdcpp_edges = None
     acdcpp_mask_dict = None
     acdcpp_weight_mask_attn_dict = None
     acdcpp_weight_mask_mlp_dict = None
+
+    mask_dict_superset = None
+    weight_mask_attn_dict = None
+    weight_mask_mlp_dict = None
+    base_weight_attn_dict = None
+    base_weight_mlp_dict = None
+
 
 print(acdcpp_edges)
 # In[12]:
@@ -137,24 +151,15 @@ from cb_utils.models import load_demo_gpt2, tokenizer
 #%%
 
 
-# if edge_masks is True, then have mask_dict_superset be acdcpp_mask_dict
-# model = load_demo_gpt2(means=means, mask_dict_superset=acdcpp_mask_dict)
-if localize_acdcpp or localize_ct:
-    mask_dict_superset = acdcpp_mask_dict if edge_masks else None
-    weight_mask_attn_dict = acdcpp_weight_mask_attn_dict if weight_masks_attn else None
-    weight_mask_mlp_dict = acdcpp_weight_mask_mlp_dict if weight_masks_mlp else None
-    base_weight_attn_dict = acdcpp_weight_mask_attn_dict if train_base_weights else None
-    base_weight_mlp_dict = acdcpp_weight_mask_mlp_dict if train_base_weights else None
-
+if edge_masks:
+    model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
+                       edge_masks=edge_masks, mask_dict_superset=mask_dict_superset)
+elif weight_masks_attn or weight_masks_mlp:
+    model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=True,
+                       weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
 else:
-    mask_dict_superset = None
-    weight_mask_attn_dict = None
-    weight_mask_mlp_dict = None
-    base_weight_attn_dict = None
-    base_weight_mlp_dict = None
-
-
-model = load_demo_gpt2(means=False, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
+    model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False,
+                       edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
 
 # In[13]:
 

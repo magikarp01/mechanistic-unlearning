@@ -104,6 +104,7 @@ def train_masks(model,
                 wandb_config=None,
                 save_dir=None,
                 save_efficient=False,
+                refresh_memory=False,
                 ):
     """
     Train a model using tasks (weight the overall loss by task_weights). For now, planned to be training differentiable binary masks over the weights and edges of the model.
@@ -166,10 +167,12 @@ def train_masks(model,
     model.train()
     for epoch in tqdm(range(num_epochs+1)):
         model.zero_grad()
-        print("refreshing cuda memory")
-        start = time.time()
-        refresh_cuda_memory()
-        print(f"finished refreshing, time taken: {time.time() - start}")
+
+        if refresh_memory:
+            print("refreshing cuda memory")
+            start = time.time()
+            refresh_cuda_memory()
+            print(f"finished refreshing, time taken: {time.time() - start}")
         for step in range(steps_per_epoch):
             if verbose:
                 print(f"Epoch {epoch}, step {step}")
@@ -178,7 +181,7 @@ def train_masks(model,
             for task_name, task in tasks.items():
                 task_loss = 0
                 for i in range(accum_grad_steps):
-                    print(f"Current memory usage on {task_name}, {i}: ", torch.cuda.memory_allocated(device="cuda") / 1e9)
+                    # print(f"Current memory usage on {task_name}, {i}: ", torch.cuda.memory_allocated(device="cuda") / 1e9)
                     loss = task.get_train_loss(model)
                     # add item (without gradients to avoid memory leak) to train_losses
                     train_losses[task_name].append((epoch, step, loss.item()))
