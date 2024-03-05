@@ -267,7 +267,7 @@ class EAPGraph:
 
     def top_edges(
         self,
-        n=1000,
+        n=30000,
         threshold=None,
         abs_scores=True,
     ):

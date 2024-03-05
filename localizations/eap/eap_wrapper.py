@@ -42,6 +42,7 @@ def EAP_clean_forward_hook(
     if activations.ndim == 3:
         upstream_activations_difference[:, :, hook_slice, :] += activations.unsqueeze(-2)
     elif activations.ndim == 4:
+        # print(activations.shape)
         upstream_activations_difference[:, :, hook_slice, :] += activations
 
 def EAP_clean_backward_hook(
@@ -150,8 +151,8 @@ def EAP(
         upstream_activations_difference=upstream_activations_difference,
         graph=graph
     )
-
     for idx in tqdm(range(0, num_prompts, batch_size)):
+        model.reset_hooks()
         # we first perform a forward pass on the corrupted input 
         model.add_hook(upstream_hook_filter, corruped_upstream_hook_fn, "fwd")
 
@@ -159,6 +160,7 @@ def EAP(
         # we'll take the gradients when we perform the forward pass on the clean input
         with torch.no_grad(): 
             corrupted_tokens = corrupted_tokens.to(model.cfg.device)
+            # print(corrupted_tokens[idx:idx+batch_size].shape)
             model(corrupted_tokens[idx:idx+batch_size], return_type=None)        
 
         # now we perform a forward and backward pass on the clean input
@@ -167,6 +169,7 @@ def EAP(
         model.add_hook(downstream_hook_filter, clean_downstream_hook_fn, "bwd")
 
         clean_tokens = clean_tokens.to(model.cfg.device)
+        # print(clean_tokens[idx:idx+batch_size].shape)
         if clean_answers is not None:
             value = metric(model(clean_tokens[idx:idx+batch_size], return_type="logits"), clean_answers[idx:idx+batch_size], wrong_answers[idx:idx+batch_size])
         else:
