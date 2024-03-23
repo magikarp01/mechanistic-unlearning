@@ -197,15 +197,21 @@ def train_masks(model,
             weight_reg_term = 0
             tot_edge_params = 0
             tot_weight_params = 0
-            for name, p in zip(param_names, mask_params):
-                if "edge_mask" in name:
-                    # get l1 norm of edge mask
-                    edge_reg_term += p.abs().sum()
-                    tot_edge_params += p.numel()
+            
+            if hasattr(model, "get_edge_reg"):
+                edge_reg_term, tot_edge_params = model.get_edge_reg()
+            
+            if hasattr(model, "get_weight_reg"):
+                weight_reg_term, tot_weight_params = model.get_weight_reg()
+            # for name, p in zip(param_names, mask_params):
+            #     if "edge_mask" in name:
+            #         # get l1 norm of edge mask
+            #         edge_reg_term += p.abs().sum()
+            #         tot_edge_params += p.numel()
 
-                elif "weight_mask" in name:
-                    weight_reg_term += p.abs().sum()
-                    tot_weight_params += p.numel()
+            #     elif "weight_mask" in name:
+            #         weight_reg_term += p.abs().sum()
+            #         tot_weight_params += p.numel()
             
             if tot_edge_params > 0:
                 edge_reg_term /= tot_edge_params

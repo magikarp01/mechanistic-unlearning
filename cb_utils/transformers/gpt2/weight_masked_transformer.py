@@ -294,7 +294,7 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, weight_mask_attn=False, weight_mask_attn_heads=None, weight_mask_mlp=False):
+    def __init__(self, cfg, weight_mask_attn=False, weight_mask_attn_heads=None, weight_mask_mlp=False):
         """
         If weight_mask_attn is True, then the attention weights will be masked over.
             If weight_mask_attn_heads is not None, it should be a list of heads to mask over.
@@ -313,8 +313,9 @@ class TransformerBlock(nn.Module):
         # for p in self.parameters():
         #     p.requires_grad = False
         for name, p in self.named_parameters():
-            if "weight_mask" in name and "frozen" not in name:
-                continue
+            if "weight_mask" in name and "frozen" not in name and "baseline" not in name:
+                # only train the weight masks, all the other weights should be frozen
+                continue 
             p.requires_grad=False
 
     def forward(self, resid_pre, means=False):
@@ -329,6 +330,27 @@ class TransformerBlock(nn.Module):
 
         residual = residual + mlp_out
         return residual
+
+    def get_mask_reg(self, norm='l1'):
+        if norm == 'l1':
+            weight_reg = 0
+            tot_params = 0
+            if self.attn.weight_mask: # first add up attn masks
+                if not self.attn.mask_heads: # if not attn.weight_mask and not attn.mask_heads
+                    weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
+
+                    tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
+
+                else: # need to filter all masks through frozen
+                    weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
+
+                    tot_params += self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()
+
+            if self.mlp.weight_mask: # not masking a subset, don't need to bother with frozen masks
+                weight_reg += self.mlp.weight_mask_W_in.abs().sum() + self.mlp.weight_mask_W_out.abs().sum() + self.mlp.weight_mask_b_in.abs().sum() + self.mlp.weight_mask_b_out.abs().sum()
+
+                tot_params += self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()
+                
 
 """## Unembedding"""
 
@@ -371,7 +393,7 @@ class DemoTransformer(nn.Module):
             p.requires_grad = False
 
             
-        self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
+        self.blocks = nn.ModuleList([TransformerBlock(cfg, 
                 weight_mask_attn = weight_masks_attn,
                 weight_mask_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else False,
                 weight_mask_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
@@ -412,3 +434,13 @@ class DemoTransformer(nn.Module):
         # with open("saved_states_new.pkl", "wb") as f:
         #     pickle.dump(self.saved_states, f)
         return [logits]
+
+    def get_weight_reg(self, norm='l1'):
+        weight_reg = 0
+        tot_params = 0
+        for block in self.blocks:
+            block_weight_reg, block_tot_params = block.get_mask_reg(norm=norm)
+            weight_reg += block_weight_reg
+            tot_params += block_tot_params
+        return weight_reg, tot_params
+
