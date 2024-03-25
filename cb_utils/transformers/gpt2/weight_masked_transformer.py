@@ -335,22 +335,29 @@ class TransformerBlock(nn.Module):
         if norm == 'l1':
             weight_reg = 0
             tot_params = 0
-            if self.attn.weight_mask: # first add up attn masks
-                if not self.attn.mask_heads: # if not attn.weight_mask and not attn.mask_heads
-                    weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
+            if self.attn.weight_mask and self.attn.mask_heads: # first add up attn masks
+                # if not self.attn.mask_heads: # if not attn.weight_mask and not attn.mask_heads
+                #     weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
 
-                    tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
+                #     tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
+                #     print(f"Added {self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()} params in unfrozen attn")
 
-                else: # need to filter all masks through frozen
-                    weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
+                # else: # need to filter all masks through frozen
+                weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
 
-                    tot_params += self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()
+                # each of these is only n_heads values, so multiply by d_head and d_model to get total params (every 1 corresponds to the params for a whole head)
+                tot_params += (self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model
+                print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
 
             if self.mlp.weight_mask: # not masking a subset, don't need to bother with frozen masks
                 weight_reg += self.mlp.weight_mask_W_in.abs().sum() + self.mlp.weight_mask_W_out.abs().sum() + self.mlp.weight_mask_b_in.abs().sum() + self.mlp.weight_mask_b_out.abs().sum()
 
                 tot_params += self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()
-                
+                print(f"Added {self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()} params in unfrozen mlp")
+
+            return weight_reg, tot_params
+        else:
+            raise NotImplementedError("Only L1 norm supported")
 
 """## Unembedding"""
 

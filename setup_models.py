@@ -153,10 +153,12 @@ from cb_utils.models import load_demo_gpt2, tokenizer
 
 if edge_masks:
     model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
-                       edge_masks=edge_masks, mask_dict_superset=mask_dict_superset)
+                    #    edge_masks=edge_masks, 
+                       mask_dict_superset=mask_dict_superset)
 elif weight_masks_attn or weight_masks_mlp:
     model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=True,
-                       weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+                    #    weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, 
+                       weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
 else:
     model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False,
                        edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)

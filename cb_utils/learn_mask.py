@@ -229,13 +229,11 @@ def train_masks(model,
                 train_losses['edge_reg_term'].append((epoch, step, edge_reg_term))
                 if use_wandb:
                     wandb.log({"edge_reg_term": edge_reg_term}, step=epoch*steps_per_epoch + step)
-                    # wandb.log({"edge_reg_term_scale": edge_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
                 edge_reg_loss = - edge_reg_term * edge_mask_reg_strength_val
                 try:
                     total_loss += edge_reg_loss.item()
                     edge_reg_loss.backward()
                 except:
-                    # with torch.no_grad():
                     total_loss += edge_reg_loss
 
             if weight_mask_reg_strength is not None:
@@ -247,15 +245,11 @@ def train_masks(model,
                 train_losses['weight_mask_reg'].append((epoch, step, weight_reg_term))
                 if use_wandb:
                     wandb.log({"weight_mask_reg": weight_reg_term}, step=epoch*steps_per_epoch + step)
-                    # wandb.log({"weight_mask_reg_scale": weight_mask_reg_strength_val}, step=epoch*steps_per_epoch + step)
-                # total_loss -= weight_reg_term * weight_mask_reg_strength_val
                 weight_reg_loss = -weight_reg_term * weight_mask_reg_strength_val
                 try:
                     total_loss += weight_reg_loss.item()
                     weight_reg_loss.backward()
-
                 except:
-                    # with torch.no_grad():
                     total_loss += weight_reg_loss
             
 

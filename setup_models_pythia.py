@@ -153,9 +153,13 @@ else:
     base_weight_mlp_dict = None
 
 if edge_masks:
-    model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_masks=edge_masks, mask_dict_superset=mask_dict_superset,)
+    model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
+                            #  edge_masks=edge_masks, 
+                             mask_dict_superset=mask_dict_superset,)
 elif weight_masks_attn or weight_masks_mlp:
-    model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_mask=False, weight_mask=True, weight_masks_attn=True, weight_masks_mlp=True, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+    model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_mask=False, weight_mask=True, 
+                            #  weight_masks_attn=True, weight_masks_mlp=True, 
+                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
 # weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict) # these should be None so shouldn't matter
 
 # In[13]:

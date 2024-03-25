@@ -71,10 +71,10 @@ def load_demo_gpt2(means, n_layers=12, n_heads=12, edge_mask=False, weight_mask=
     #                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
     # demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
     if edge_mask:
-        demo_gpt2 = GPT2EdgeDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
+        demo_gpt2 = GPT2EdgeDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=True, **kwargs)
         print("Loaded edge-masked transformer")
     elif weight_mask:
-        demo_gpt2 = GPT2WeightDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), **kwargs)
+        demo_gpt2 = GPT2WeightDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), weight_masks_attn=True, weight_masks_mlp=True, **kwargs)
         print("Loaded weight-masked transformer")
     else:
         print("Unsure which transformer, loading default transformer")
@@ -117,9 +117,9 @@ def load_demo_pythia(means=False, model_name="pythia-2.8b", n_layers=32, n_heads
     # demo_pythia.load_state_dict(pythia_weights, strict=False)
     # demo_pythia.cuda()
     if edge_mask:
-        demo_pythia = PythiaEdgeDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, **kwargs)
+        demo_pythia = PythiaEdgeDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, edge_masks=True, **kwargs)
     elif weight_mask:
-        demo_pythia = PythiaWeightDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), **kwargs)
+        demo_pythia = PythiaWeightDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), weight_masks_attn=True, weight_masks_mlp=True, **kwargs)
     else:
         raise NotImplementedError("No mask type specified")
 
