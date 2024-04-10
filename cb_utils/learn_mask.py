@@ -10,26 +10,62 @@ import os
 import time
 import pickle
 import gc
+import numpy as np
 
 # for getting datetime
 from datetime import datetime
 
-def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5):
+def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None):
     """
     discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
+    if top_k is not None, ablate the top_k edges/weights over all params (should be int) that are under the threshold.
     """
     num_ablated_edges = 0
     num_ablated_weights = 0
-    for name, p in zip(param_names, mask_params):
-        if "edge_mask" in name or name == "output_mask":
-            p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
-            num_ablated_edges += (p.data == 0).sum().item()
-        elif "weight_mask" in name:
-            p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
-            num_ablated_weights += (p.data == 0).sum().item()
-    
-    return num_ablated_edges, num_ablated_weights
 
+    if top_k is None:
+        for name, p in zip(param_names, mask_params):
+            if "edge_mask" in name or name == "output_mask":
+                p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                num_ablated_edges += (p.data == 0).sum().item()
+            elif "weight_mask" in name:
+                p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                num_ablated_weights += (p.data == 0).sum().item()
+        
+        return num_ablated_edges, num_ablated_weights
+
+    else:
+        # find threshold by finding kth smallest edge/weight overall
+        all_edge_components = []
+        all_weight_components = []
+        for name, p in zip(param_names, mask_params):
+            if "edge_mask" in name or name == "output_mask":
+                all_edge_components.extend(p.data.flatten().tolist())
+            elif "weight_mask" in name:
+                all_weight_components.extend(p.data.flatten().tolist())
+        all_edge_components = np.array(all_edge_components)
+        all_weight_components = np.array(all_weight_components)
+        new_edge_threshold = np.partition(all_edge_components, top_k-1)[top_k-1]
+        edge_threshold = min(edge_threshold, new_edge_threshold)
+        new_weight_threshold = np.partition(all_weight_components, top_k-1)[top_k-1]
+        weight_threshold = min(weight_threshold, new_weight_threshold)
+
+        print(f"{edge_threshold=}, {weight_threshold=}")
+        for name, p in zip(param_names, mask_params):
+            if "edge_mask" in name or name == "output_mask":
+                p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                num_ablated_edges += (p.data == 0).sum().item()
+            elif "weight_mask" in name:
+                p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                num_ablated_weights += (p.data == 0).sum().item()
+        # ensure num_ablated_edges is close to top_k
+        if num_ablated_edges != 0:
+            assert abs(num_ablated_edges - top_k) < 10, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
+        if num_ablated_weights != 0:
+            assert abs(num_ablated_weights - top_k) < 1000, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
+        return num_ablated_edges, num_ablated_weights
+
+            
 
 def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, verbose=False):
     """
@@ -95,9 +131,12 @@ def train_masks(model,
                 evaluate_every=10, 
                 discretize_every=50, 
                 save_every=None,
+
                 threshold=0.5, 
+                mask_k=None,
                 edge_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None, 
                 weight_mask_reg_strength: Optional[Union[float, Callable[..., float]]]=None,
+                
                 num_eval_steps=1,
                 verbose=False,
                 use_wandb=False,
@@ -265,7 +304,7 @@ def train_masks(model,
         if discretize_every is not None and epoch % discretize_every == 0:
             if verbose:
                 print(f"discretizeing edges and weights")
-            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold, top_k=mask_k)
             if verbose:
                 print(f"Number of ablated edges: {num_ablated_edges}")
                 print(f"Number of ablated weights: {num_ablated_weights}")
@@ -282,7 +321,7 @@ def train_masks(model,
             original_weights = [p.data.clone() for p in mask_params]
             
             # Discretize weights for evaluation
-            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold)
+            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold, top_k=mask_k)
 
             if verbose:
                 print(f"{num_ablated_edges=}, {num_ablated_weights=}")

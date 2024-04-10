@@ -82,6 +82,8 @@ localize_task = config.get('localize_task', "induction")
 
 use_uniform = config.get('use_uniform', False)
 uniform_type = config.get('uniform_type', "all_tokens")
+exclude_correct = config.get('exclude_correct', True)
+
 unlrn_task_weight = config.get('unlrn_task_weight', -0.2)
 epochs_left = config.get('epochs_left', 200)
 steps_per_epoch = config.get('steps_per_epoch', 20)
@@ -91,6 +93,8 @@ weight_decay = config.get('weight_decay', 0)
 evaluate_every = config.get('evaluate_every', 2)
 discretize_every = config.get('discretize_every', 40)
 threshold = config.get('threshold', 0.5)
+mask_k = config.get('mask_k', None)
+
 use_wandb = config.get('use_wandb', True)
 edge_mask_reg_strength = config.get('edge_mask_reg_strength', 100)
 weight_mask_reg_strength = config.get('weight_mask_reg_strength', 100)
@@ -174,7 +178,7 @@ ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_ac
 induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
 if localize_task == "ioi":
-    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
+    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
 
     ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
 
@@ -191,7 +195,7 @@ if localize_task == "ioi":
     eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
 
 elif localize_task == "induction":
-    induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
+    induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type, exclude_correct=exclude_correct)
     
     if use_uniform:
         train_tasks = {"induction_uniform": induction_uniform, "owt": owt}

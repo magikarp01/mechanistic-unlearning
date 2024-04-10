@@ -131,6 +131,7 @@ def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
 
 class Attention(nn.Module):
     def __init__(self, cfg, weight_mask=False, mask_heads=None):
+
         super().__init__()
         self.cfg = cfg
         self.W_Q = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
@@ -192,6 +193,13 @@ class Attention(nn.Module):
                 # weight_mask_W_V = self.get_partially_frozen_matrix(self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen, self.W_V)
                 # weight_mask_W_O = self.get_partially_frozen_matrix(self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen, self.W_O)
 
+                # assert W_Q is all 1s for non_mask_heads
+                for head in range(self.cfg.n_heads):
+                    if head not in self.mask_heads:
+                        assert torch.all(self.weight_mask_W_Q[head] == 1), f"Head {head} of W_Q is not 1"
+                        assert torch.all(self.weight_mask_W_K[head] == 1), f"Head {head} of W_K is not 1"
+                        assert torch.all(self.weight_mask_W_V[head] == 1), f"Head {head} of W_V is not 1"
+                        assert torch.all(self.weight_mask_W_O[head] == 1), f"Head {head} of W_O is not 1"
             else:
                 weight_mask_W_Q = self.weight_mask_W_Q
                 weight_mask_W_K = self.weight_mask_W_K
@@ -347,13 +355,13 @@ class TransformerBlock(nn.Module):
 
                 # each of these is only n_heads values, so multiply by d_head and d_model to get total params (every 1 corresponds to the params for a whole head)
                 tot_params += (self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model
-                print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
+                # print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
 
             if self.mlp.weight_mask: # not masking a subset, don't need to bother with frozen masks
                 weight_reg += self.mlp.weight_mask_W_in.abs().sum() + self.mlp.weight_mask_W_out.abs().sum() + self.mlp.weight_mask_b_in.abs().sum() + self.mlp.weight_mask_b_out.abs().sum()
 
                 tot_params += self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()
-                print(f"Added {self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()} params in unfrozen mlp")
+                # print(f"Added {self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()} params in unfrozen mlp")
 
             return weight_reg, tot_params
         else:
