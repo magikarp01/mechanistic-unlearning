@@ -12,6 +12,7 @@ import functools
 from tqdm import tqdm
 device = "cuda" if torch.cuda.is_available() else "mps:0"
 MAIN = __name__ == "__main__"
+
 #%%
 if MAIN:
     from tasks.induction.InductionTask import InductionTask
@@ -21,10 +22,24 @@ if MAIN:
         'gpt2-small',
     )
 
-    ind_task = InductionTask(batch_size=16, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
+    ind_task = InductionTask(
+        batch_size=16, 
+        tokenizer=model.tokenizer, 
+        prep_acdcpp=True, 
+        seq_len=15, 
+        acdcpp_metric="ave_logit_diff"
+    )
     ind_task.set_logit_diffs(model)
 
-    ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
+    ioi_task = IOITask(
+        batch_size=5, 
+        tokenizer=model.tokenizer, 
+        device=device, 
+        prep_acdcpp=True, 
+        acdcpp_N=25, 
+        nb_templates=1, 
+        prompt_type="ABBA"
+    )
     ioi_task.set_logit_diffs(model)
 
 # %%
