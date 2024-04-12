@@ -66,6 +66,9 @@ args = parser.parse_args()
 with open(args.config_dir+"/config.json", 'r') as f:
     config = json.load(f)
 
+
+use_pythia = config.get('use_pythia', False)
+
 # Now you can use these arguments in your code
 edge_masks = config.get('edge_masks', False)
 weight_masks_attn = config.get('weight_masks_attn', False)
@@ -151,61 +154,144 @@ print(acdcpp_edges)
 
 
 from cb_utils.transformer import DemoTransformer
-from cb_utils.models import load_demo_gpt2, tokenizer
+from cb_utils.models import load_demo_gpt2, tokenizer, load_demo_pythia
 #%%
 
+if use_pythia:
+    if edge_masks:
+        model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
+                                #  edge_masks=edge_masks, 
+                                mask_dict_superset=mask_dict_superset,)
+    elif weight_masks_attn or weight_masks_mlp:
+        model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_mask=False, weight_mask=True, 
+                                #  weight_masks_attn=True, weight_masks_mlp=True, 
+                                weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+    # weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict) # these should be None so shouldn't matter
 
-if edge_masks:
-    model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
-                    #    edge_masks=edge_masks, 
-                       mask_dict_superset=mask_dict_superset)
-elif weight_masks_attn or weight_masks_mlp:
-    model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=True,
-                    #    weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, 
-                       weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+    # In[13]:
+
+    from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
+    test_batch_size = 32
+    sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device)
+    owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30)
+    ioi = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
+    induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
+
+    train_batch_size=4
+    owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30)
+    if localize_task == "ioi":
+
+        ioi_task_2 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
+
+        ioi_task_3 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
+
+        # train_tasks = {"ioi": ioi, "owt": owt}
+        if use_uniform:
+            ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
+            train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt_train}
+            task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
+        else: 
+            ioi_train = IOITask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
+            train_tasks = {"ioi": ioi_train, "owt": owt_train}
+            task_weights = {"ioi": unlrn_task_weight, "owt": 1}
+
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "sports": sports}
+
+    elif localize_task == "induction":
+        if use_uniform:
+            induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
+            train_tasks = {"induction_uniform": induction_uniform, "owt": owt_train}
+            task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
+
+        else:
+            induction_train = InductionTask(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
+            train_tasks = {"induction": induction_train, "owt": owt_train}
+            task_weights = {"induction": unlrn_task_weight, "owt": 1}
+
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
+
+    elif localize_task == "sports":
+        if use_uniform:
+            sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
+            train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
+            task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
+        
+        else:
+            sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
+            train_tasks = {"sports": sports_train, "owt": owt_train}
+            task_weights = {"sports": unlrn_task_weight, "owt": 1}
+
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
+
+    elif localize_task == "sports_limited":
+        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, start_index=64, stop_index=-128, train_test_split=False)
+        if use_uniform:
+            forget_sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type, start_index=0, stop_index=64, train_test_split=False)
+            train_tasks = {"forget_sports_uniform": forget_sports_uniform, "maintain_sports": maintain_sports, "owt": owt_train}
+            task_weights = {"forget_sports_uniform": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
+
+        else:
+            forget_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, start_index=0, stop_index=64, train_test_split=False)
+            train_tasks = {"forget_sports": forget_sports, "maintain_sports": maintain_sports, "owt": owt_train}
+            task_weights = {"forget_sports": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
+
+        forget_sports_eval = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=0, stop_index=64, train_test_split=False)
+        maintain_sports_eval = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=64, stop_index=-128, train_test_split=False)
+        other_sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, start_index=-128, train_test_split=False)
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "forget_sports": forget_sports_eval, "maintain_sports": maintain_sports_eval, "other_sports": other_sports}
+
 else:
-    model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False,
-                       edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
-
-# In[13]:
-
-from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
-batch_size = 80
-# sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
-owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
-greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
-ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
-induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
-
-if localize_task == "ioi":
-    ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
-
-    ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
-
-    ioi_task_3 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
-
-    # train_tasks = {"ioi": ioi, "owt": owt}
-    if use_uniform:
-        train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt}
-        task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
+    if edge_masks:
+        model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
+                        #    edge_masks=edge_masks, 
+                        mask_dict_superset=mask_dict_superset)
+    elif weight_masks_attn or weight_masks_mlp:
+        model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=True,
+                        #    weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, 
+                        weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
     else:
-        train_tasks = {"ioi": ioi, "owt": owt}
-        task_weights = {"ioi": unlrn_task_weight, "owt": 1}
+        model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False,
+                        edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
+    # In[13]:
 
-elif localize_task == "induction":
-    induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type, exclude_correct=exclude_correct)
-    
-    if use_uniform:
-        train_tasks = {"induction_uniform": induction_uniform, "owt": owt}
-        task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
+    from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
+    batch_size = 80
+    # sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
+    owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
+    greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
+    ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
+    induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
-    else:
-        train_tasks = {"induction": induction, "owt": owt}
-        task_weights = {"induction": unlrn_task_weight, "owt": 1}
+    if localize_task == "ioi":
+        ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
 
-    eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "greaterthan": greaterthan}
+        ioi_task_2 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
+
+        ioi_task_3 = IOITask(batch_size=batch_size*2, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="BABA", template_start_idx=0) # different name format
+
+        # train_tasks = {"ioi": ioi, "owt": owt}
+        if use_uniform:
+            train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt}
+            task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
+        else:
+            train_tasks = {"ioi": ioi, "owt": owt}
+            task_weights = {"ioi": unlrn_task_weight, "owt": 1}
+
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "ioi_2": ioi_task_2, "ioi_3": ioi_task_3, "greaterthan": greaterthan}
+
+    elif localize_task == "induction":
+        induction_uniform = InductionTask_Uniform(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type, exclude_correct=exclude_correct)
+        
+        if use_uniform:
+            train_tasks = {"induction_uniform": induction_uniform, "owt": owt}
+            task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
+
+        else:
+            train_tasks = {"induction": induction, "owt": owt}
+            task_weights = {"induction": unlrn_task_weight, "owt": 1}
+
+        eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "greaterthan": greaterthan}
 
 # In[14]:
 
@@ -240,7 +326,7 @@ optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
 train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch, accum_grad_steps=accum_grad_steps,
             # param_names=param_names, mask_params=mask_params, 
             task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
-            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient)
+            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient, refresh_memory=use_pythia) # only refresh memory is pythia is being used
 
 
 # In[17]:
