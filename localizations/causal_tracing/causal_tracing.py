@@ -1,5 +1,5 @@
 #%%
-# %cd ../../
+%cd ../../
 #%%
 from IPython import embed
 import torch
@@ -7,11 +7,13 @@ from libs.path_patching.path_patching import IterNode, act_patch
 import transformer_lens
 from transformer_lens import utils
 from transformer_lens import HookedTransformer
+from datasets import load_dataset
 
 import functools
 from tqdm import tqdm
 device = "cuda" if torch.cuda.is_available() else "mps:0"
 MAIN = __name__ == "__main__"
+
 #%%
 if MAIN:
     from tasks.induction.InductionTask import InductionTask
@@ -21,86 +23,131 @@ if MAIN:
         'gpt2-small',
     )
 
-    ind_task = InductionTask(batch_size=16, tokenizer=model.tokenizer, prep_acdcpp=True, seq_len=15, acdcpp_metric="ave_logit_diff")
+    ind_task = InductionTask(
+        batch_size=16, 
+        tokenizer=model.tokenizer, 
+        prep_acdcpp=True, 
+        seq_len=15, 
+        acdcpp_metric="ave_logit_diff"
+    )
     ind_task.set_logit_diffs(model)
 
-    ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
+    ioi_task = IOITask(
+        batch_size=5, 
+        tokenizer=model.tokenizer, 
+        device=device, 
+        prep_acdcpp=True, 
+        acdcpp_N=25, 
+        nb_templates=1, 
+        prompt_type="ABBA"
+    )
     ioi_task.set_logit_diffs(model)
 
+
+dataset = load_dataset('wikitext', 'wikitext-103-v1')
 # %%
-def get_embedding_norm(model, tokens):
-    model.reset_hooks()
-    act_norms = None
-    def embedding_norm_hook(act, hook):
-        nonlocal act_norms
-        # Embedding act is of shape (batch, seq_len, d_model)
-        act_norms = act.norm(dim=-1).mean(dim=1) # of shape (batch)
-        return act
-
-    model.run_with_hooks(
-        tokens,
-        fwd_hooks=[
-            ('hook_embed', embedding_norm_hook)
-        ]
+def sample_embedding_std(model):
+    tokens = model.tokenizer(
+        dataset['train']['text'][:1000],
+        padding=True
     )
-    model.reset_hooks()
-    return act_norms
+    return model.W_E[torch.tensor(tokens['input_ids'])].std()
 
-def patching_hook(act, hook, patch_cache, patch_layer, patch_head=None):
-    if hook.layer() == patch_layer:
+def causal_tracing_denoising_hook(act, hook, embedding_std, noise_inds, save_cache, save_layer, save_head=None):
+    '''
+        Noise the embeddings, denoise the head/mlp
+    '''
+    if 'embed' in hook.name:
+        # Noise embedding
+        # for _ in range(10):
+        act[:, noise_inds, :] = act[:, noise_inds, :] + torch.randn_like(act[:, noise_inds, :]) * 3 * embedding_std
+    elif hook.layer() == save_layer:
+        # Save head/mlp
         if 'z' in hook.name:
-            act[:, :, patch_head, :] = patch_cache[hook.name][:, :, patch_head, :]
+            act[:, :, save_head, :] = save_cache[hook.name][:, :, save_head, :]
         elif 'post' in hook.name:
-            act = patch_cache[hook.name]
+            act = save_cache[hook.name]
     return act
 
-def causal_tracing_ioi_metric(logits, io_toks, s_toks):
-    batch_size = logits.shape[0]
-    io_probs = torch.nn.functional.log_softmax(logits[list(range(batch_size)), io_toks], dim=-1)
-    s_probs = torch.nn.functional.log_softmax(logits[list(range(batch_size)), s_toks], dim=-1)
-    return (io_probs - s_probs).mean()
+def ioi_ave_logit_diff(logits, io_toks, s_toks):
+    batch = logits.shape[0]
+    patch_logit_diff = (logits[list(range(batch)), -2, io_toks] - logits[list(range(batch)), -2, s_toks])
+    return patch_logit_diff.mean()
 
-def causal_tracing_ioi(model, ioi_task):
+def ioi_causal_tracing_logit_diff_metric(logits, io_toks, s_toks, CLEAN_LOGIT_DIFF, CORR_LOGIT_DIFF):
+    patch_logit_diff = ioi_ave_logit_diff(logits, io_toks, s_toks)
+    # 0 when patch_logit_diff = CORR_LOGIT_DIFF, 1 when patch_logit_diff = CLEAN_LOGIT_DIFF
+    return (patch_logit_diff - CORR_LOGIT_DIFF) / (CLEAN_LOGIT_DIFF - CORR_LOGIT_DIFF)
+
+def causal_tracing_ioi(model, ioi_task, verbose=True):
     # Create corrupt cache
-    _, cache = model.run_with_cache(
+    embedding_std = sample_embedding_std(model)
+    io_indices = torch.where(
+        ioi_task.clean_data.toks == torch.tensor(ioi_task.clean_data.io_tokenIDs)[:, None]
+    )[1].reshape(len(ioi_task.clean_data.toks), -1)
+
+    clean_logits, save_cache = model.run_with_cache(
         ioi_task.clean_data.toks,
         names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
     )
-
-    # Take clean data cache, and add gaussian noise to subject tokens
-    # of shape (batch, indices)
-    s_indices = torch.where(
-        ioi_task.clean_data.toks == torch.tensor(ioi_task.clean_data.s_tokenIDs)[:, None]
-    )[1].reshape(len(ioi_task.clean_data.toks), -1)
-
-    # of shape (batch)
-    s_norms = get_embedding_norm(
-        model, 
-        torch.tensor(ioi_task.clean_data.s_tokenIDs).reshape(len(ioi_task.clean_data.toks), -1).to(device)
+    # Get corrupt logits by noising embeddings but not saving anything
+    corrupt_logits = model.run_with_hooks(
+        ioi_task.clean_data.toks,
+        fwd_hooks=[
+            (
+                utils.get_act_name('embed'), 
+                functools.partial(
+                    causal_tracing_denoising_hook,
+                    embedding_std=embedding_std,
+                    noise_inds=io_indices,
+                    save_cache=None,
+                    save_layer=-1
+                )
+            )
+        ]
     )
-
-    # Add noise to the subject tokens
-    for hook_name in cache.keys():
-        if "hook_z" in hook_name or "hook_q" in hook_name:
-            act = cache[hook_name] # of shape (batch, seq_len, n_head, d_head)
-            # Get activations of the subject tokens
-            subject_acts = act[torch.arange(act.shape[0])[:, None], s_indices, :, :]
-            # Add noise with std 3 * s_norms
-            noise = torch.randn_like(subject_acts) * 3 * s_norms[:, None, None, None]
-            cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :, :] = cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :, :] + noise
-        elif "post" in hook_name:
-            act = cache[hook_name] # of shape (batch, seq_len, d_model)
-            # Get activations of the subject tokens
-            subject_acts = act[torch.arange(act.shape[0])[:, None], s_indices, :]
-            # Add noise with std 3 * s_norms
-            noise = torch.randn_like(subject_acts) * 3 * s_norms[:, None, None]
-            cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :] = cache[hook_name][torch.arange(act.shape[0])[:, None], s_indices, :] + noise
-    
-    # logit_diff_metric = ioi_task.get_acdcpp_metric(model)
+    if verbose:
+        print( 'Clean: \n' + 
+            model.tokenizer.decode(
+                torch.argmax(
+                    torch.nn.functional.softmax(
+                        clean_logits[:, -2, :],
+                        dim=-1
+                    ),
+                    dim=-1
+                )
+            )
+        )
+        print('Corrupt: \n' + 
+            model.tokenizer.decode(
+                torch.argmax(
+                    torch.nn.functional.softmax(
+                        corrupt_logits[:, -2, :],
+                        dim=-1
+                    ),
+                    dim=-1
+                )
+            )
+        )
+    CLEAN_LOGIT_DIFF = ioi_ave_logit_diff(
+        clean_logits, 
+        ioi_task.clean_data.io_tokenIDs, 
+        ioi_task.clean_data.s_tokenIDs
+    ).item()
+    CORR_LOGIT_DIFF = ioi_ave_logit_diff(
+        corrupt_logits, 
+        ioi_task.clean_data.io_tokenIDs, 
+        ioi_task.clean_data.s_tokenIDs
+    ).item()
+    if verbose:
+       print(f'{CLEAN_LOGIT_DIFF=}, {CORR_LOGIT_DIFF=}')
     logit_diff_metric = functools.partial(
-        causal_tracing_ioi_metric,
-        io_toks=ioi_task.clean_data.io_tokenIDs,
-        s_toks=ioi_task.clean_data.s_tokenIDs,
+        ioi_causal_tracing_logit_diff_metric,
+        io_toks = ioi_task.clean_data.io_tokenIDs,
+        s_toks = ioi_task.clean_data.s_tokenIDs,
+        CLEAN_LOGIT_DIFF = CLEAN_LOGIT_DIFF,
+        # corr logit diff is noisy version of clean tokens
+        CORR_LOGIT_DIFF = CORR_LOGIT_DIFF,
     )
 
     results = {}
@@ -108,15 +155,18 @@ def causal_tracing_ioi(model, ioi_task):
         for head in tqdm(list(range(model.cfg.n_heads))):
             # print('Patching layer', layer, 'head', head)
             hook_fn = functools.partial(
-                patching_hook,
-                patch_cache=cache,
-                patch_layer=layer,
-                patch_head=head
+                causal_tracing_denoising_hook,
+                embedding_std=embedding_std,
+                noise_inds=io_indices,
+                save_cache=save_cache,
+                save_layer=layer,
+                save_head=head
             )
             model.reset_hooks()
             patched_logits = model.run_with_hooks(
                 ioi_task.clean_data.toks,
                 fwd_hooks=[
+                    (utils.get_act_name('embed'), hook_fn),
                     (utils.get_act_name('z', layer), hook_fn)
                 ]
             )
@@ -124,15 +174,18 @@ def causal_tracing_ioi(model, ioi_task):
             results[f'a{layer}.{head}'] = logit_diff_metric(patched_logits).item()
         # Do MLP
         hook_fn = functools.partial(
-            patching_hook,
-            patch_cache=cache,
-            patch_layer=layer,
-            patch_head=None
+            causal_tracing_denoising_hook,
+            embedding_std=embedding_std,
+            noise_inds=io_indices,
+            save_cache=save_cache,
+            save_layer=layer,
+            save_head=None
         )
         model.reset_hooks()
         patched_logits = model.run_with_hooks(
             ioi_task.clean_data.toks,
             fwd_hooks=[
+                (utils.get_act_name('embed'), hook_fn),
                 (utils.get_act_name('post', layer), hook_fn)
             ]
         )
@@ -141,65 +194,121 @@ def causal_tracing_ioi(model, ioi_task):
 
     return results
 
-def causal_tracing_induction(model, ind_task):
-    # Create corrupt cache
-    _, cache = model.run_with_cache(
+def ind_causal_tracing_logit_diff_metric(logits, ind_task, tokens, CLEAN_LOGIT_DIFF, CORR_LOGIT_DIFF):
+    patch_logit_diff = ind_task.ave_logit_diff(logits, tokens)
+    return (patch_logit_diff - CORR_LOGIT_DIFF) / (CLEAN_LOGIT_DIFF - CORR_LOGIT_DIFF)
+
+def causal_tracing_induction(model, ind_task, verbose=True):
+    embedding_std = sample_embedding_std(model)
+
+    # We want to noise pos = -1, -2, ((seq_len - 1) / 2 - 1), and ((seq_len - 1) / 2) - 2)
+    noise_inds = torch.tensor([
+        # -2, 
+        -1, 
+        # ind_task.seq_len - 1, 
+        ind_task.seq_len
+    ])
+    clean_logits, save_cache = model.run_with_cache(
         ind_task.clean_data,
         names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
     )
 
-    # of shape (batch)
-    #
-    norms = get_embedding_norm(
-        model, 
-        ind_task.clean_data[list(range(len(ind_task.clean_data))), -2]
+    # Get corrupt logits by noising embeddings but not saving anything
+    corrupt_logits = model.run_with_hooks(
+        ind_task.clean_data,
+        fwd_hooks=[
+            (
+                utils.get_act_name('embed'), 
+                functools.partial(
+                    causal_tracing_denoising_hook,
+                    embedding_std=embedding_std,
+                    noise_inds=noise_inds,
+                    save_cache=None,
+                    save_layer=-1
+                )
+            )
+        ]
     )
+    if verbose:
+        print( 'Clean: \n' + 
+            model.tokenizer.decode(
+                torch.argmax(
+                    torch.nn.functional.softmax(
+                        clean_logits[:, -2, :],
+                        dim=-1
+                    ),
+                    dim=-1
+                )
+            )
+        )
+        print('Corrupt: \n' + 
+            model.tokenizer.decode(
+                torch.argmax(
+                    torch.nn.functional.softmax(
+                        corrupt_logits[:, -2, :],
+                        dim=-1
+                    ),
+                    dim=-1
+                )
+            )
+        )
+    CLEAN_LOGIT_DIFF = ind_task.ave_logit_diff(clean_logits, ind_task.clean_data).item()
+    CORR_LOGIT_DIFF = ind_task.ave_logit_diff(corrupt_logits, ind_task.clean_data).item()
+    if verbose:
+       print(f'{CLEAN_LOGIT_DIFF=}, {CORR_LOGIT_DIFF=}')
 
-    # Add noise to the subject tokens
-    for hook_name in cache.keys():
-        if "hook_z" in hook_name or "hook_q" in hook_name:
-            act = cache[hook_name] # of shape (batch, seq_len, n_head, d_head)
-            ind_act = act[torch.arange(act.shape[0]), -2, :, :] 
-            # Add noise with std 3 * s_norms
-            noise = torch.randn_like(ind_act).to(device) * 3 * norms
-            cache[hook_name][torch.arange(act.shape[0]), -2, :, :] += noise
-        elif "post" in hook_name:
-            act = cache[hook_name] # of shape (batch, seq_len, d_model)
-            ind_act = act[torch.arange(act.shape[0]), -2, :]
-            noise = torch.randn_like(ind_act).to(device) * 3 * norms
-            cache[hook_name][torch.arange(act.shape[0]), -2, :] += noise
-    
-    logit_diff_metric = ind_task.get_acdcpp_metric(model)
+    logit_diff_metric = functools.partial(
+        ind_causal_tracing_logit_diff_metric,
+        ind_task=ind_task,
+        tokens=ind_task.clean_data,
+        CLEAN_LOGIT_DIFF = CLEAN_LOGIT_DIFF,
+        # corr logit diff is noisy version of clean tokens
+        CORR_LOGIT_DIFF = CORR_LOGIT_DIFF,
+    )
     results = {}
     for layer in tqdm(list(range(model.cfg.n_layers))):
         for head in tqdm(list(range(model.cfg.n_heads))):
             hook_fn = functools.partial(
-                patching_hook,
-                patch_cache=cache,
-                patch_layer=layer,
-                patch_head=head
+                causal_tracing_denoising_hook,
+                embedding_std=embedding_std,
+                noise_inds=noise_inds,
+                save_cache=save_cache,
+                save_layer=layer,
+                save_head=head
             )
+            model.reset_hooks()
             patched_logits = model.run_with_hooks(
                 ind_task.clean_data,
                 fwd_hooks=[
+                    (utils.get_act_name('embed'), hook_fn),
                     (utils.get_act_name('z', layer), hook_fn)
                 ]
             )
             results[f'a{layer}.{head}'] = logit_diff_metric(patched_logits).item()
         # Do MLP
         hook_fn = functools.partial(
-            patching_hook,
-            patch_cache=cache,
-            patch_layer=layer,
-            patch_head=None,
+            causal_tracing_denoising_hook,
+            embedding_std=embedding_std,
+            noise_inds=noise_inds,
+            save_cache=save_cache,
+            save_layer=layer,
+            save_head=None
         )
+        model.reset_hooks()
         patched_logits = model.run_with_hooks(
             ind_task.clean_data,
             fwd_hooks=[
+                (utils.get_act_name('embed'), hook_fn),
                 (utils.get_act_name('post', layer), hook_fn)
             ]
         )
         results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
 
     return results
+
+#%%
+causal_tracing_induction(model, ind_task)
+# %%
+causal_tracing_ioi(model, ioi_task)
+
 # %%
