@@ -1,0 +1,33 @@
+{
+    "edge_masks": true,
+    "weight_masks_attn": false,
+    "weight_masks_mlp": false,
+    "train_base_weights": false,
+
+    "localize_acdcpp": true,
+    "localize_ct": false,
+    "localize_task": "ioi",
+    "localization_dir_path": "localizations/eap/ioi/gpt2_threshold=0.05.pkl",
+
+    "edge_mask_reg_strength": 10,
+    "weight_mask_reg_strength": 10,
+    "scale_reg_strength": true,
+
+    "use_uniform": true,
+    "uniform_type": "all_tokens",
+    "unlrn_task_weight": 0.2,
+    "epochs_left": 100,
+    "steps_per_epoch": 20,
+    "accum_grad_steps": 1,
+    "exclude_correct": true,
+
+    "evaluate_every": 4,
+    "discretize_every": 25,
+    "threshold": 0.5,
+    "mask_k": null,
+    "num_eval_steps": 10,
+    "save_every": null,
+    "use_wandb": true,
+    "save_path": null,
+    "save_efficient": true
+}
