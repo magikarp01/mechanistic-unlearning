@@ -4,7 +4,7 @@ from localizations.causal_tracing.causal_tracing import (
     causal_tracing_induction,
     causal_tracing_ioi,
 )
-from masks.masks import CausalGraphMask, MaskType
+from masks import CausalGraphMask, MaskType
 
 from cb_utils.mask_utils import get_masks_from_ct_nodes
 
@@ -15,7 +15,7 @@ class CausalTracingLocalizer(AbstractLocalizer):
         self.model = model
         self.task = task
 
-    def get_mask(self, model, task, threshold=0.0005):
+    def get_mask(self, threshold=0.0005):
         """
         Get the mask (of nodes) for the model and task.
 
@@ -24,11 +24,11 @@ class CausalTracingLocalizer(AbstractLocalizer):
             - IOITask
         """
 
-        if type(task).__name__ == "InductionTask":
-            mask = causal_tracing_induction(model, task)
+        if type(self.task).__name__ == "InductionTask":
+            mask = causal_tracing_induction(self.model, self.task)
 
-        elif type(task).__name__ == "IOITask":
-            mask = causal_tracing_ioi(model, task)
+        elif type(self.task).__name__ == "IOITask":
+            mask = causal_tracing_ioi(self.model, self.task)
 
         ct_keys = list(mask.keys())
         ct_keys_above_threshold = [k for k in ct_keys if mask[k] > threshold]

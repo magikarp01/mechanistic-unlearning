@@ -1,6 +1,4 @@
 #%%
-%cd ../../
-#%%
 from IPython import embed
 import torch
 from libs.path_patching.path_patching import IterNode, act_patch
@@ -305,10 +303,3 @@ def causal_tracing_induction(model, ind_task, verbose=True):
         results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
 
     return results
-
-#%%
-causal_tracing_induction(model, ind_task)
-# %%
-causal_tracing_ioi(model, ioi_task)
-
-# %%
