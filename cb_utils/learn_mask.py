@@ -15,6 +15,8 @@ import numpy as np
 # for getting datetime
 from datetime import datetime
 
+wandb_project_name = "mech_unlearning_sweep"
+
 def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None):
     """
     discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
@@ -45,10 +47,21 @@ def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_thre
                 all_weight_components.extend(p.data.flatten().tolist())
         all_edge_components = np.array(all_edge_components)
         all_weight_components = np.array(all_weight_components)
-        new_edge_threshold = np.partition(all_edge_components, top_k-1)[top_k-1]
-        edge_threshold = min(edge_threshold, new_edge_threshold)
-        new_weight_threshold = np.partition(all_weight_components, top_k-1)[top_k-1]
-        weight_threshold = min(weight_threshold, new_weight_threshold)
+        # print(f"{all_edge_components=}\n{all_edge_components.shape=}\n{all_weight_components=}\n{all_weight_components.shape=}")
+
+        if all_edge_components.shape[0] > 0:
+            if top_k > all_edge_components.shape[0]:
+                raise IndexError(f"top_k: {top_k} is greater than number of edges: {all_edge_components.shape[0]}")
+            new_edge_threshold = np.partition(all_edge_components, top_k-1)[top_k-1]
+            # print(f"{new_edge_threshold=}")
+            edge_threshold = min(edge_threshold, new_edge_threshold)
+        
+        if all_weight_components.shape[0] > 0:
+            if top_k > all_weight_components.shape[0]:
+                raise IndexError(f"top_k: {top_k} is greater than number of weights: {all_weight_components.shape[0]}")
+            new_weight_threshold = np.partition(all_weight_components, top_k-1)[top_k-1]
+            # print(f"{new_weight_threshold=}")
+            weight_threshold = min(weight_threshold, new_weight_threshold)
 
         print(f"{edge_threshold=}, {weight_threshold=}")
         for name, p in zip(param_names, mask_params):
@@ -60,9 +73,9 @@ def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_thre
                 num_ablated_weights += (p.data == 0).sum().item()
         # ensure num_ablated_edges is close to top_k
         if num_ablated_edges != 0:
-            assert abs(num_ablated_edges - top_k) < 10, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
+            assert num_ablated_edges < top_k, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
         if num_ablated_weights != 0:
-            assert abs(num_ablated_weights - top_k) < 1000, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
+            assert num_ablated_weights < top_k, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
         return num_ablated_edges, num_ablated_weights
 
             
@@ -198,7 +211,10 @@ def train_masks(model,
         config.update(task_weights)
 
         # Initialize wandb with the updated config
-        wandb.init(project="mech_unlearning", config=config)
+        if wandb_config is not None and "wandb_name" in wandb_config and wandb_config["wandb_name"] is not None:
+            wandb.init(project=wandb_project_name, config=config, name=wandb_config["wandb_name"])
+        else:
+            wandb.init(project=wandb_project_name, config=config)
 
     # model = load_demo_gpt2(means=means, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     train_losses = defaultdict(list)

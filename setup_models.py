@@ -58,6 +58,7 @@ parser = argparse.ArgumentParser(description="Set model parameters")
 
 # Add the arguments
 parser.add_argument('--config_dir', type=str, required=True, help='Path to the directory with configuration file')
+parser.add_argument('--wandb_name', type=str, required=False, help='Wandb run ID') 
 
 # Parse the arguments
 args = parser.parse_args()
@@ -91,7 +92,7 @@ unlrn_task_weight = config.get('unlrn_task_weight', -0.2)
 epochs_left = config.get('epochs_left', 200)
 steps_per_epoch = config.get('steps_per_epoch', 20)
 accum_grad_steps = config.get('accum_grad_steps', 1)
-lr = config.get('lr', 0.01)
+lr = config.get('lr', 1e-3)
 weight_decay = config.get('weight_decay', 0)
 evaluate_every = config.get('evaluate_every', 2)
 discretize_every = config.get('discretize_every', 40)
@@ -315,18 +316,42 @@ from cb_utils.learn_mask import train_masks
 #     "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
 # set wandb_config to config
 wandb_config = config
+wandb_config["wandb_name"] = args.wandb_name
 
 if scale_reg_strength:
     orig_edge_mask_reg_strength = edge_mask_reg_strength
     orig_weight_mask_reg_strength = weight_mask_reg_strength
-    edge_mask_reg_strength = lambda epoch: orig_edge_mask_reg_strength * (epoch - 20)
-    weight_mask_reg_strength = lambda epoch: orig_weight_mask_reg_strength * (epoch - 20)
+    edge_mask_reg_strength = lambda epoch: orig_edge_mask_reg_strength * (epoch - epochs_left/5)
+    weight_mask_reg_strength = lambda epoch: orig_weight_mask_reg_strength * (epoch - epochs_left/5)
 
 optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
-train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch, accum_grad_steps=accum_grad_steps,
-            # param_names=param_names, mask_params=mask_params, 
-            task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
-            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient, refresh_memory=use_pythia) # only refresh memory is pythia is being used
+train_losses, test_losses = train_masks(model, 
+                                        tasks=train_tasks, 
+                                        optimizer=optimizer, 
+                                        num_epochs=epochs_left, 
+
+                                        steps_per_epoch=steps_per_epoch, 
+                                        accum_grad_steps=accum_grad_steps,
+
+                                        task_weights=task_weights, 
+                                        eval_tasks=eval_tasks, 
+
+                                        evaluate_every=evaluate_every, 
+                                        discretize_every=discretize_every, 
+                                        save_every=save_every,
+
+                                        threshold=threshold, 
+                                        mask_k=mask_k,
+                                        edge_mask_reg_strength=edge_mask_reg_strength, 
+                                        weight_mask_reg_strength=weight_mask_reg_strength, 
+
+                                        verbose=False, 
+                                        use_wandb=use_wandb, 
+                                        wandb_config=wandb_config, 
+                                        save_dir=save_path, 
+
+                                        save_efficient=save_efficient, 
+                                        refresh_memory=use_pythia) # only refresh memory is pythia is being used
 
 
 # In[17]:
