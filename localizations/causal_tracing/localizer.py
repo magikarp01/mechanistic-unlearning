@@ -3,6 +3,7 @@ from localizations.abstract_localizer import AbstractLocalizer
 from localizations.causal_tracing.causal_tracing import (
     causal_tracing_induction,
     causal_tracing_ioi,
+    causal_tracing_sports
 )
 from masks import CausalGraphMask, MaskType
 
@@ -29,6 +30,8 @@ class CausalTracingLocalizer(AbstractLocalizer):
 
         elif type(self.task).__name__ == "IOITask":
             mask = causal_tracing_ioi(self.model, self.task)
+        elif type(self.task).__name__ == "SportsFactsTask":
+            mask = causal_tracing_sports(self.model, self.task)
 
         ct_keys = list(mask.keys())
         ct_keys_above_threshold = [k for k in ct_keys if mask[k] > threshold]

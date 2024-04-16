@@ -43,6 +43,22 @@ class EAPLocalizer(AbstractLocalizer):
                 batch_size=batch,
                 clean_answers=None,
             )
+        elif type(self.task).__name__ == "SportsFactsTask":
+            clean_dataset = self.task.clean_data
+            corr_dataset = self.task.corr_data
+            eap_metric = self.task.get_acdcpp_metric()
+
+            graph = EAP(
+                self.model,
+                clean_dataset.toks,
+                corr_dataset.toks,
+                eap_metric,
+                upstream_nodes=["mlp", "head"],
+                downstream_nodes=["mlp", "head"],
+                batch_size=batch,
+                clean_answers=self.task.clean_answer_toks,
+                wrong_answers=self.task.clean_wrong_toks,
+            )
 
         (
             acdcpp_nodes,
