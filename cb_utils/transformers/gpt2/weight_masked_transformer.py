@@ -340,22 +340,22 @@ class TransformerBlock(nn.Module):
         return residual
 
     def get_mask_reg(self, norm='l1'):
+        print(f"{self.attn.weight_mask=}, {self.attn.mask_heads=}, {self.mlp.weight_mask=}")
         if norm == 'l1':
             weight_reg = 0
             tot_params = 0
-            if self.attn.weight_mask and self.attn.mask_heads: # first add up attn masks
-                # if not self.attn.mask_heads: # if not attn.weight_mask and not attn.mask_heads
-                #     weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
+            if self.attn.weight_mask:
+                if self.attn.mask_heads: # first add up attn masks
+                # need to filter all masks through frozen
+                    weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
 
-                #     tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
-                #     print(f"Added {self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()} params in unfrozen attn")
+                    # each of these is only n_heads values, so multiply by d_head and d_model to get total params (every 1 corresponds to the params for a whole head)
+                    tot_params += (self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model
+                    # print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
+                else:
+                    weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
 
-                # else: # need to filter all masks through frozen
-                weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
-
-                # each of these is only n_heads values, so multiply by d_head and d_model to get total params (every 1 corresponds to the params for a whole head)
-                tot_params += (self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model
-                # print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
+                    tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
 
             if self.mlp.weight_mask: # not masking a subset, don't need to bother with frozen masks
                 weight_reg += self.mlp.weight_mask_W_in.abs().sum() + self.mlp.weight_mask_W_out.abs().sum() + self.mlp.weight_mask_b_in.abs().sum() + self.mlp.weight_mask_b_out.abs().sum()
@@ -410,7 +410,7 @@ class DemoTransformer(nn.Module):
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, 
                 weight_mask_attn = weight_masks_attn,
-                weight_mask_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else False,
+                weight_mask_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else weight_masks_mlp,
                 weight_mask_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
             for i in range(cfg.n_layers)])
 

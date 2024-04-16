@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Directory containing the subdirectories
-BASE_DIR="masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros"
+BASE_DIR="masks/threshold_sweep_ioi/weight_masks/none"
 # cutoff=12
 cutoff=22
 # Subdirectories to exclude
-EXCLUDE_DIRS=("masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/mask_k=10_acdcpp" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/mask_k=10_none" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/threshold=0.5_acdcpp" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/threshold=0.5_none")
+# EXCLUDE_DIRS=("masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/mask_k=10_acdcpp" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/mask_k=10_none" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/threshold=0.5_acdcpp" "masks/threshold_sweep_ioi/edge_masks/higher_lr_mask_zeros/threshold=0.5_none")
 
 # Iterate through subdirectories
 for subdir in "$BASE_DIR"/*; do

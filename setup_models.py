@@ -310,13 +310,42 @@ print(param_names)
 
 from cb_utils.learn_mask import train_masks
 
-# wandb_config = {
-#     "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp, "localize_task": localize_task,
-#     "uniform_type": uniform_type, "unlrn_task_weight": unlrn_task_weight, "use_uniform": use_uniform, 
-#     "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
+
 # set wandb_config to config
-wandb_config = config
-wandb_config["wandb_name"] = args.wandb_name
+wandb_config = {
+    "use_pythia": use_pythia,
+    "edge_masks": edge_masks,
+    "weight_masks_attn": weight_masks_attn,
+    "weight_masks_mlp": weight_masks_mlp,
+    "train_base_weights": train_base_weights,
+    "localize_acdcpp": localize_acdcpp,
+    "localize_ct": localize_ct,
+    "localize_task": localize_task,
+    "use_uniform": use_uniform,
+    "uniform_type": uniform_type,
+    "exclude_correct": exclude_correct,
+    "unlrn_task_weight": unlrn_task_weight,
+    "epochs_left": epochs_left,
+    "steps_per_epoch": steps_per_epoch,
+    "accum_grad_steps": accum_grad_steps,
+    "lr": lr,
+    "weight_decay": weight_decay,
+    "evaluate_every": evaluate_every,
+    "discretize_every": discretize_every,
+    "threshold": threshold,
+    "mask_k": mask_k,
+    "use_wandb": use_wandb,
+    "edge_mask_reg_strength": edge_mask_reg_strength,
+    "weight_mask_reg_strength": weight_mask_reg_strength,
+    "num_eval_steps": num_eval_steps,
+    "save_every": save_every,
+    "save_path": save_path,
+    "save_efficient": save_efficient,
+    "scale_reg_strength": scale_reg_strength,
+    "localization_dir_path": localization_dir_path,
+    "wandb_name": args.wandb_name,
+    "config_dir": args.config_dir
+}
 
 if scale_reg_strength:
     orig_edge_mask_reg_strength = edge_mask_reg_strength

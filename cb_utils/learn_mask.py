@@ -15,7 +15,7 @@ import numpy as np
 # for getting datetime
 from datetime import datetime
 
-wandb_project_name = "mech_unlearning_sweep"
+wandb_project_name = "mech_unlearning_debug"
 
 def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None, mask_zeros=True):
     """
@@ -247,11 +247,13 @@ def train_masks(model,
                     loss = task.get_train_loss(model)
                     # add item (without gradients to avoid memory leak) to train_losses
                     train_losses[task_name].append((epoch, step, loss.item()))
-                    total_loss += loss.item() * task_weights[task_name]
+                    loss = loss * task_weights[task_name] / accum_grad_steps
+                    total_loss += loss.item()
                     task_loss += loss.item()
+
                     loss.backward()
                 if use_wandb:
-                    wandb.log({f"train_loss_{task_name}": task_loss / accum_grad_steps}, step=epoch*steps_per_epoch + step)
+                    wandb.log({f"train_loss_{task_name}": task_loss}, step=epoch*steps_per_epoch + step)
 
             # Add regularization losses for edge and weight masks, l1
             
@@ -265,6 +267,7 @@ def train_masks(model,
             
             if hasattr(model, "get_weight_reg"):
                 weight_reg_term, tot_weight_params = model.get_weight_reg()
+                # print(f"weight_reg_term: {weight_reg_term}, tot_weight_params: {tot_weight_params}")
             # for name, p in zip(param_names, mask_params):
             #     if "edge_mask" in name:
             #         # get l1 norm of edge mask

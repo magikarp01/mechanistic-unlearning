@@ -361,6 +361,26 @@ class TransformerBlock(nn.Module):
         # residual should have resid_pre, attn_out, mlp_out cat 
         return residual
 
+
+    def get_mask_reg(self, norm='l1'):
+        # calculate the mask regularization term
+        if norm == 'l1':
+            if not self.frozen_mask:
+                # add edge_mask_attentions and edge_mask_mlp
+                edge_reg = self.edge_mask_attentions.abs().sum() + self.edge_mask_mlp.abs().sum()
+                tot_params = self.edge_mask_attentions.numel() + self.edge_mask_mlp.numel()
+            else:
+                # only add edge_mask_attentions that aren't masked by the frozen mask
+                # edges with 0s in frozen mask are not added to reg
+                edge_reg = (self.edge_mask_attentions_frozen * self.edge_mask_attentions).abs().sum() + (self.edge_mask_mlp_frozen * self.edge_mask_mlp).abs().sum()
+
+                # only count 1s in the frozen mask for total trainable parameters
+                tot_params = self.edge_mask_attentions_frozen.sum() + self.edge_mask_mlp_frozen.sum()
+            return edge_reg, tot_params
+
+        else:
+            raise ValueError(f"Unknown norm {norm}")
+
 """## Unembedding"""
 
 class Unembed(nn.Module):
@@ -455,6 +475,20 @@ class DemoTransformer(nn.Module):
         # with open("saved_states_new.pkl", "wb") as f:
         #     pickle.dump(self.saved_states, f)
         return [logits]
+
+    def get_edge_reg(self, norm='l1'):
+        edge_reg = 0
+        tot_params = 0
+        for block in self.blocks:
+            block_reg, block_params = block.get_mask_reg(norm)
+            edge_reg += block_reg
+            tot_params += block_params
+        
+        # add output mask 
+        if self.frozen_mask and norm == 'l1':
+            edge_reg += (self.output_mask_frozen * self.output_mask).abs().sum()
+            tot_params += self.output_mask_frozen.sum()
+        return edge_reg, tot_params
 
 # %%
 
