@@ -17,7 +17,7 @@ from datetime import datetime
 
 wandb_project_name = "mech_unlearning_sweep"
 
-def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None):
+def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None, mask_zeros=True):
     """
     discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
     if top_k is not None, ablate the top_k edges/weights over all params (should be int) that are under the threshold.
@@ -66,21 +66,28 @@ def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_thre
         print(f"{edge_threshold=}, {weight_threshold=}")
         for name, p in zip(param_names, mask_params):
             if "edge_mask" in name or name == "output_mask":
-                p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                if edge_threshold == 0 and mask_zeros:
+                    p.data = torch.where(p.data <= edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                else:
+                    p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
                 num_ablated_edges += (p.data == 0).sum().item()
             elif "weight_mask" in name:
-                p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                if weight_threshold == 0 and mask_zeros:
+                    p.data = torch.where(p.data <= weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                else:
+                    p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
                 num_ablated_weights += (p.data == 0).sum().item()
         # ensure num_ablated_edges is close to top_k
-        if num_ablated_edges != 0:
+        if num_ablated_edges != 0 and not mask_zeros:
             assert num_ablated_edges < top_k, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
-        if num_ablated_weights != 0:
+        if num_ablated_weights != 0 and not mask_zeros:
             assert num_ablated_weights < top_k, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
         return num_ablated_edges, num_ablated_weights
 
             
 
 def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, verbose=False):
+
     """
     Evaluate a model on a set of Tasks. Returns a dictionary of task names to losses.
     """

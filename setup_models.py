@@ -92,7 +92,7 @@ unlrn_task_weight = config.get('unlrn_task_weight', -0.2)
 epochs_left = config.get('epochs_left', 200)
 steps_per_epoch = config.get('steps_per_epoch', 20)
 accum_grad_steps = config.get('accum_grad_steps', 1)
-lr = config.get('lr', 1e-3)
+lr = config.get('lr', 1e-2)
 weight_decay = config.get('weight_decay', 0)
 evaluate_every = config.get('evaluate_every', 2)
 discretize_every = config.get('discretize_every', 40)
@@ -122,7 +122,7 @@ if localization_dir_path is None:
         localization_method = "ct"
     localization_dir_path = f"localizations/{localize_task}/{localization_method}/"
 
-
+print(f"{use_pythia=}\n{edge_masks=}\n{weight_masks_attn=}\n{weight_masks_mlp=}\n{train_base_weights=}\n{localize_acdcpp=}\n{localize_ct=}\n{localize_task=}\n{use_uniform=}\n{uniform_type=}\n{exclude_correct=}\n{unlrn_task_weight=}\n{epochs_left=}\n{steps_per_epoch=}\n{accum_grad_steps=}\n{lr=}\n{weight_decay=}\n{evaluate_every=}\n{discretize_every=}\n{threshold=}\n{mask_k=}\n{use_wandb=}\n{edge_mask_reg_strength=}\n{weight_mask_reg_strength=}\n{num_eval_steps=}\n{save_every=}\n{save_path=}\n{save_efficient=}\n{scale_reg_strength=}\n{localization_dir_path=}")
 # In[3.5]
 
 
@@ -188,7 +188,7 @@ if use_pythia:
 
         # train_tasks = {"ioi": ioi, "owt": owt}
         if use_uniform:
-            ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
+            ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
             train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt_train}
             task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
         else: 
@@ -200,7 +200,7 @@ if use_pythia:
 
     elif localize_task == "induction":
         if use_uniform:
-            induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
+            induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type, exclude_correct=exclude_correct)
             train_tasks = {"induction_uniform": induction_uniform, "owt": owt_train}
             task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
 
