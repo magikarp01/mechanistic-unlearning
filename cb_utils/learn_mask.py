@@ -15,7 +15,7 @@ import numpy as np
 # for getting datetime
 from datetime import datetime
 
-wandb_project_name = "mech_unlearning_debug"
+wandb_project_name = "mech_unlearning_sweep_2"
 
 def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None, mask_zeros=True):
     """

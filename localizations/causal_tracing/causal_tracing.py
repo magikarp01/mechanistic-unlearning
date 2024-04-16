@@ -1,5 +1,5 @@
 #%%
-%cd ../../
+# %cd ../../
 #%%
 from IPython import embed
 import torch
@@ -307,8 +307,8 @@ def causal_tracing_induction(model, ind_task, verbose=True):
     return results
 
 #%%
-causal_tracing_induction(model, ind_task)
-# %%
-causal_tracing_ioi(model, ioi_task)
+# causal_tracing_induction(model, ind_task)
+# # %%
+# causal_tracing_ioi(model, ioi_task)
 
 # %%
