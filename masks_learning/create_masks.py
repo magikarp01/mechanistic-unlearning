@@ -17,12 +17,14 @@ model = HookedTransformer.from_pretrained(
     fold_ln=False,
     center_writing_weights=False,
     center_unembed=False,
-    default_padding_side="left"
+    default_padding_side="left",
+    dtype=torch.float32
 )
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
 model.set_use_hook_mlp_in(True)
 tokenizer = model.tokenizer
+
 #%%
 ### LOAD TASKS
 from tasks.induction.InductionTask import InductionTask

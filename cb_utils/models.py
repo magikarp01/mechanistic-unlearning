@@ -115,23 +115,13 @@ def tl_config_to_demo_config(tl_config, debug=False):
 
 # 2.8b: d_model = 2560, 32 layers, 32 heads
 def load_demo_pythia(
-    means=False, 
-    model_name="pythia-2.8b", 
-    n_layers=32, 
-    n_heads=32, 
-    d_model=2560, 
-    d_head=None, 
-    d_mlp=None, 
-    edge_mask=True, 
-    weight_mask=False, 
-    return_tokenizer=False,
-    **kwargs
-):
+    means=False, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, edge_mask=True, weight_mask=False, dtype=torch.float32, **kwargs):
 
     reference_pythia = HookedTransformer.from_pretrained(
         model_name,
         fold_ln=False,
-        device="cpu"
+        device="cpu",
+        dtype=dtype
     )
     reference_pythia.set_use_attn_result(True)
     
@@ -140,16 +130,14 @@ def load_demo_pythia(
     # demo_pythia.load_state_dict(pythia_weights, strict=False)
     # demo_pythia.cuda()
     if edge_mask:
-        demo_pythia = PythiaEdgeDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, edge_masks=True, **kwargs)
+        demo_pythia = PythiaEdgeDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), means=means, edge_masks=True, dtype=dtype, **kwargs)
     elif weight_mask:
-        demo_pythia = PythiaWeightDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), weight_masks_attn=True, weight_masks_mlp=True, **kwargs)
+        demo_pythia = PythiaWeightDemoTransformer(tl_config_to_demo_config(reference_pythia.cfg), weight_masks_attn=True, weight_masks_mlp=True, dtype=dtype, **kwargs)
     else:
         raise NotImplementedError("No mask type specified")
 
     demo_pythia.load_state_dict(reference_pythia.state_dict(), strict=False)
     demo_pythia.to(DEVICE)
-    if return_tokenizer:
-        return demo_pythia, reference_pythia.tokenizer
     return demo_pythia
 
 # %%
