@@ -17,16 +17,16 @@
 import os
 import sys
 import pickle
-sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
-sys.path.append('acdcpp/')
-from acdc import TLACDCExperiment
-from acdcpp.ACDCPPExperiment import ACDCPPExperiment
+# sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
+# sys.path.append('acdcpp/')
+# from acdc import TLACDCExperiment
+# from acdcpp.ACDCPPExperiment import ACDCPPExperiment
 import os
 import sys
 import re
 
-from acdc.TLACDCExperiment import TLACDCExperiment
-from acdc.acdc_utils import TorchIndex, EdgeType
+# from acdc.TLACDCExperiment import TLACDCExperiment
+# from acdc.acdc_utils import TorchIndex, EdgeType
 import numpy as np
 import torch as t
 from torch import Tensor
@@ -43,7 +43,7 @@ import torch
 
 device = t.device('cuda') if t.cuda.is_available() else t.device('cpu')
 print(f'Device: {device}')
-from ACDCPPExperiment import ACDCPPExperiment
+# from ACDCPPExperiment import ACDCPPExperiment
 from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 
 
@@ -155,11 +155,11 @@ else:
 if edge_masks:
     model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
                             #  edge_masks=edge_masks, 
-                             mask_dict_superset=mask_dict_superset,)
+                             mask_dict_superset=mask_dict_superset, dtype=torch.bfloat16)
 elif weight_masks_attn or weight_masks_mlp:
     model = load_demo_pythia(means=False, model_name="pythia-2.8b", edge_mask=False, weight_mask=True, 
                             #  weight_masks_attn=True, weight_masks_mlp=True, 
-                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, dtype=torch.bfloat16)
 # weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict) # these should be None so shouldn't matter
 
 # In[13]:

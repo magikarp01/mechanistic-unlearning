@@ -6,15 +6,15 @@
 
     "localize_acdcpp": true,
     "localize_ct": false,
-    "localize_task": "ioi",
-    "localization_dir_path": "localizations/eap/ioi/gpt2_threshold=0.05.pkl",
+    "localize_task": "sports",
+    "localization_dir_path": "models/pythia2_8b_sports_eap_mask_005.pkl",
 
     "edge_mask_reg_strength": 10,
     "weight_mask_reg_strength": 10,
     "scale_reg_strength": true,
 
     "use_uniform": true,
-    "uniform_type": "all_tokens",
+    "uniform_type": "sports_tokens",
     "unlrn_task_weight": 0.2,
     "epochs_left": 100,
     "steps_per_epoch": 20,
