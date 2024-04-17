@@ -130,7 +130,7 @@ def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
     return W_baseline.float(), W_frozen.float()
 
 class Attention(nn.Module):
-    def __init__(self, cfg, weight_mask=False, mask_heads=None):
+    def __init__(self, cfg, finetune=False, ft_heads=None):
 
         super().__init__()
         self.cfg = cfg
@@ -148,21 +148,22 @@ class Attention(nn.Module):
         nn.init.normal_(self.W_O, std=self.cfg.init_range)
         self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
         
-        self.weight_mask = weight_mask
-        self.mask_heads = mask_heads
+        self.finetune = finetune
+        self.ft_heads = ft_heads
 
-        if weight_mask:
-            self.weight_mask_W_Q = nn.Parameter(torch.ones_like(self.W_Q), requires_grad=True)
-            self.weight_mask_W_K = nn.Parameter(torch.ones_like(self.W_K), requires_grad=True)
-            self.weight_mask_W_V = nn.Parameter(torch.ones_like(self.W_V), requires_grad=True)
-            self.weight_mask_W_O = nn.Parameter(torch.ones_like(self.W_O), requires_grad=True)
+        self.combine_frozen = False
 
-            if mask_heads is not None:
-                self.weight_mask_W_Q_baseline, self.weight_mask_W_Q_frozen = make_partly_differentiable_mask(self.W_Q, mask_heads)
-                self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen = make_partly_differentiable_mask(self.W_K, mask_heads)
-                self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen = make_partly_differentiable_mask(self.W_V, mask_heads)
-                self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen = make_partly_differentiable_mask(self.W_O, mask_heads)
+        if finetune and ft_heads is not None:
+            self.W_Q_trainable = nn.Parameter(self.W_Q.clone().detach(), requires_grad=True)
+            self.W_K_trainable = nn.Parameter(self.W_K.clone().detach(), requires_grad=True)
+            self.W_V_trainable = nn.Parameter(self.W_V.clone().detach(), requires_grad=True)
+            self.W_O_trainable = nn.Parameter(self.W_O.clone().detach(), requires_grad=True)
 
+            self.W_Q_baseline, self.W_Q_frozen = make_partly_differentiable_mask(self.W_Q, ft_heads)
+            self.W_K_baseline, self.W_K_frozen = make_partly_differentiable_mask(self.W_K, ft_heads)
+            self.W_V_baseline, self.W_V_frozen = make_partly_differentiable_mask(self.W_V, ft_heads)
+            self.W_O_baseline, self.W_O_frozen = make_partly_differentiable_mask(self.W_O, ft_heads)
+            self.combine_frozen = True
 
         self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=torch.float32, device=device))
 
@@ -176,40 +177,11 @@ class Attention(nn.Module):
     def forward(self, normalized_resid_pre):
         # normalized_resid_pre: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_pre:", normalized_resid_pre.shape)
-        if self.weight_mask:
-            if self.mask_heads is not None:
-                # print(f"{self.weight_mask_W_Q_baseline.shape=}, {self.weight_mask_W_Q_frozen.shape=}, {self.weight_mask_W_Q.shape=}")
-                # print(f"{self.weight_mask_W_K_baseline.shape=}, {self.weight_mask_W_K_frozen.shape=}, {self.weight_mask_W_K.shape=}")
-                # print(f"{self.weight_mask_W_V_baseline.shape=}, {self.weight_mask_W_V_frozen.shape=}, {self.weight_mask_W_V.shape=}")
-                # print(f"{self.weight_mask_W_O_baseline.shape=}, {self.weight_mask_W_O_frozen.shape=}, {self.weight_mask_W_O.shape=}")
-                
-
-                weight_mask_W_Q = self.weight_mask_W_Q_baseline + self.weight_mask_W_Q_frozen * self.weight_mask_W_Q
-                weight_mask_W_K = self.weight_mask_W_K_baseline + self.weight_mask_W_K_frozen * self.weight_mask_W_K
-                weight_mask_W_V = self.weight_mask_W_V_baseline + self.weight_mask_W_V_frozen * self.weight_mask_W_V
-                weight_mask_W_O = self.weight_mask_W_O_baseline + self.weight_mask_W_O_frozen * self.weight_mask_W_O
-
-                # weight_mask_W_K = self.get_partially_frozen_matrix(self.weight_mask_W_K_baseline, self.weight_mask_W_K_frozen, self.W_K)
-                # weight_mask_W_V = self.get_partially_frozen_matrix(self.weight_mask_W_V_baseline, self.weight_mask_W_V_frozen, self.W_V)
-                # weight_mask_W_O = self.get_partially_frozen_matrix(self.weight_mask_W_O_baseline, self.weight_mask_W_O_frozen, self.W_O)
-
-                # assert W_Q is all 1s for non_mask_heads
-                for head in range(self.cfg.n_heads):
-                    if head not in self.mask_heads:
-                        assert torch.all(self.weight_mask_W_Q[head] == 1), f"Head {head} of W_Q is not 1"
-                        assert torch.all(self.weight_mask_W_K[head] == 1), f"Head {head} of W_K is not 1"
-                        assert torch.all(self.weight_mask_W_V[head] == 1), f"Head {head} of W_V is not 1"
-                        assert torch.all(self.weight_mask_W_O[head] == 1), f"Head {head} of W_O is not 1"
-            else:
-                weight_mask_W_Q = self.weight_mask_W_Q
-                weight_mask_W_K = self.weight_mask_W_K
-                weight_mask_W_V = self.weight_mask_W_V
-                weight_mask_W_O = self.weight_mask_W_O
-
-            W_Q = self.W_Q * weight_mask_W_Q
-            W_K = self.W_K * weight_mask_W_K
-            W_V = self.W_V * weight_mask_W_V
-            W_O = self.W_O * weight_mask_W_O
+        if self.combine_frozen:
+            W_Q = self.W_Q_baseline * self.W_Q + self.W_Q_frozen * self.W_Q_trainable
+            W_K = self.W_K_baseline * self.W_K + self.W_K_frozen * self.W_K_trainable
+            W_V = self.W_V_baseline * self.W_V + self.W_V_frozen * self.W_V_trainable
+            W_O = self.W_O_baseline * self.W_O + self.W_O_frozen * self.W_O_trainable
         
         else:
             W_Q = self.W_Q
@@ -237,15 +209,6 @@ class Attention(nn.Module):
         ) + (self.b_O / self.cfg.n_heads)
         return attn_out.sum(dim=2)
     
-    def discretize_weight_masks(self, threshold=0.5):
-        """
-        Call to discretize weight masks. Sets all values below threshold to 0 and all values above threshold to 1.
-        """
-        assert self.weight_mask
-        for p in [self.weight_mask_W_Q, self.weight_mask_W_K, self.weight_mask_W_V, self.weight_mask_W_O]:
-            p.data[p.data < threshold] = 0
-            p.data[p.data >= threshold] = 1
-            
     def apply_causal_mask(self, attn_scores):
         # attn_scores: [batch, n_heads, query_pos, key_pos]
         mask = torch.triu(torch.ones(attn_scores.size(-2), attn_scores.size(-1), device=attn_scores.device), diagonal=1).bool()
@@ -254,7 +217,7 @@ class Attention(nn.Module):
 
 """## MLP"""
 class MLP(nn.Module):
-    def __init__(self, cfg, weight_mask=False):
+    def __init__(self, cfg, finetune=False):
         super().__init__()
         self.cfg = cfg
         self.W_in = nn.Parameter(torch.empty((cfg.d_model, cfg.d_mlp)))
@@ -264,13 +227,7 @@ class MLP(nn.Module):
         nn.init.normal_(self.W_out, std=self.cfg.init_range)
         self.b_out = nn.Parameter(torch.zeros((cfg.d_model)))
 
-        if weight_mask:
-            self.weight_mask_W_in = nn.Parameter(torch.ones_like(self.W_in), requires_grad=True)
-            self.weight_mask_W_out = nn.Parameter(torch.ones_like(self.W_out), requires_grad=True)
-            self.weight_mask_b_in = nn.Parameter(torch.ones_like(self.b_in), requires_grad=True)
-            self.weight_mask_b_out = nn.Parameter(torch.ones_like(self.b_out), requires_grad=True)
-        
-        self.weight_mask = weight_mask
+        self.finetune = finetune
 
     def discretize_weight_masks(self, threshold=0.5):
         """
@@ -282,16 +239,10 @@ class MLP(nn.Module):
             p.data[p.data >= threshold] = 1
             
     def forward(self, normalized_resid_mid):
-        if self.weight_mask:
-            W_in = self.W_in * self.weight_mask_W_in
-            W_out = self.W_out * self.weight_mask_W_out
-            b_in = self.b_in * self.weight_mask_b_in
-            b_out = self.b_out * self.weight_mask_b_out
-        else:
-            W_in = self.W_in
-            W_out = self.W_out
-            b_in = self.b_in
-            b_out = self.b_out
+        W_in = self.W_in
+        W_out = self.W_out
+        b_in = self.b_in
+        b_out = self.b_out
 
         # normalized_resid_mid: [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_mid:", normalized_resid_mid.shape)
@@ -302,29 +253,32 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, weight_mask_attn=False, weight_mask_attn_heads=None, weight_mask_mlp=False):
+    def __init__(self, cfg, finetune_attn=False, ft_attn_heads=None, finetune_mlp=False):
         """
-        If weight_mask_attn is True, then the attention weights will be masked over.
-            If weight_mask_attn_heads is not None, it should be a list of heads to mask over.
-        If weight_mask_mlp is True, then the MLP weights will be masked over.
+        If finetune_attn is True, then the attention weights will be masked over.
+            If ft_attn_heads is not None, it should be a list of heads to mask over.
+        If finetune_mlp is True, then the MLP weights will be masked over.
         """
-        assert not (not weight_mask_attn and weight_mask_attn_heads is not None), "If weight_mask_attn_heads is not None, weight_mask_attn must be True"
+        assert not (not finetune_attn and ft_attn_heads is not None), "If ft_attn_heads is not None, finetune_attn must be True"
 
         super().__init__()
         self.cfg = cfg
 
         self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg, weight_mask=weight_mask_attn, mask_heads=weight_mask_attn_heads)
+        self.attn = Attention(cfg, weight_mask=finetune_attn, mask_heads=ft_attn_heads)
         self.ln2 = LayerNorm(cfg)
-        self.mlp = MLP(cfg, weight_mask=weight_mask_mlp)
+        self.mlp = MLP(cfg, weight_mask=finetune_mlp)
 
         # for p in self.parameters():
         #     p.requires_grad = False
         for name, p in self.named_parameters():
-            if "weight_mask" in name and "frozen" not in name and "baseline" not in name:
-                # only train the weight masks, all the other weights should be frozen
-                continue 
             p.requires_grad=False
+        # manually set the attn and mlp weights to be trainable
+        if finetune_attn:
+            self.attn.W_Q.requires_grad = True
+            self.attn.W_K.requires_grad = True
+            self.attn.W_V.requires_grad = True
+            self.attn.W_O.requires_grad = True
 
     def forward(self, resid_pre, means=False):
         assert len(resid_pre.shape) == 3, f"resid_pre shape: {resid_pre.shape}"
@@ -345,7 +299,7 @@ class TransformerBlock(nn.Module):
             weight_reg = 0
             tot_params = 0
             if self.attn.weight_mask:
-                if self.attn.mask_heads is not None: # first add up attn masks
+                if self.attn.mask_heads: # first add up attn masks
                 # need to filter all masks through frozen
                     weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
 
@@ -409,9 +363,9 @@ class DemoTransformer(nn.Module):
 
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, 
-                weight_mask_attn = weight_masks_attn,
-                weight_mask_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else weight_masks_mlp,
-                weight_mask_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
+                finetune_attn = weight_masks_attn,
+                finetune_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else weight_masks_mlp,
+                ft_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
             for i in range(cfg.n_layers)])
 
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
