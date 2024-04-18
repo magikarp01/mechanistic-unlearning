@@ -19,14 +19,14 @@ import sys
 import pickle
 sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
 sys.path.append('acdcpp/')
-from acdc import TLACDCExperiment
-from acdcpp.ACDCPPExperiment import ACDCPPExperiment
+# from acdc import TLACDCExperiment
+# from acdcpp.ACDCPPExperiment import ACDCPPExperiment
 import os
 import sys
 import re
 
-from acdc.TLACDCExperiment import TLACDCExperiment
-from acdc.acdc_utils import TorchIndex, EdgeType
+# from acdc.TLACDCExperiment import TLACDCExperiment
+# from acdc.acdc_utils import TorchIndex, EdgeType
 import numpy as np
 import torch as t
 from torch import Tensor
@@ -43,7 +43,7 @@ import torch
 
 device = t.device('cuda') if t.cuda.is_available() else t.device('cpu')
 print(f'Device: {device}')
-from ACDCPPExperiment import ACDCPPExperiment
+# from ACDCPPExperiment import ACDCPPExperiment
 from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 
 
@@ -156,7 +156,7 @@ print(acdcpp_edges)
 
 from cb_utils.transformer import DemoTransformer
 from cb_utils.models import load_demo_gpt2, load_demo_pythia
-from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast
+from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast, AutoTokenizer
 
 #%%
 
@@ -178,7 +178,7 @@ if use_pythia:
     from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
     test_batch_size = 32
     sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device)
-    owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30)
+    owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30, stream_dataset=True)
     ioi = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
     induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 

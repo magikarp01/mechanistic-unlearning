@@ -4,6 +4,7 @@
     "weight_masks_mlp": false,
     "train_base_weights": false,
 
+    "use_pythia": true,
     "localize_acdcpp": true,
     "localize_ct": false,
     "localize_task": "sports",
