@@ -313,115 +313,129 @@ def causal_tracing_induction(model, ind_task, verbose=True):
     return results
 
 ### SPORTS FACTS
+from collections import defaultdict
 
-def sports_causal_tracing_logit_diff_metric(logits, sports_task, CLEAN_LOGIT_DIFF, CORR_LOGIT_DIFF):
-    patch_logit_diff = sports_task.ave_logit_diff(logits)
+def sports_causal_tracing_logit_diff_metric(
+    logits, 
+    sports_task, 
+    CLEAN_LOGIT_DIFF, 
+    CORR_LOGIT_DIFF,
+    correct_ans=None,
+    wrong_ans=None
+):
+    patch_logit_diff = sports_task.ave_logit_diff(logits, correct_ans, wrong_ans)
     return (patch_logit_diff - CORR_LOGIT_DIFF) / (CLEAN_LOGIT_DIFF - CORR_LOGIT_DIFF)
 
-def causal_tracing_sports(model, sports_task, verbose=True):
+def causal_tracing_sports(
+    model, 
+    sports_task, 
+    batch_size=5, 
+    verbose=True
+):
     embedding_std = sample_embedding_std(model)
 
-    # We want to noise pos = -1, -2, ((seq_len - 1) / 2 - 1), and ((seq_len - 1) / 2) - 2)
-    noise_inds = [
-        torch.tensor(
-            list(range(s['{player}'].start, s['{player}'].stop))
+    results = defaultdict(lambda: 0)
+    toks = sports_task.clean_data.toks
+    deltas = sports_task.clean_data.deltas
+    correct_ans_toks = sports_task.correct_ans_toks
+    wrong_ans_toks = sports_task.wrong_ans_toks
+
+    for i in range(0, len(toks), batch_size):
+        toks_slice = toks[i:i+batch_size]
+        deltas_slice = deltas[i:i+batch_size]
+        correct_ans_slice = correct_ans_toks[i:i+batch_size]
+        wrong_ans_slice = wrong_ans_toks[i:i+batch_size]
+
+        noise_inds = [
+            torch.tensor(
+                list(range(s['{player}'].start, s['{player}'].stop))
+            )
+            for s in deltas_slice
+        ]
+
+        clean_logits, save_cache = model.run_with_cache(
+            toks_slice,
+            names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
         )
-        for s in sports_task.clean_data.deltas
-    ]
 
-    clean_logits, save_cache = model.run_with_cache(
-        sports_task.clean_data.toks,
-        names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
-    )
+        # Get corrupt logits by noising embeddings but not saving anything
+        corrupt_logits = model.run_with_hooks(
+            toks_slice,
+            fwd_hooks=[
+                (
+                    utils.get_act_name('embed'), 
+                    functools.partial(
+                        causal_tracing_denoising_hook,
+                        embedding_std=embedding_std,
+                        noise_inds=noise_inds,
+                        save_cache=None,
+                        save_layer=-1
+                    )
+                )
+            ]
+        )
+        if verbose:
+            print('Clean: \n' + model.tokenizer.decode(
+                    torch.argmax(torch.nn.functional.softmax(clean_logits[:, -1, :], dim=-1), dim=-1)
+                )
+            )
+            print('Corrupt: \n' + 
+                model.tokenizer.decode( 
+                    torch.argmax(torch.nn.functional.softmax(corrupt_logits[:, -1, :], dim=-1), dim=-1)
+                )
+            )
 
-    # Get corrupt logits by noising embeddings but not saving anything
-    corrupt_logits = model.run_with_hooks(
-        sports_task.clean_data.toks,
-        fwd_hooks=[
-            (
-                utils.get_act_name('embed'), 
-                functools.partial(
+        CLEAN_LOGIT_DIFF = sports_task.ave_logit_diff(clean_logits, correct_ans_slice, wrong_ans_slice).item()
+        CORR_LOGIT_DIFF = sports_task.ave_logit_diff(corrupt_logits, correct_ans_slice, wrong_ans_slice).item()
+        if verbose:
+            print(f'{CLEAN_LOGIT_DIFF=}, {CORR_LOGIT_DIFF=}')
+
+        logit_diff_metric = functools.partial(
+            sports_causal_tracing_logit_diff_metric,
+            sports_task=sports_task,
+            CLEAN_LOGIT_DIFF = CLEAN_LOGIT_DIFF,
+            # corr logit diff is noisy version of clean tokens
+            CORR_LOGIT_DIFF = CORR_LOGIT_DIFF,
+            correct_ans=correct_ans_slice,
+            wrong_ans=wrong_ans_slice
+        )
+
+        for layer in tqdm(list(range(model.cfg.n_layers))):
+            for head in tqdm(list(range(model.cfg.n_heads))):
+                hook_fn = functools.partial(
                     causal_tracing_denoising_hook,
                     embedding_std=embedding_std,
                     noise_inds=noise_inds,
-                    save_cache=None,
-                    save_layer=-1
+                    save_cache=save_cache,
+                    save_layer=layer,
+                    save_head=head
                 )
-            )
-        ]
-    )
-    if verbose:
-        print( 'Clean: \n' + 
-            model.tokenizer.decode(
-                torch.argmax(
-                    torch.nn.functional.softmax(
-                        clean_logits[:, -1, :],
-                        dim=-1
-                    ),
-                    dim=-1
+                model.reset_hooks()
+                patched_logits = model.run_with_hooks(
+                    toks_slice,
+                    fwd_hooks=[
+                        (utils.get_act_name('embed'), hook_fn),
+                        (utils.get_act_name('z', layer), hook_fn)
+                    ]
                 )
-            )
-        )
-        print('Corrupt: \n' + 
-            model.tokenizer.decode(
-                torch.argmax(
-                    torch.nn.functional.softmax(
-                        corrupt_logits[:, -1, :],
-                        dim=-1
-                    ),
-                    dim=-1
-                )
-            )
-        )
-    CLEAN_LOGIT_DIFF = sports_task.ave_logit_diff(clean_logits).item()
-    CORR_LOGIT_DIFF = sports_task.ave_logit_diff(corrupt_logits).item()
-    if verbose:
-       print(f'{CLEAN_LOGIT_DIFF=}, {CORR_LOGIT_DIFF=}')
-
-    logit_diff_metric = functools.partial(
-        sports_causal_tracing_logit_diff_metric,
-        sports_task=sports_task,
-        CLEAN_LOGIT_DIFF = CLEAN_LOGIT_DIFF,
-        # corr logit diff is noisy version of clean tokens
-        CORR_LOGIT_DIFF = CORR_LOGIT_DIFF,
-    )
-    results = {}
-    for layer in tqdm(list(range(model.cfg.n_layers))):
-        for head in tqdm(list(range(model.cfg.n_heads))):
+                results[f'a{layer}.{head}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+            # Do MLP
             hook_fn = functools.partial(
                 causal_tracing_denoising_hook,
                 embedding_std=embedding_std,
                 noise_inds=noise_inds,
                 save_cache=save_cache,
                 save_layer=layer,
-                save_head=head
+                save_head=None
             )
             model.reset_hooks()
             patched_logits = model.run_with_hooks(
-                sports_task.clean_data.toks,
+                toks_slice,
                 fwd_hooks=[
                     (utils.get_act_name('embed'), hook_fn),
-                    (utils.get_act_name('z', layer), hook_fn)
+                    (utils.get_act_name('post', layer), hook_fn)
                 ]
             )
-            results[f'a{layer}.{head}'] = logit_diff_metric(patched_logits).item()
-        # Do MLP
-        hook_fn = functools.partial(
-            causal_tracing_denoising_hook,
-            embedding_std=embedding_std,
-            noise_inds=noise_inds,
-            save_cache=save_cache,
-            save_layer=layer,
-            save_head=None
-        )
-        model.reset_hooks()
-        patched_logits = model.run_with_hooks(
-            sports_task.clean_data,
-            fwd_hooks=[
-                (utils.get_act_name('embed'), hook_fn),
-                (utils.get_act_name('post', layer), hook_fn)
-            ]
-        )
-        results[f'm{layer}'] = logit_diff_metric(patched_logits).item()
+            results[f'm{layer}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
 
     return results
