@@ -155,10 +155,14 @@ print(acdcpp_edges)
 
 
 from cb_utils.transformer import DemoTransformer
-from cb_utils.models import load_demo_gpt2, tokenizer, load_demo_pythia
+from cb_utils.models import load_demo_gpt2, load_demo_pythia
+from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast
+
 #%%
 
 if use_pythia:
+    tokenizer = GPTNeoXTokenizerFast.from_pretrained("EleutherAI/gpt-neox-20b")
+    tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
                                 #  edge_masks=edge_masks, 
@@ -242,6 +246,8 @@ if use_pythia:
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "forget_sports": forget_sports_eval, "maintain_sports": maintain_sports_eval, "other_sports": other_sports}
 
 else:
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
                         #    edge_masks=edge_masks, 
