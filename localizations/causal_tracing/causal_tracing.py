@@ -8,7 +8,7 @@ from transformer_lens import HookedTransformer
 from datasets import load_dataset
 
 import functools
-from tqdm import tqdm
+from tqdm.auto import tqdm
 device = "cuda" if torch.cuda.is_available() else "mps:0"
 MAIN = __name__ == "__main__"
 
@@ -337,10 +337,10 @@ def causal_tracing_sports(
     results = defaultdict(lambda: 0)
     toks = sports_task.clean_data.toks
     deltas = sports_task.clean_data.deltas
-    correct_ans_toks = sports_task.correct_ans_toks
-    wrong_ans_toks = sports_task.wrong_ans_toks
+    correct_ans_toks = sports_task.clean_answer_toks
+    wrong_ans_toks = sports_task.clean_wrong_toks
 
-    for i in range(0, len(toks), batch_size):
+    for i in tqdm(range(0, len(toks), batch_size), position=0, leave=True):
         toks_slice = toks[i:i+batch_size]
         deltas_slice = deltas[i:i+batch_size]
         correct_ans_slice = correct_ans_toks[i:i+batch_size]
@@ -400,8 +400,8 @@ def causal_tracing_sports(
             wrong_ans=wrong_ans_slice
         )
 
-        for layer in tqdm(list(range(model.cfg.n_layers))):
-            for head in tqdm(list(range(model.cfg.n_heads))):
+        for layer in tqdm(list(range(model.cfg.n_layers)), position=0, leave=True):
+            for head in tqdm(list(range(model.cfg.n_heads)), position=0, leave=True):
                 hook_fn = functools.partial(
                     causal_tracing_denoising_hook,
                     embedding_std=embedding_std,

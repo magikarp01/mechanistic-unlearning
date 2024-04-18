@@ -53,7 +53,16 @@ from tasks.facts.SportsTask import SportsFactsTask
 
 # ind_task = InductionTask(batch_size=5, tokenizer=tokenizer, device=device)
 # ioi_task = IOITask(batch_size=5, tokenizer=tokenizer, device=device, prep_acdcpp=True)
-sports_task = SportsFactsTask(model, N=100, batch_size=5, tokenizer=tokenizer, device=device)
+sports_task = SportsFactsTask(
+    model, 
+    N=10, 
+    batch_size=5, 
+    tokenizer=tokenizer,
+    # forget_sport_subset={"football"},
+    # forget_player_subset={"Austin Rivers"},
+    # is_forget_dataset=False,
+    device=device
+)
 
 #%%
 ### LOAD LOCALIZATION METHODS
@@ -65,10 +74,10 @@ ct_localizer = CausalTracingLocalizer(model, sports_task)
 
 #%%
 ### GET MASKS FROM LOCALIZATIONS
-eap_mask = eap_localizer.get_mask(batch=10, threshold=0.005)
+# eap_mask = eap_localizer.get_mask(batch=10, threshold=0.005)
 
-# model.eval() # Don't need gradients when doing ct task
-# ct_mask = ct_localizer.get_mask(threshold=0.0005)
+model.eval() # Don't need gradients when doing ct task
+ct_mask = ct_localizer.get_mask(threshold=0.0005, batch_size=5)
 
 #%%
 ### SAVE THESE MASKS
