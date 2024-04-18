@@ -3,7 +3,6 @@
 #SBATCH --output=jupyter_logs/log-%J.txt
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:1
 #SBATCH --time=4:00:00
 

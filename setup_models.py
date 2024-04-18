@@ -58,6 +58,7 @@ parser = argparse.ArgumentParser(description="Set model parameters")
 
 # Add the arguments
 parser.add_argument('--config_dir', type=str, required=True, help='Path to the directory with configuration file')
+parser.add_argument('--wandb_name', type=str, required=False, help='Wandb run ID') 
 
 # Parse the arguments
 args = parser.parse_args()
@@ -91,7 +92,7 @@ unlrn_task_weight = config.get('unlrn_task_weight', -0.2)
 epochs_left = config.get('epochs_left', 200)
 steps_per_epoch = config.get('steps_per_epoch', 20)
 accum_grad_steps = config.get('accum_grad_steps', 1)
-lr = config.get('lr', 0.01)
+lr = config.get('lr', 1e-2)
 weight_decay = config.get('weight_decay', 0)
 evaluate_every = config.get('evaluate_every', 2)
 discretize_every = config.get('discretize_every', 40)
@@ -121,7 +122,7 @@ if localization_dir_path is None:
         localization_method = "ct"
     localization_dir_path = f"localizations/{localize_task}/{localization_method}/"
 
-
+print(f"{use_pythia=}\n{edge_masks=}\n{weight_masks_attn=}\n{weight_masks_mlp=}\n{train_base_weights=}\n{localize_acdcpp=}\n{localize_ct=}\n{localize_task=}\n{use_uniform=}\n{uniform_type=}\n{exclude_correct=}\n{unlrn_task_weight=}\n{epochs_left=}\n{steps_per_epoch=}\n{accum_grad_steps=}\n{lr=}\n{weight_decay=}\n{evaluate_every=}\n{discretize_every=}\n{threshold=}\n{mask_k=}\n{use_wandb=}\n{edge_mask_reg_strength=}\n{weight_mask_reg_strength=}\n{num_eval_steps=}\n{save_every=}\n{save_path=}\n{save_efficient=}\n{scale_reg_strength=}\n{localization_dir_path=}")
 # In[3.5]
 
 
@@ -154,10 +155,14 @@ print(acdcpp_edges)
 
 
 from cb_utils.transformer import DemoTransformer
-from cb_utils.models import load_demo_gpt2, tokenizer, load_demo_pythia
+from cb_utils.models import load_demo_gpt2, load_demo_pythia
+from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast
+
 #%%
 
 if use_pythia:
+    tokenizer = GPTNeoXTokenizerFast.from_pretrained("EleutherAI/gpt-neox-20b")
+    tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
                                 #  edge_masks=edge_masks, 
@@ -187,7 +192,7 @@ if use_pythia:
 
         # train_tasks = {"ioi": ioi, "owt": owt}
         if use_uniform:
-            ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA")
+            ioi_uniform = IOITask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
             train_tasks = {"ioi_uniform": ioi_uniform, "owt": owt_train}
             task_weights = {"ioi_uniform": unlrn_task_weight, "owt": 1} # I think means preserve OWT, corrupt IOI
         else: 
@@ -199,7 +204,7 @@ if use_pythia:
 
     elif localize_task == "induction":
         if use_uniform:
-            induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type)
+            induction_uniform = InductionTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, uniform_over=uniform_type, exclude_correct=exclude_correct)
             train_tasks = {"induction_uniform": induction_uniform, "owt": owt_train}
             task_weights = {"induction_uniform": unlrn_task_weight, "owt": 1}
 
@@ -241,6 +246,8 @@ if use_pythia:
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "forget_sports": forget_sports_eval, "maintain_sports": maintain_sports_eval, "other_sports": other_sports}
 
 else:
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_gpt2(means=False, edge_mask=True, weight_mask=False,
                         #    edge_masks=edge_masks, 
@@ -309,24 +316,77 @@ print(param_names)
 
 from cb_utils.learn_mask import train_masks
 
-# wandb_config = {
-#     "edge_masks": edge_masks, "weight_masks_attn": weight_masks_attn, "weight_masks_mlp": weight_masks_mlp,  "train_base_weights": train_base_weights, "localize_acdcpp": localize_acdcpp, "localize_task": localize_task,
-#     "uniform_type": uniform_type, "unlrn_task_weight": unlrn_task_weight, "use_uniform": use_uniform, 
-#     "epochs": epochs_left, "steps_per_epoch": steps_per_epoch, "lr": lr, "weight_decay": weight_decay, "evaluate_every": evaluate_every, "discretize_every": discretize_every, "threshold": threshold, "edge_mask_reg_strength": edge_mask_reg_strength, "weight_mask_reg_strength": weight_mask_reg_strength}
+
 # set wandb_config to config
-wandb_config = config
+wandb_config = {
+    "use_pythia": use_pythia,
+    "edge_masks": edge_masks,
+    "weight_masks_attn": weight_masks_attn,
+    "weight_masks_mlp": weight_masks_mlp,
+    "train_base_weights": train_base_weights,
+    "localize_acdcpp": localize_acdcpp,
+    "localize_ct": localize_ct,
+    "localize_task": localize_task,
+    "use_uniform": use_uniform,
+    "uniform_type": uniform_type,
+    "exclude_correct": exclude_correct,
+    "unlrn_task_weight": unlrn_task_weight,
+    "epochs_left": epochs_left,
+    "steps_per_epoch": steps_per_epoch,
+    "accum_grad_steps": accum_grad_steps,
+    "lr": lr,
+    "weight_decay": weight_decay,
+    "evaluate_every": evaluate_every,
+    "discretize_every": discretize_every,
+    "threshold": threshold,
+    "mask_k": mask_k,
+    "use_wandb": use_wandb,
+    "edge_mask_reg_strength": edge_mask_reg_strength,
+    "weight_mask_reg_strength": weight_mask_reg_strength,
+    "num_eval_steps": num_eval_steps,
+    "save_every": save_every,
+    "save_path": save_path,
+    "save_efficient": save_efficient,
+    "scale_reg_strength": scale_reg_strength,
+    "localization_dir_path": localization_dir_path,
+    "wandb_name": args.wandb_name,
+    "config_dir": args.config_dir
+}
 
 if scale_reg_strength:
     orig_edge_mask_reg_strength = edge_mask_reg_strength
     orig_weight_mask_reg_strength = weight_mask_reg_strength
-    edge_mask_reg_strength = lambda epoch: orig_edge_mask_reg_strength * (epoch - 20)
-    weight_mask_reg_strength = lambda epoch: orig_weight_mask_reg_strength * (epoch - 20)
+    edge_mask_reg_strength = lambda epoch: orig_edge_mask_reg_strength * (epoch - epochs_left/5)
+    weight_mask_reg_strength = lambda epoch: orig_weight_mask_reg_strength * (epoch - epochs_left/5)
 
 optimizer = torch.optim.AdamW(mask_params, lr=lr, weight_decay=weight_decay)
-train_losses, test_losses = train_masks(model, tasks=train_tasks, optimizer=optimizer, num_epochs=epochs_left, steps_per_epoch=steps_per_epoch, accum_grad_steps=accum_grad_steps,
-            # param_names=param_names, mask_params=mask_params, 
-            task_weights=task_weights, eval_tasks=eval_tasks, evaluate_every=evaluate_every, discretize_every=discretize_every, save_every=save_every,
-            threshold=threshold, edge_mask_reg_strength=edge_mask_reg_strength, weight_mask_reg_strength=weight_mask_reg_strength, verbose=False, use_wandb=use_wandb, wandb_config=wandb_config, save_dir=save_path, save_efficient=save_efficient, refresh_memory=use_pythia) # only refresh memory is pythia is being used
+train_losses, test_losses = train_masks(model, 
+                                        tasks=train_tasks, 
+                                        optimizer=optimizer, 
+                                        num_epochs=epochs_left, 
+
+                                        steps_per_epoch=steps_per_epoch, 
+                                        accum_grad_steps=accum_grad_steps,
+
+                                        task_weights=task_weights, 
+                                        eval_tasks=eval_tasks, 
+
+                                        evaluate_every=evaluate_every, 
+                                        discretize_every=discretize_every, 
+                                        save_every=save_every,
+
+                                        threshold=threshold, 
+                                        mask_k=mask_k,
+                                        edge_mask_reg_strength=edge_mask_reg_strength, 
+                                        weight_mask_reg_strength=weight_mask_reg_strength, 
+
+                                        verbose=False, 
+                                        use_wandb=use_wandb, 
+                                        wandb_config=wandb_config, 
+                                        save_dir=save_path, 
+
+                                        save_efficient=save_efficient, 
+                                        refresh_memory=use_pythia) # only refresh memory is pythia is being used
 
 
 # In[17]:

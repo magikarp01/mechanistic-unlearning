@@ -15,7 +15,9 @@ import numpy as np
 # for getting datetime
 from datetime import datetime
 
-def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None):
+wandb_project_name = "mech_unlearning_debug"
+
+def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_threshold=0.5, top_k=None, mask_zeros=True):
     """
     discretize both edge and weight masks to be either 0 or 1. param_dict should only have edge and weight masks that you want to discretize.
     if top_k is not None, ablate the top_k edges/weights over all params (should be int) that are under the threshold.
@@ -45,29 +47,47 @@ def discretize_weights(param_names, mask_params, edge_threshold=0.5, weight_thre
                 all_weight_components.extend(p.data.flatten().tolist())
         all_edge_components = np.array(all_edge_components)
         all_weight_components = np.array(all_weight_components)
-        new_edge_threshold = np.partition(all_edge_components, top_k-1)[top_k-1]
-        edge_threshold = min(edge_threshold, new_edge_threshold)
-        new_weight_threshold = np.partition(all_weight_components, top_k-1)[top_k-1]
-        weight_threshold = min(weight_threshold, new_weight_threshold)
+        # print(f"{all_edge_components=}\n{all_edge_components.shape=}\n{all_weight_components=}\n{all_weight_components.shape=}")
+
+        if all_edge_components.shape[0] > 0:
+            if top_k > all_edge_components.shape[0]:
+                raise IndexError(f"top_k: {top_k} is greater than number of edges: {all_edge_components.shape[0]}")
+            new_edge_threshold = np.partition(all_edge_components, top_k-1)[top_k-1]
+            # print(f"{new_edge_threshold=}")
+            edge_threshold = min(edge_threshold, new_edge_threshold)
+        
+        if all_weight_components.shape[0] > 0:
+            if top_k > all_weight_components.shape[0]:
+                raise IndexError(f"top_k: {top_k} is greater than number of weights: {all_weight_components.shape[0]}")
+            new_weight_threshold = np.partition(all_weight_components, top_k-1)[top_k-1]
+            # print(f"{new_weight_threshold=}")
+            weight_threshold = min(weight_threshold, new_weight_threshold)
 
         print(f"{edge_threshold=}, {weight_threshold=}")
         for name, p in zip(param_names, mask_params):
             if "edge_mask" in name or name == "output_mask":
-                p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                if edge_threshold == 0 and mask_zeros:
+                    p.data = torch.where(p.data <= edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                else:
+                    p.data = torch.where(p.data < edge_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
                 num_ablated_edges += (p.data == 0).sum().item()
             elif "weight_mask" in name:
-                p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                if weight_threshold == 0 and mask_zeros:
+                    p.data = torch.where(p.data <= weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
+                else:
+                    p.data = torch.where(p.data < weight_threshold, torch.zeros_like(p.data), torch.ones_like(p.data))
                 num_ablated_weights += (p.data == 0).sum().item()
         # ensure num_ablated_edges is close to top_k
-        if num_ablated_edges != 0:
-            assert abs(num_ablated_edges - top_k) < 10, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
-        if num_ablated_weights != 0:
-            assert abs(num_ablated_weights - top_k) < 1000, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
+        if num_ablated_edges != 0 and not mask_zeros:
+            assert num_ablated_edges < top_k, f"num_ablated_edges: {num_ablated_edges}, top_k: {top_k}"
+        if num_ablated_weights != 0 and not mask_zeros:
+            assert num_ablated_weights < top_k, f"num_ablated_weights: {num_ablated_weights}, top_k: {top_k}"
         return num_ablated_edges, num_ablated_weights
 
             
 
 def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, verbose=False):
+
     """
     Evaluate a model on a set of Tasks. Returns a dictionary of task names to losses.
     """
@@ -198,7 +218,10 @@ def train_masks(model,
         config.update(task_weights)
 
         # Initialize wandb with the updated config
-        wandb.init(project="mech_unlearning", config=config)
+        if wandb_config is not None and "wandb_name" in wandb_config and wandb_config["wandb_name"] is not None:
+            wandb.init(project=wandb_project_name, config=config, name=wandb_config["wandb_name"])
+        else:
+            wandb.init(project=wandb_project_name, config=config)
 
     # model = load_demo_gpt2(means=means, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp)
     train_losses = defaultdict(list)
@@ -224,11 +247,13 @@ def train_masks(model,
                     loss = task.get_train_loss(model)
                     # add item (without gradients to avoid memory leak) to train_losses
                     train_losses[task_name].append((epoch, step, loss.item()))
-                    total_loss += loss.item() * task_weights[task_name]
+                    loss = loss * task_weights[task_name] / accum_grad_steps
+                    total_loss += loss.item()
                     task_loss += loss.item()
+
                     loss.backward()
                 if use_wandb:
-                    wandb.log({f"train_loss_{task_name}": task_loss / accum_grad_steps}, step=epoch*steps_per_epoch + step)
+                    wandb.log({f"train_loss_{task_name}": task_loss}, step=epoch*steps_per_epoch + step)
 
             # Add regularization losses for edge and weight masks, l1
             
@@ -242,6 +267,7 @@ def train_masks(model,
             
             if hasattr(model, "get_weight_reg"):
                 weight_reg_term, tot_weight_params = model.get_weight_reg()
+                # print(f"weight_reg_term: {weight_reg_term}, tot_weight_params: {tot_weight_params}")
             # for name, p in zip(param_names, mask_params):
             #     if "edge_mask" in name:
             #         # get l1 norm of edge mask

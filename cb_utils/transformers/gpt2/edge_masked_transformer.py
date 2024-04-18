@@ -390,6 +390,11 @@ class DemoTransformer(nn.Module):
             block_reg, block_params = block.get_mask_reg(norm)
             edge_reg += block_reg
             tot_params += block_params
+        
+        # add output mask 
+        if self.frozen_mask and norm == 'l1':
+            edge_reg += (self.output_mask_frozen * self.output_mask).abs().sum()
+            tot_params += self.output_mask_frozen.sum()
         return edge_reg, tot_params
 
 # %%
