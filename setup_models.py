@@ -161,7 +161,7 @@ from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast
 #%%
 
 if use_pythia:
-    tokenizer = GPTNeoXTokenizerFast.from_pretrained("EleutherAI/gpt-neox-20b")
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-2.8b")
     tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
@@ -216,15 +216,33 @@ if use_pythia:
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
 
     elif localize_task == "sports":
-        if use_uniform:
-            sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
-            train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
-            task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
+        # if use_uniform:
+        #     sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
+        #     train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
+        #     task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
         
-        else:
-            sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
-            train_tasks = {"sports": sports_train, "owt": owt_train}
-            task_weights = {"sports": unlrn_task_weight, "owt": 1}
+        # else:
+        #     sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
+        #     train_tasks = {"sports": sports_train, "owt": owt_train}
+        #     task_weights = {"sports": unlrn_task_weight, "owt": 1}
+
+        forget_sports_train = SportsFactsTask(
+            model,
+            tokenizer,
+            batch_size=10,
+            forget_sport_subset={"football"},
+            is_forget_dataset=True
+        )
+        maintain_sports_train = SportsFactsTask(
+            model,
+            tokenizer,
+            batch_size=10,
+            forget_sport_subset={"football"},
+            is_forget_dataset=False
+        )
+
+        train_tasks = {"forget_sports": forget_sports_train, "maintain_sports": maintain_sports_train, "owt": owt_train}
+        task_weights = {"forget_sports": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
 
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
 
