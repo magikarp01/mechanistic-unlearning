@@ -1,10 +1,13 @@
 #%%
 # auto reload
-%load_ext autoreload
-%autoreload 2
-%cd ~/mechanistic-unlearning
+# %load_ext autoreload
+# %autoreload 2
+# %cd ~/mechanistic-unlearning
 import torch
+import numpy as np
+import os
 
+os.chdir("..")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
@@ -51,11 +54,11 @@ from tasks.induction.InductionTask import InductionTask
 from tasks.ioi.IOITask import IOITask
 from tasks.facts.SportsTask import SportsFactsTask
 
-# ind_task = InductionTask(batch_size=5, tokenizer=tokenizer, device=device)
-# ioi_task = IOITask(batch_size=5, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, device=device)
+ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
 sports_task = SportsFactsTask(
     model, 
-    N=10, 
+    N=25, 
     batch_size=5, 
     tokenizer=tokenizer,
     # forget_sport_subset={"football"},
@@ -69,20 +72,22 @@ sports_task = SportsFactsTask(
 from localizations.eap.localizer import EAPLocalizer
 from localizations.causal_tracing.localizer import CausalTracingLocalizer
 
-eap_localizer = EAPLocalizer(model, sports_task)
-ct_localizer = CausalTracingLocalizer(model, sports_task)
+for name, task in zip(["sports"], [sports_task]):
+    eap_localizer = EAPLocalizer(model, sports_task)
+    ct_localizer = CausalTracingLocalizer(model, sports_task)
 
-#%%
-### GET MASKS FROM LOCALIZATIONS
-# eap_mask = eap_localizer.get_mask(batch=10, threshold=0.005)
 
-model.eval() # Don't need gradients when doing ct task
-ct_mask = ct_localizer.get_mask(threshold=0.0005, batch_size=5)
+    for THRESHOLD in np.logspace(-4, 0, num=4):
+        ### GET MASKS FROM LOCALIZATIONS
+        eap_mask = eap_localizer.get_mask(batch=5, threshold=THRESHOLD)
 
-#%%
-### SAVE THESE MASKS
-eap_mask.save("models/pythia2_8b_sports_eap_mask_005.pkl")
-# ct_mask.save("models/pythia2_8b_sports_ct_mask_0005.pkl")
+        model.eval() # Don't need gradients when doing ct task
+        ct_mask = ct_localizer.get_mask(threshold=THRESHOLD, batch_size=5)
+        model.train()
+
+        ### SAVE THESE MASKS
+        eap_mask.save(f"models/pythia2_8b_{name}_eap_mask_{round(THRESHOLD, 5)}_alldata.pkl")
+        ct_mask.save(f"models/pythia2_8b_{name}_ct_mask_{round(THRESHOLD, 5)}_alldata.pkl")
 
 
 

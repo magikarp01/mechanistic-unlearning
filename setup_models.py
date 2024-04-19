@@ -175,7 +175,7 @@ if use_pythia:
 
     # In[13]:
 
-    from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
+    from tasks import IOITask, SportsTask, SportsFactsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
     test_batch_size = 32
     sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device)
     owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30, stream_dataset=True)
@@ -183,7 +183,7 @@ if use_pythia:
     induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
     train_batch_size=4
-    owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30)
+    owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30, stream_dataset=True)
     if localize_task == "ioi":
 
         ioi_task_2 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
@@ -229,14 +229,14 @@ if use_pythia:
         forget_sports_train = SportsFactsTask(
             model,
             tokenizer,
-            batch_size=10,
+            batch_size=5,
             forget_sport_subset={"football"},
             is_forget_dataset=True
         )
         maintain_sports_train = SportsFactsTask(
             model,
             tokenizer,
-            batch_size=10,
+            batch_size=5,
             forget_sport_subset={"football"},
             is_forget_dataset=False
         )
@@ -283,7 +283,7 @@ else:
     from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
     batch_size = 80
     # sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
-    owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
+    owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40, stream_dataset=True)
     greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
     ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
     induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
