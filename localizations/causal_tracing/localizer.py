@@ -16,7 +16,7 @@ class CausalTracingLocalizer(AbstractLocalizer):
         self.model = model
         self.task = task
 
-    def get_ct_keys(self, batch_size=5, threshold=-1):
+    def get_ct_mask(self, batch_size=5):
         '''
             Almost like get_mask, but returns the keys of the causal tracing dictionary
             You can get the mask by calling get_masks_from_ct_nodes(keys)
@@ -31,9 +31,7 @@ class CausalTracingLocalizer(AbstractLocalizer):
         elif type(self.task).__name__ == "SportsFactsTask":
             mask = causal_tracing_sports(self.model, self.task, batch_size)
 
-        ct_keys = list(mask.keys())
-        ct_keys_above_threshold = [k for k in ct_keys if mask[k] > threshold]
-        return ct_keys_above_threshold
+        return mask
 
     def get_mask(self, batch_size=5, threshold=0.0005):
         """
@@ -54,7 +52,6 @@ class CausalTracingLocalizer(AbstractLocalizer):
 
         ct_keys = list(mask.keys())
         ct_keys_above_threshold = [k for k in ct_keys if mask[k] > threshold]
-        ct_keys_above_threshold
         (
             nodes_set,
             edges_set,
