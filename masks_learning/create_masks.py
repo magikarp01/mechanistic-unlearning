@@ -55,9 +55,10 @@ from tasks.induction.InductionTask import InductionTask
 from tasks.ioi.IOITask import IOITask
 from tasks.facts.SportsTask import SportsFactsTask
 
-ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
-ind_task.set_logit_diffs(model)
-# ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+# ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
+# ind_task.set_logit_diffs(model)
+ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+ioi_task.set_logit_diffs(model)
 # sports_task = SportsFactsTask(
 #     model, 
 #     N=25, 
@@ -79,7 +80,7 @@ from cb_utils.mask_utils import get_masks_from_eap_exp
 
 from masks import CausalGraphMask, MaskType
 
-for name, task in zip(["induction"], [ind_task]):
+for name, task in zip(["ioi"], [ioi_task]):
     eap_localizer = EAPLocalizer(model, task)
     ct_localizer = CausalTracingLocalizer(model, task)
 
