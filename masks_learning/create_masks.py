@@ -15,13 +15,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 from transformer_lens import HookedTransformer
 model = HookedTransformer.from_pretrained(
-    'EleutherAI/pythia-2.8b',
+    # 'EleutherAI/pythia-2.8b',
+    "gpt2-small",
     device='cuda',
     fold_ln=False,
     center_writing_weights=False,
     center_unembed=False,
     default_padding_side="left",
-    dtype=torch.bfloat16
+    # dtype=torch.bfloat16
 )
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
@@ -55,35 +56,41 @@ from tasks.ioi.IOITask import IOITask
 from tasks.facts.SportsTask import SportsFactsTask
 
 ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, device=device)
-ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
-sports_task = SportsFactsTask(
-    model, 
-    N=25, 
-    batch_size=5, 
-    tokenizer=tokenizer,
-    # forget_sport_subset={"football"},
-    # forget_player_subset={"Austin Rivers"},
-    # is_forget_dataset=False,
-    device=device
-)
+# ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+# sports_task = SportsFactsTask(
+#     model, 
+#     N=25, 
+#     batch_size=5, 
+#     tokenizer=tokenizer,
+#     # forget_sport_subset={"football"},
+#     # forget_player_subset={"Austin Rivers"},
+#     # is_forget_dataset=False,
+#     device=device
+# )
 
 #%%
 ### LOAD LOCALIZATION METHODS
 from localizations.eap.localizer import EAPLocalizer
 from localizations.causal_tracing.localizer import CausalTracingLocalizer
 
-for name, task in zip(["sports"], [sports_task]):
-    eap_localizer = EAPLocalizer(model, sports_task)
-    ct_localizer = CausalTracingLocalizer(model, sports_task)
+from cb_utils.mask_utils import get_masks_from_ct_nodes
+from cb_utils.mask_utils import get_masks_from_eap_exp
+
+for name, task in zip(["induction"], [ind_task]):
+    eap_localizer = EAPLocalizer(model, task)
+    ct_localizer = CausalTracingLocalizer(model, task)
 
 
-    for THRESHOLD in np.logspace(-4, 0, num=4):
-        ### GET MASKS FROM LOCALIZATIONS
-        eap_mask = eap_localizer.get_mask(batch=5, threshold=THRESHOLD)
+    ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
+    eap_graph = eap_localizer.get_exp_graph(batch=5, threshold=THRESHOLD)
 
-        model.eval() # Don't need gradients when doing ct task
-        ct_mask = ct_localizer.get_mask(threshold=THRESHOLD, batch_size=5)
-        model.train()
+    model.eval() # Don't need gradients when doing ct task
+    ct_keys = ct_localizer.get_ct_keys(threshold=THRESHOLD, batch_size=5)
+    model.train()
+
+    for THRESHOLD in np.logspace(-4, 0, num=8):
+        eap_mask = get_masks_from_eap_exp(eap_graph, threshold=THRESHOLD)
+        ct_mask = get_masks_from_ct_nodes(ct_keys, threshold=THRESHOLD)
 
         ### SAVE THESE MASKS
         eap_mask.save(f"models/pythia2_8b_{name}_eap_mask_{round(THRESHOLD, 5)}_alldata.pkl")
