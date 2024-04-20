@@ -91,7 +91,7 @@ for name, task in zip(["induction"], [ind_task]):
     ct_graph = ct_localizer.get_ct_mask(batch_size=5)
     model.train()
 
-    for THRESHOLD in np.logspace(-4, 0, num=8):
+    for THRESHOLD in np.logspace(-6, -2, num=8):
 
         (
             acdcpp_nodes,
