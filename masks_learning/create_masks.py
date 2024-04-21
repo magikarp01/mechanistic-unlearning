@@ -15,14 +15,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 from transformer_lens import HookedTransformer
 model = HookedTransformer.from_pretrained(
-    # 'EleutherAI/pythia-2.8b',
-    "gpt2-small",
+    'EleutherAI/pythia-2.8b',
+    # "gpt2-small",
     device='cuda',
     fold_ln=False,
     center_writing_weights=False,
     center_unembed=False,
-    # default_padding_side="right",
-    # dtype=torch.bfloat16
+    default_padding_side="left",
+    dtype=torch.bfloat16
 )
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
@@ -57,18 +57,18 @@ from tasks.facts.SportsTask import SportsFactsTask
 
 # ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
 # ind_task.set_logit_diffs(model)
-ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
-ioi_task.set_logit_diffs(model)
-# sports_task = SportsFactsTask(
-#     model, 
-#     N=25, 
-#     batch_size=5, 
-#     tokenizer=tokenizer,
-#     # forget_sport_subset={"football"},
-#     # forget_player_subset={"Austin Rivers"},
-#     # is_forget_dataset=False,
-#     device=device
-# )
+# ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+# ioi_task.set_logit_diffs(model)
+sports_task = SportsFactsTask(
+    model, 
+    N=25, 
+    batch_size=5, 
+    tokenizer=tokenizer,
+    forget_sport_subset={"football"},
+    # forget_player_subset={"Austin Rivers"},
+    is_forget_dataset=True,
+    device=device
+)
 
 #%%
 ### LOAD LOCALIZATION METHODS
@@ -79,60 +79,71 @@ from cb_utils.mask_utils import get_masks_from_ct_nodes
 from cb_utils.mask_utils import get_masks_from_eap_exp
 
 from masks import CausalGraphMask, MaskType
+model_name = 'pythia-2_8b'
 
-for name, task in zip(["ioi"], [ioi_task]):
-    eap_localizer = EAPLocalizer(model, task)
-    ct_localizer = CausalTracingLocalizer(model, task)
+for forget_sport in ['football', 'basketball', 'baseball']:
+    sports_task = SportsFactsTask(
+        model, 
+        N=25, 
+        batch_size=5, 
+        tokenizer=tokenizer,
+        forget_sport_subset={forget_sport},
+        # forget_player_subset={"Austin Rivers"},
+        is_forget_dataset=True,
+        device=device
+    )
 
-
-    ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
-    eap_graph = eap_localizer.get_exp_graph(batch=25, threshold=-1)
-
-    model.eval() # Don't need gradients when doing ct task
-    ct_graph = ct_localizer.get_ct_mask(batch_size=5)
-    model.train()
-
-    for THRESHOLD in np.logspace(-6, -2, num=8):
-
-        (
-            acdcpp_nodes,
-            acdcpp_edges,
-            acdcpp_mask_dict,
-            acdcpp_weight_mask_attn_dict,
-            acdcpp_weight_mask_mlp_dict,
-        ) = get_masks_from_eap_exp(
-            eap_graph, threshold=THRESHOLD, num_layers=model.cfg.n_layers, num_heads=model.cfg.n_heads, filter_neox=True
-        )
-
-        eap_mask = CausalGraphMask(
-            nodes_set=acdcpp_nodes,
-            edges_set=acdcpp_edges,
-            ct_mask_dict=acdcpp_mask_dict,
-            ct_weight_mask_attn_dict=acdcpp_weight_mask_attn_dict,
-            ct_weight_mask_mlp_dict=acdcpp_weight_mask_mlp_dict,
-        )
-        eap_mask.save(f"models/gpt2_small_{name}_eap_mask_{round(THRESHOLD, 5)}.pkl")
-
-        ct_keys = list(ct_graph.keys())
-        ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
-
-        (
-            nodes_set,
-            edges_set,
-            ct_mask_dict,
-            ct_weight_mask_attn_dict,
-            ct_weight_mask_mlp_dict,
-        ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
-        ct_mask = CausalGraphMask(
-            nodes_set=nodes_set,
-            edges_set=edges_set,
-            ct_mask_dict=ct_mask_dict,
-            ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
-            ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
-        )
-
-        ct_mask.save(f"models/gpt2_small_{name}_ct_mask_{round(THRESHOLD, 5)}.pkl")
+    for name, task in zip(["sports"], [sports_task]):
+        eap_localizer = EAPLocalizer(model, task)
+        ct_localizer = CausalTracingLocalizer(model, task)
 
 
+        ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
+        eap_graph = eap_localizer.get_exp_graph(batch=5, threshold=-1)
+
+        model.eval() # Don't need gradients when doing ct task
+        ct_graph = ct_localizer.get_ct_mask(batch_size=5)
+        model.train()
+
+        for THRESHOLD in np.logspace(-6, -2, num=8):
+
+            (
+                acdcpp_nodes,
+                acdcpp_edges,
+                acdcpp_mask_dict,
+                acdcpp_weight_mask_attn_dict,
+                acdcpp_weight_mask_mlp_dict,
+            ) = get_masks_from_eap_exp(
+                eap_graph, threshold=THRESHOLD, num_layers=model.cfg.n_layers, num_heads=model.cfg.n_heads, filter_neox=True
+            )
+
+            eap_mask = CausalGraphMask(
+                nodes_set=acdcpp_nodes,
+                edges_set=acdcpp_edges,
+                ct_mask_dict=acdcpp_mask_dict,
+                ct_weight_mask_attn_dict=acdcpp_weight_mask_attn_dict,
+                ct_weight_mask_mlp_dict=acdcpp_weight_mask_mlp_dict,
+            )
+            eap_mask.save(f"models/{model_name}_{name}_eap_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl")
+
+            ct_keys = list(ct_graph.keys())
+            ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
+
+            (
+                nodes_set,
+                edges_set,
+                ct_mask_dict,
+                ct_weight_mask_attn_dict,
+                ct_weight_mask_mlp_dict,
+            ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
+            ct_mask = CausalGraphMask(
+                nodes_set=nodes_set,
+                edges_set=edges_set,
+                ct_mask_dict=ct_mask_dict,
+                ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
+                ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
+            )
+
+            ct_mask.save(f"models/{model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl")
 
 # %%
