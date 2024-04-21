@@ -3,6 +3,8 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from cb_utils.transformer import DemoTransformer as GPT2DemoTransformer, Config as GPT2Config
 from cb_utils.transformers.gpt2.edge_masked_transformer import DemoTransformer as GPT2EdgeDemoTransformer
 from cb_utils.transformers.gpt2.weight_masked_transformer import DemoTransformer as GPT2WeightDemoTransformer
+from cb_utils.transformers.gpt2.finetune_transformer import DemoTransformer as GPTFinetuneTransformer
+
 
 # from cb_utils.pythia_transformer import DemoTransformer as PythiaEdgeDemoTransformer, Config as PythiaConfig
 # from cb_utils.pythia_weight_masked_transformer import DemoTransformer as PythiaWeightDemoTransformer
@@ -64,18 +66,21 @@ def load_gpt2_weights():
 
 # %%
 # def load_demo_gpt2(means, edge_masks=True, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False, weight_mask_attn_dict=None, weight_mask_mlp_dict=None, n_layers=12, n_heads=12):
-def load_demo_gpt2(means, n_layers=12, n_heads=12, edge_mask=False, weight_mask=False, **kwargs):
+def load_demo_gpt2(edge_mask=False, weight_mask=False, finetune=False, means=False, n_layers=12, n_heads=12, **kwargs):
     with open("models/gpt2_weights.pkl", "rb") as f:
         gpt2_weights = pickle.load(f)
     # demo_gpt2 = DemoTransformer(Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp,
     #                             weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
     # demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
     if edge_mask:
-        demo_gpt2 = GPT2EdgeDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=True, **kwargs)
+        demo_gpt2 = GPT2EdgeDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means=means, edge_masks=True, **kwargs)
         print("Loaded edge-masked GPT2")
     elif weight_mask:
         demo_gpt2 = GPT2WeightDemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), weight_masks_attn=True, weight_masks_mlp=True, **kwargs)
         print("Loaded weight-masked GPT2")
+    elif finetune:
+        demo_gpt2 = GPTFinetuneTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), finetune_attn=True, finetune_mlp=True, **kwargs)
+        print("Loaded finetuning GPT2")
     else:
         print("Unsure which transformer, loading default transformer")
         demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)

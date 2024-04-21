@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory containing the subdirectories
-BASE_DIR="masks/threshold_sweep_ioi/weight_masks/none"
+BASE_DIR="masks/threshold_sweep_ioi/finetuning"
 # cutoff=12
 cutoff=22
 # Subdirectories to exclude
