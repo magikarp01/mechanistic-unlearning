@@ -144,6 +144,6 @@ for forget_sport in ['football', 'basketball', 'baseball']:
                 ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
             )
 
-            ct_mask.save(f"models/{model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl")
+            ct_mask.save(f"models/{model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
 
 # %%
