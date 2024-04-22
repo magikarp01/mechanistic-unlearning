@@ -12,3 +12,5 @@ ims/
 wandb/
 masks_old/
 masks/
+
+results/Sports_Basketball_Unlearned_NPO_SFT_with_Maintain
