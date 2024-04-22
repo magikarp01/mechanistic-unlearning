@@ -12,3 +12,4 @@ ims/
 wandb/
 masks_old/
 masks/
+venv/

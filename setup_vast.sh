@@ -1,9 +1,6 @@
 python -m venv venv
 source venv/bin/activate
-git clone https://github.com/magikarp01/mechanistic-unlearning.git
-cd mechanistic-unlearning/
 pip install -r requirements.txt
-git checkout aaquib-pythia-sports
 rm -r tasks/
 git clone -b aaquib-pythia-sports https://github.com/magikarp01/tasks.git --single-branch
 
@@ -21,4 +18,4 @@ sudo apt-get update
 sudo apt-get install -y jq
 
 # Install recommended VSCode extensions
-jq -r '.recommendations[]' .vscode/extensions.json | while read extension; do "$vscode" --install-extension "$extension"; done
+jq -r '.recommendations[]' ~/.vscode-server/extensions/extensions.json | while read extension; do "$vscode" --install-extension "$extension"; done
