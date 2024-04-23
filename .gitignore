@@ -12,5 +12,7 @@ ims/
 wandb/
 masks_old/
 masks/
+!masks/*config.json
 
 results/Sports_Basketball_Unlearned_NPO_SFT_with_Maintain
+results/Sports_Basketball_Unlearned_Log_1MP_with_Maintain_Football
