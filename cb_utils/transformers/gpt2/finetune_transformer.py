@@ -116,6 +116,8 @@ First, it's useful to visualize and play around with attention patterns - what e
 def make_partly_differentiable_mask(W, unfrozen_heads: List[int]):
     """
     W is Parameter of shape (n_heads, ...). Returns baseline and frozen (both only 1d arrays of (n_heads,)), and forward pass should be W_baseline.float() + W_frozen.float() * W 
+
+    Confusingly, W_frozen is actually the mask that allows gradients to flow through unfrozen part. However, I've been calling things frozen for too long to change this without likely hitting some kind of bug.
     """
     W_frozen = torch.nn.Parameter(torch.zeros(W.shape[0], dtype=torch.bool), requires_grad=False).to(device)
 
@@ -167,12 +169,6 @@ class Attention(nn.Module):
 
         self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=torch.float32, device=device))
 
-    # def get_partially_frozen_matrix(self, baseline, frozen, W):
-    #     # baseline and frozen are 1d arrays of (n_heads,)
-    #     # W is Parameter of shape (n_heads, ...)
-    #     # must broadcast efficiently, self.weight_mask_W_Q_baseline.float() + self.weight_mask_W_Q_frozen.float() * self.weight_mask_W_Q throws an error
-    #     return torch.einsum("i,i...->i...", frozen.float(), W) + baseline.float().unsqueeze(-1).unsqueeze(-1)
-        
 
     def forward(self, normalized_resid_pre):
         # normalized_resid_pre: [batch, position, d_model]
@@ -181,7 +177,7 @@ class Attention(nn.Module):
             W_Q = self.W_Q_baseline * self.W_Q + self.W_Q_frozen * self.W_Q_trainable
             W_K = self.W_K_baseline * self.W_K + self.W_K_frozen * self.W_K_trainable
             W_V = self.W_V_baseline * self.W_V + self.W_V_frozen * self.W_V_trainable
-            W_O = self.W_O_baseline * self.W_O + self.W_O_frozen * self.W_O_trainable
+            W_O = self.W_O_baseline * self.W_O + self.W_O_frozen * self.W_O_trainable           
         
         else:
             W_Q = self.W_Q
@@ -228,15 +224,6 @@ class MLP(nn.Module):
         self.b_out = nn.Parameter(torch.zeros((cfg.d_model)))
 
         self.finetune = finetune
-
-    def discretize_weight_masks(self, threshold=0.5):
-        """
-        Call to discretize weight masks. Sets all values below threshold to 0 and all values above threshold to 1.
-        """
-        assert self.weight_mask
-        for p in [self.weight_mask_W_in, self.weight_mask_W_out, self.weight_mask_b_in, self.weight_mask_b_out]:
-            p.data[p.data < threshold] = 0
-            p.data[p.data >= threshold] = 1
             
     def forward(self, normalized_resid_mid):
         W_in = self.W_in
@@ -255,9 +242,9 @@ class MLP(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, cfg, finetune_attn=False, ft_attn_heads=None, finetune_mlp=False):
         """
-        If finetune_attn is True, then the attention weights will be masked over.
-            If ft_attn_heads is not None, it should be a list of heads to mask over.
-        If finetune_mlp is True, then the MLP weights will be masked over.
+        If finetune_attn is True, then the attention weights will be trained.
+            If ft_attn_heads is not None, it should be a list of heads to train over.
+        If finetune_mlp is True, then the MLP weights will be trained.
         """
         assert not (not finetune_attn and ft_attn_heads is not None), "If ft_attn_heads is not None, finetune_attn must be True"
 
@@ -265,9 +252,9 @@ class TransformerBlock(nn.Module):
         self.cfg = cfg
 
         self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg, weight_mask=finetune_attn, mask_heads=ft_attn_heads)
+        self.attn = Attention(cfg, finetune=finetune_attn, ft_heads=ft_attn_heads)
         self.ln2 = LayerNorm(cfg)
-        self.mlp = MLP(cfg, weight_mask=finetune_mlp)
+        self.mlp = MLP(cfg, finetune=finetune_mlp)
 
         # for p in self.parameters():
         #     p.requires_grad = False
@@ -275,10 +262,22 @@ class TransformerBlock(nn.Module):
             p.requires_grad=False
         # manually set the attn and mlp weights to be trainable
         if finetune_attn:
-            self.attn.W_Q.requires_grad = True
-            self.attn.W_K.requires_grad = True
-            self.attn.W_V.requires_grad = True
-            self.attn.W_O.requires_grad = True
+            if ft_attn_heads is not None:
+                self.attn.W_Q_trainable.requires_grad = True
+                self.attn.W_K_trainable.requires_grad = True
+                self.attn.W_V_trainable.requires_grad = True
+                self.attn.W_O_trainable.requires_grad = True
+            else:
+                self.attn.W_Q.requires_grad = True
+                self.attn.W_K.requires_grad = True
+                self.attn.W_V.requires_grad = True
+                self.attn.W_O.requires_grad = True
+        
+        if finetune_mlp:
+            self.mlp.W_in.requires_grad = True
+            self.mlp.W_out.requires_grad = True
+            self.mlp.b_in.requires_grad = True
+            self.mlp.b_out.requires_grad = True
 
     def forward(self, resid_pre, means=False):
         assert len(resid_pre.shape) == 3, f"resid_pre shape: {resid_pre.shape}"
@@ -292,34 +291,6 @@ class TransformerBlock(nn.Module):
 
         residual = residual + mlp_out
         return residual
-
-    def get_mask_reg(self, norm='l1'):
-        print(f"{self.attn.weight_mask=}, {self.attn.mask_heads=}, {self.mlp.weight_mask=}")
-        if norm == 'l1':
-            weight_reg = 0
-            tot_params = 0
-            if self.attn.weight_mask:
-                if self.attn.mask_heads: # first add up attn masks
-                # need to filter all masks through frozen
-                    weight_reg += (self.attn.weight_mask_W_Q_frozen * self.attn.weight_mask_W_Q).abs().sum() + (self.attn.weight_mask_W_K_frozen * self.attn.weight_mask_W_K).abs().sum() + (self.attn.weight_mask_W_V_frozen * self.attn.weight_mask_W_V).abs().sum() + (self.attn.weight_mask_W_O_frozen * self.attn.weight_mask_W_O).abs().sum()
-
-                    # each of these is only n_heads values, so multiply by d_head and d_model to get total params (every 1 corresponds to the params for a whole head)
-                    tot_params += (self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model
-                    # print(f"Added {(self.attn.weight_mask_W_Q_frozen.sum() + self.attn.weight_mask_W_K_frozen.sum() + self.attn.weight_mask_W_V_frozen.sum() + self.attn.weight_mask_W_O_frozen.sum()) * self.cfg.d_head * self.cfg.d_model} params in frozen attn")
-                else:
-                    weight_reg += self.attn.weight_mask_W_Q.abs().sum() + self.attn.weight_mask_W_K.abs().sum() + self.attn.weight_mask_W_V.abs().sum() + self.attn.weight_mask_W_O.abs().sum()
-
-                    tot_params += self.attn.weight_mask_W_Q.numel() + self.attn.weight_mask_W_K.numel() + self.attn.weight_mask_W_V.numel() + self.attn.weight_mask_W_O.numel()
-
-            if self.mlp.weight_mask: # not masking a subset, don't need to bother with frozen masks
-                weight_reg += self.mlp.weight_mask_W_in.abs().sum() + self.mlp.weight_mask_W_out.abs().sum() + self.mlp.weight_mask_b_in.abs().sum() + self.mlp.weight_mask_b_out.abs().sum()
-
-                tot_params += self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()
-                # print(f"Added {self.mlp.weight_mask_W_in.numel() + self.mlp.weight_mask_W_out.numel() + self.mlp.weight_mask_b_in.numel() + self.mlp.weight_mask_b_out.numel()} params in unfrozen mlp")
-
-            return weight_reg, tot_params
-        else:
-            raise NotImplementedError("Only L1 norm supported")
 
 """## Unembedding"""
 
@@ -346,10 +317,10 @@ def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
 
 class DemoTransformer(nn.Module):
     def __init__(self, cfg, 
-                 weight_masks_attn=False, 
-                 weight_masks_mlp=False, 
-                 weight_mask_attn_dict=None, 
-                 weight_mask_mlp_dict=None,
+                 finetune_attn=False, 
+                 finetune_mlp=False, 
+                 ft_attn_dict=None, 
+                 ft_mlp_dict=None,
                  ):
         super().__init__()
         self.cfg = cfg
@@ -363,12 +334,25 @@ class DemoTransformer(nn.Module):
 
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, 
-                finetune_attn = weight_masks_attn,
-                finetune_mlp = weight_mask_mlp_dict[i] if (weight_masks_mlp and weight_mask_mlp_dict is not None) else weight_masks_mlp,
-                ft_attn_heads = weight_mask_attn_dict[i] if (weight_masks_attn and weight_mask_attn_dict is not None) else None)
+                finetune_attn = finetune_attn,
+                finetune_mlp = ft_mlp_dict[i] if (finetune_mlp and ft_mlp_dict is not None) else finetune_mlp,
+                ft_attn_heads = ft_attn_dict[i] if (finetune_attn and ft_attn_dict is not None) else None)
             for i in range(cfg.n_layers)])
 
-        total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
+
+    def load_state_dict(self, state_dict, strict=True):
+        """
+        Need custom loading to set the trainable weights for the attention heads at first equal to the original weights.
+        """
+        super().load_state_dict(state_dict, strict=strict)
+        # After the original state dict has been loaded, manually update the trainable weights
+        for block in self.blocks:
+            attn = block.attn
+            if attn.finetune and attn.ft_heads is not None:
+                attn.W_Q_trainable.data = attn.W_Q.data.clone()
+                attn.W_K_trainable.data = attn.W_K.data.clone()
+                attn.W_V_trainable.data = attn.W_V.data.clone()
+                attn.W_O_trainable.data = attn.W_O.data.clone()
     
     def forward(self, tokens, return_states=False):
         # tokens [batch, position]
@@ -403,13 +387,3 @@ class DemoTransformer(nn.Module):
         # with open("saved_states_new.pkl", "wb") as f:
         #     pickle.dump(self.saved_states, f)
         return [logits]
-
-    def get_weight_reg(self, norm='l1'):
-        weight_reg = 0
-        tot_params = 0
-        for block in self.blocks:
-            block_weight_reg, block_tot_params = block.get_mask_reg(norm=norm)
-            weight_reg += block_weight_reg
-            tot_params += block_tot_params
-        return weight_reg, tot_params
-

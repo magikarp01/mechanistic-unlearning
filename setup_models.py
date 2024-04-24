@@ -98,12 +98,14 @@ evaluate_every = config.get('evaluate_every', 2)
 discretize_every = config.get('discretize_every', 40)
 threshold = config.get('threshold', 0.5)
 mask_k = config.get('mask_k', None)
+discretize_for_eval = config.get('discretize_for_eval', True)
 
 use_wandb = config.get('use_wandb', True)
 edge_mask_reg_strength = config.get('edge_mask_reg_strength', 100)
 weight_mask_reg_strength = config.get('weight_mask_reg_strength', 100)
 num_eval_steps = config.get('num_eval_steps', 10)
 save_every = config.get('save_every', None)
+
 # For 'save_path', since the default is not provided in the JSON, assuming None as default
 save_path = config.get('save_path', None)
 save_efficient = config.get('save_efficient', True)
@@ -122,7 +124,7 @@ if localization_dir_path is None:
         localization_method = "ct"
     localization_dir_path = f"localizations/{localize_task}/{localization_method}/"
 
-print(f"{use_pythia=}\n{edge_masks=}\n{weight_masks_attn=}\n{weight_masks_mlp=}\n{train_base_weights=}\n{localize_acdcpp=}\n{localize_ct=}\n{localize_task=}\n{use_uniform=}\n{uniform_type=}\n{exclude_correct=}\n{unlrn_task_weight=}\n{epochs_left=}\n{steps_per_epoch=}\n{accum_grad_steps=}\n{lr=}\n{weight_decay=}\n{evaluate_every=}\n{discretize_every=}\n{threshold=}\n{mask_k=}\n{use_wandb=}\n{edge_mask_reg_strength=}\n{weight_mask_reg_strength=}\n{num_eval_steps=}\n{save_every=}\n{save_path=}\n{save_efficient=}\n{scale_reg_strength=}\n{localization_dir_path=}")
+print(f"{use_pythia=}\n{edge_masks=}\n{weight_masks_attn=}\n{weight_masks_mlp=}\n{train_base_weights=}\n{localize_acdcpp=}\n{localize_ct=}\n{localize_task=}\n{use_uniform=}\n{uniform_type=}\n{exclude_correct=}\n{unlrn_task_weight=}\n{epochs_left=}\n{steps_per_epoch=}\n{accum_grad_steps=}\n{lr=}\n{weight_decay=}\n{evaluate_every=}\n{discretize_every=}\n{threshold=}\n{mask_k=}\n{discretize_for_eval=}\n{use_wandb=}\n{edge_mask_reg_strength=}\n{weight_mask_reg_strength=}\n{num_eval_steps=}\n{save_every=}\n{save_path=}\n{save_efficient=}\n{scale_reg_strength=}\n{localization_dir_path=}")
 # In[3.5]
 
 
@@ -274,6 +276,8 @@ else:
         model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=True,
                         #    weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, 
                         weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict)
+    elif train_base_weights:
+        model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False, finetune=True, ft_attn_dict=base_weight_attn_dict, ft_mlp_dict=base_weight_mlp_dict)
     else:
         model = load_demo_gpt2(means=False, edge_mask=False, weight_mask=False,
                         edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp, weight_mask_attn_dict=weight_mask_attn_dict, weight_mask_mlp_dict=weight_mask_mlp_dict, train_base_weights=train_base_weights, base_weight_attn_dict=base_weight_attn_dict, base_weight_mlp_dict=base_weight_mlp_dict)
@@ -286,7 +290,7 @@ else:
     owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40, stream_dataset=True)
     greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
     ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
-    induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
+    induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
 
     if localize_task == "ioi":
         ioi_uniform = IOITask_Uniform(batch_size=batch_size, tokenizer=tokenizer, device=device, uniform_over=uniform_type, nb_templates=4, prompt_type="ABBA", exclude_correct=exclude_correct)
@@ -358,6 +362,7 @@ wandb_config = {
     "discretize_every": discretize_every,
     "threshold": threshold,
     "mask_k": mask_k,
+    "discretize_for_eval": discretize_for_eval,
     "use_wandb": use_wandb,
     "edge_mask_reg_strength": edge_mask_reg_strength,
     "weight_mask_reg_strength": weight_mask_reg_strength,

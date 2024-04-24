@@ -91,6 +91,7 @@ def evaluate_model(model, eval_tasks: dict[str, Task], num_eval_steps: int=1, ve
     """
     Evaluate a model on a set of Tasks. Returns a dictionary of task names to losses.
     """
+    # get model device
     losses = defaultdict(float)
     with torch.no_grad():
         for task_name, task in eval_tasks.items():
@@ -151,6 +152,7 @@ def train_masks(model,
                 evaluate_every=10, 
                 discretize_every=50, 
                 save_every=None,
+                discretize_for_eval=True,
 
                 threshold=0.5, 
                 mask_k=None,
@@ -343,17 +345,18 @@ def train_masks(model,
             if verbose:
                 print(f"Epoch {epoch}, step {step}: train loss {total_loss}")
             
-            # Save a copy of the original weights
-            original_weights = [p.data.clone() for p in mask_params]
-            
-            # Discretize weights for evaluation
-            num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold, top_k=mask_k)
+            if discretize_for_eval:
+                # Save a copy of the original weights
+                original_weights = [p.data.clone() for p in mask_params]
+                
+                # Discretize weights for evaluation
+                num_ablated_edges, num_ablated_weights = discretize_weights(param_names, mask_params, edge_threshold=threshold, weight_threshold=threshold, top_k=mask_k)
 
-            if verbose:
-                print(f"{num_ablated_edges=}, {num_ablated_weights=}")
-            if use_wandb:
-                wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
-                wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
+                if verbose:
+                    print(f"{num_ablated_edges=}, {num_ablated_weights=}")
+                if use_wandb:
+                    wandb.log({"num_ablated_edges": num_ablated_edges}, step=epoch*steps_per_epoch + step)
+                    wandb.log({"num_ablated_weights": num_ablated_weights}, step=epoch*steps_per_epoch + step)
 
             model.eval()
             step_eval_losses = evaluate_model(model, eval_tasks, num_eval_steps, verbose=verbose)
@@ -364,9 +367,10 @@ def train_masks(model,
                 if use_wandb:
                     wandb.log({f"test_loss_{task_name}": step_eval_losses[task_name]}, step=epoch*steps_per_epoch + step)
 
-            # Restore the original weights after evaluation
-            for p, original_weight in zip(mask_params, original_weights):
-                p.data = original_weight
+            if discretize_for_eval:
+                # Restore the original weights after evaluation
+                for p, original_weight in zip(mask_params, original_weights):
+                    p.data = original_weight
 
 
         if save_every is not None and epoch % save_every == 0:
