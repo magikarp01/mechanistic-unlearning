@@ -11,7 +11,7 @@ class APLocalizer(AbstractLocalizer):
         self.model = model
         self.task = task
 
-    def get_ap_graph(self, batch=20):
+    def get_ap_graph(self, batch_size=20):
         '''
 
             Similar to get_mask, but returns the AP Nodes instead
@@ -32,7 +32,7 @@ class APLocalizer(AbstractLocalizer):
                 clean_dataset,
                 corr_dataset,
                 eap_metric,
-                batch_size=batch,
+                batch_size=batch_size,
                 clean_answers=None,
             )
         elif type(self.task).__name__ == "IOITask":
@@ -45,7 +45,7 @@ class APLocalizer(AbstractLocalizer):
                 clean_dataset.toks,
                 corr_dataset.toks,
                 eap_metric,
-                batch_size=batch,
+                batch_size=batch_size,
                 clean_answers=None,
             )
         elif type(self.task).__name__ == "SportsFactsTask":
@@ -58,14 +58,14 @@ class APLocalizer(AbstractLocalizer):
                 clean_dataset.toks,
                 corr_dataset.toks,
                 eap_metric,
-                batch_size=batch,
+                batch_size=batch_size,
                 clean_answers=self.task.clean_answer_toks,
                 wrong_answers=self.task.clean_wrong_toks,
             )
         return nodes 
 
-    def get_mask(self, batch=20, threshold=0.0005) -> AbstractMask:
-        nodes = self.get_exp_graph(batch=batch)        
+    def get_mask(self, batch_size=20, threshold=0.0005) -> AbstractMask:
+        nodes = self.get_ap_graph(batch_size=batch_size)        
 
         ap_keys = list(nodes.keys())
         ap_keys_above_threshold = [k for k in ap_keys if nodes[k] > threshold]
