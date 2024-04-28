@@ -13,6 +13,13 @@ wandb/
 masks_old/
 masks/
 !masks/*config.json
+tasks/
+tasks
 
 results/Sports_Basketball_Unlearned_NPO_SFT_with_Maintain
 results/Sports_Basketball_Unlearned_Log_1MP_with_Maintain_Football
+results/gemma-7b_forget_sport='basketball'_maintain_sport='football'_Lora128_Log_1MP
+results/gemma-7b_forget_sport='basketball'_Lora128_Log_1MP
+results/gemma-2b_forget_sport='basketball'_maintain_sport='football'_Log_1MP
+results/gemma-2b_forget_sport='basketball'_maintain_sport=None_Log_1MP
+results/llama-2_forget_sport='basketball'_maintain_sport=None_Lora128_Log_1MP
