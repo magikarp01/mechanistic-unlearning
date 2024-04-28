@@ -340,7 +340,9 @@ def causal_tracing_sports(
     correct_ans_toks = sports_task.clean_answer_toks
     wrong_ans_toks = sports_task.clean_wrong_toks
 
+    model.reset_hooks()
     for i in tqdm(range(0, len(toks), batch_size), position=0, leave=True):
+        model.reset_hooks()
         toks_slice = toks[i:i+batch_size]
         deltas_slice = deltas[i:i+batch_size]
         correct_ans_slice = correct_ans_toks[i:i+batch_size]
@@ -352,12 +354,14 @@ def causal_tracing_sports(
             )
             for s in deltas_slice
         ]
+        print(f"Noising{model.tokenizer.decode(toks_slice[0, noise_inds[0]])}")
 
+        model.reset_hooks()
         clean_logits, save_cache = model.run_with_cache(
             toks_slice,
             names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
         )
-
+        model.reset_hooks()
         # Get corrupt logits by noising embeddings but not saving anything
         corrupt_logits = model.run_with_hooks(
             toks_slice,
@@ -374,6 +378,7 @@ def causal_tracing_sports(
                 )
             ]
         )
+        model.reset_hooks()
         if verbose:
             print('Clean: \n' + model.tokenizer.decode(
                     torch.argmax(torch.nn.functional.softmax(clean_logits[:, -1, :], dim=-1), dim=-1)
