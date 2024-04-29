@@ -69,6 +69,7 @@ from cb_utils.mask_utils import get_masks_from_ct_nodes
 from cb_utils.mask_utils import get_masks_from_eap_exp
 
 from masks import CausalGraphMask, MaskType
+import pickle
 
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
@@ -97,20 +98,28 @@ for forget_sport in ['football', 'basketball', 'baseball']:
         # torch.cuda.empty_cache()
         # gc.collect()
         # eap_graph = eap_localizer.get_exp_graph(batch=2, threshold=-1)
+        # top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
+        # with open(f"models/{save_model_name}_{name}_{forget_sport}_eap_graph.pkl", "wb") as f:
+        #     pickle.dump(top_edges, f)
+
         # torch.cuda.empty_cache()
         # gc.collect()
         # ap_graph = ap_localizer.get_ap_graph(batch_size=2)
-        torch.cuda.empty_cache()
-        gc.collect()
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
+        #     pickle.dump(ap_graph, f)
 
         model.eval() # Don't need gradients when doing ct task
         ct_graph = ct_localizer.get_ct_mask(batch_size=2)
         model.train()
+        with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
+            pickle.dump(dict(ct_graph), f)
 
         torch.cuda.empty_cache()
         gc.collect()
 
-        for THRESHOLD in np.logspace(-6, 3, num=10):
+        # for THRESHOLD in np.logspace(-8, 1, num=10):
 
             ### EAP
             # (
@@ -130,7 +139,7 @@ for forget_sport in ['football', 'basketball', 'baseball']:
             #     ct_weight_mask_attn_dict=acdcpp_weight_mask_attn_dict,
             #     ct_weight_mask_mlp_dict=acdcpp_weight_mask_mlp_dict,
             # )
-            # eap_mask.save(f"models/{save_model_name}_{name}_eap_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl")
+            # eap_mask.save(f"models/{save_model_name}_{name}_eap_mask_{round(THRESHOLD, 10)}_{forget_sport}.pkl")
 
             ## ATTRIBUTION PATCHING
 
@@ -154,28 +163,28 @@ for forget_sport in ['football', 'basketball', 'baseball']:
             # ap_mask.save(f"models/{save_model_name}_{name}_ap_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
             
             ### CAUSAL TRACING
-            ct_keys = list(ct_graph.keys())
-            ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
+            # ct_keys = list(ct_graph.keys())
+            # ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
 
-            (
-                nodes_set,
-                edges_set,
-                ct_mask_dict,
-                ct_weight_mask_attn_dict,
-                ct_weight_mask_mlp_dict,
-            ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
-            ct_mask = CausalGraphMask(
-                nodes_set=nodes_set,
-                edges_set=edges_set,
-                ct_mask_dict=ct_mask_dict,
-                ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
-                ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
-            )
+            # (
+            #     nodes_set,
+            #     edges_set,
+            #     ct_mask_dict,
+            #     ct_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict,
+            # ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
+            # ct_mask = CausalGraphMask(
+            #     nodes_set=nodes_set,
+            #     edges_set=edges_set,
+            #     ct_mask_dict=ct_mask_dict,
+            #     ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
+            # )
 
-            ct_mask.save(f"models/{save_model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
-            torch.cuda.empty_cache()
-            gc.collect()
+            # ct_mask.save(f"models/{save_model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
+            # torch.cuda.empty_cache()
+            # gc.collect()
 
-            torch.cuda.empty_cache()
-            gc.collect()
+            # torch.cuda.empty_cache()
+            # gc.collect()
 # %%
