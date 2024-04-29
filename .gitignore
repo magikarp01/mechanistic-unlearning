@@ -15,6 +15,8 @@ masks/
 !masks/*config.json
 tasks/
 tasks
+.env
+temp_gens/
 
 results/Sports_Basketball_Unlearned_NPO_SFT_with_Maintain
 results/Sports_Basketball_Unlearned_Log_1MP_with_Maintain_Football
