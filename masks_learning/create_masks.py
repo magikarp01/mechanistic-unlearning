@@ -74,7 +74,7 @@ import pickle
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
 gc.collect()
-for forget_sport in ['football', 'basketball', 'baseball']:
+for forget_sport in ['all']:#['football', 'basketball', 'baseball']:
     torch.cuda.empty_cache()
     gc.collect()
     sports_task = SportsFactsTask(
@@ -82,9 +82,8 @@ for forget_sport in ['football', 'basketball', 'baseball']:
         N=26, 
         batch_size=2, 
         tokenizer=tokenizer,
-        forget_sport_subset={forget_sport},
-        # forget_player_subset={"Austin Rivers"},
-        is_forget_dataset=True,
+        # forget_sport_subset={forget_sport},
+        # is_forget_dataset=True,
         device=device
     )
 
@@ -108,7 +107,7 @@ for forget_sport in ['football', 'basketball', 'baseball']:
         # torch.cuda.empty_cache()
         # gc.collect()
         # with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
-        #     pickle.dump(ap_graph, f)
+        #     pickle.dump(dict(ap_graph), f)
 
         model.eval() # Don't need gradients when doing ct task
         ct_graph = ct_localizer.get_ct_mask(batch_size=2)
