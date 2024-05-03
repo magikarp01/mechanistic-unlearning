@@ -26,3 +26,4 @@ results/gemma-2b_forget_sport='basketball'_maintain_sport='football'_Log_1MP
 results/gemma-2b_forget_sport='basketball'_maintain_sport=None_Log_1MP
 results/llama-2_forget_sport='basketball'_maintain_sport=None_Lora128_Log_1MP
 results/qwen_forget_sport='basketball'_maintain_sport=None_Log_1MP
+!models/neuron_mask_basketball.pt
