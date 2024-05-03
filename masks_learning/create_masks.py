@@ -18,7 +18,6 @@ model_name = 'google/gemma-7b'
     # 'Qwen/Qwen1.5-4B' 
     # 'EleutherAI/pythia-2.8b',
     # "gpt2-small",
-os.environ['HF_TOKEN'] = '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'
 
 from transformer_lens import HookedTransformer
 from transformers import AutoTokenizer
