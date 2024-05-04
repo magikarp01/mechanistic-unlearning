@@ -1,0 +1,32 @@
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+Loaded pretrained model EleutherAI/pythia-2.8b into HookedTransformer
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 51, in <module>
+    from tasks.induction.InductionTask import InductionTask
+ModuleNotFoundError: No module named 'tasks'
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 10, in <module>
+    os.chdir("~/mechanistic-unlearning")
+FileNotFoundError: [Errno 2] No such file or directory: '~/mechanistic-unlearning'
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 10, in <module>
+    os.chdir("~/mechanistic-unlearning/")
+FileNotFoundError: [Errno 2] No such file or directory: '~/mechanistic-unlearning/'
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+Loaded pretrained model EleutherAI/pythia-2.8b into HookedTransformer
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 53, in <module>
+    from tasks.induction.InductionTask import InductionTask
+ModuleNotFoundError: No module named 'tasks'
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+Loaded pretrained model EleutherAI/pythia-2.8b into HookedTransformer
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 53, in <module>
+    from tasks.induction.InductionTask import InductionTask
+ModuleNotFoundError: No module named 'tasks'
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+Loaded pretrained model EleutherAI/pythia-2.8b into HookedTransformer
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/masks_learning/create_masks.py", line 53, in <module>
+    from tasks.induction.InductionTask import InductionTask
+ModuleNotFoundError: No module named 'tasks'

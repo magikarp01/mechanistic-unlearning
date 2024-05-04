@@ -4,88 +4,185 @@
 %autoreload 2
 %cd ~/mechanistic-unlearning
 import torch
+import numpy as np
+import os
+import gc
 
+# os.chdir("..")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
 ### LOAD MODELS
+model_name = 'google/gemma-7b'
+    # 'meta-llama/Meta-Llama-3-8B'
+    # 'Qwen/Qwen1.5-4B' 
+    # 'EleutherAI/pythia-2.8b',
+    # "gpt2-small",
 
 from transformer_lens import HookedTransformer
-# model = HookedTransformer.from_pretrained(
-#     'EleutherAI/pythia-2.8b',
-#     device='cuda',
-#     fold_ln=False,
-#     center_writing_weights=False,
-#     center_unembed=False,
-#     default_padding_side="left"
-# )
-# model.set_use_attn_result(True)
-# model.set_use_split_qkv_input(True)
-# model.set_use_hook_mlp_in(True)
+from transformers import AutoTokenizer
 
-# set up pipeline from acdcpp to edge mask
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(
-    'gpt2-small',
-    center_writing_weights=False,
-    center_unembed=False,
+    model_name,
+    tokenizer=tokenizer,
+    device='cuda',
+    default_padding_side="left",
     fold_ln=False,
-    device=device,
+    fold_value_biases=False,
+    center_writing_weights=False,
+    dtype=torch.bfloat16
 )
-model.set_use_hook_mlp_in(True)
-model.set_use_split_qkv_input(True)
 model.set_use_attn_result(True)
-tokenizer = model.tokenizer
+model.set_use_split_qkv_input(True)
+model.set_use_hook_mlp_in(True)
+
 #%%
 ### LOAD TASKS
 from tasks.induction.InductionTask import InductionTask
 from tasks.ioi.IOITask import IOITask
-# from tasks.facts.SportsTask import SportsFactsTask
+from tasks.facts.SportsTask import SportsFactsTask
 
-# ind_task = InductionTask(batch_size=5, tokenizer=tokenizer, device=device)
-# ioi_task = IOITask(batch_size=5, tokenizer=tokenizer, device=device, prep_acdcpp=True)
-ioi_task = IOITask(batch_size=5, tokenizer=model.tokenizer, device=device, prep_acdcpp=True, acdcpp_N=25, nb_templates=1, prompt_type="ABBA")
-ioi_task.set_logit_diffs(model)
-# sports_task = SportsFactsTask(model, N=5, batch_size=5, tokenizer=tokenizer, device=device)
-
-#%%
-from localizations.causal_tracing.causal_tracing import causal_tracing_ioi
-from cb_utils.mask_utils import get_masks_from_ct_nodes
-import numpy as np
-import pickle
-
-result = causal_tracing_ioi(model, ioi_task)
-ct_keys = list(result.keys())
-# threshold = 0.005
-percentile = 80
-threshold = np.percentile(list(result.values()), percentile)
-ct_keys_above_threshold = [k for k in ct_keys if result[k] > threshold]
-print(f"{threshold=}, {len(ct_keys)=}, {len(ct_keys_above_threshold)=}")
-
-nodes_set,edges_set, ct_mask_dict, ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict = get_masks_from_ct_nodes(ct_keys_above_threshold)
-
-with open(f"localizations/causal_tracing/ioi/gpt2_{percentile=}.pkl", "wb") as f:
-    pickle.dump((nodes_set, edges_set, ct_mask_dict, ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict), f)
+# ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
+# ind_task.set_logit_diffs(model)
+# ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
+# ioi_task.set_logit_diffs(model)
+sports_task = SportsFactsTask(
+    model=model, 
+    batch_size=5, 
+    tokenizer=tokenizer,
+    N=25, 
+    # forget_sport_subset={"football"},
+    # forget_player_subset={"Austin Rivers"},
+    # is_forget_dataset=True,
+    device=device
+)
 
 #%%
 ### LOAD LOCALIZATION METHODS
 from localizations.eap.localizer import EAPLocalizer
 from localizations.causal_tracing.localizer import CausalTracingLocalizer
+from localizations.ap.localizer import APLocalizer
 
-eap_localizer = EAPLocalizer(model, ioi_task)
-ct_localizer = CausalTracingLocalizer(model, ioi_task)
+from cb_utils.mask_utils import get_masks_from_ct_nodes
+from cb_utils.mask_utils import get_masks_from_eap_exp
 
-#%%
-### GET MASKS FROM LOCALIZATIONS
-# eap_mask = eap_localizer.get_mask(batch=5, threshold=0.0005)
+from masks import CausalGraphMask, MaskType
+import pickle
 
-model.eval() # Don't need gradients when doing ct task
-ct_mask = ct_localizer.get_mask(threshold=0.0005)
+save_model_name = model_name.replace('/', '_')
+torch.cuda.empty_cache()
+gc.collect()
+for forget_sport in ['all']:#['football', 'basketball', 'baseball']:
+    torch.cuda.empty_cache()
+    gc.collect()
+    sports_task = SportsFactsTask(
+        model=model, 
+        N=26, 
+        batch_size=2, 
+        tokenizer=tokenizer,
+        # forget_sport_subset={forget_sport},
+        # is_forget_dataset=True,
+        device=device
+    )
 
-#%%
-### SAVE THESE MASKS
-# eap_mask.save("models/pythia2_8b_sports_eap_mask_0005.pkl")
-ct_mask.save("models/pythia2_8b_sports_ct_mask_0005.pkl")
+    for name, task in zip(["sports"], [sports_task]):
+        eap_localizer = EAPLocalizer(model, task)
+        ap_localizer = APLocalizer(model, task)
+        ct_localizer = CausalTracingLocalizer(model, task)
 
 
+        ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # eap_graph = eap_localizer.get_exp_graph(batch=2, threshold=-1)
+        # top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
+        # with open(f"models/{save_model_name}_{name}_{forget_sport}_eap_graph.pkl", "wb") as f:
+        #     pickle.dump(top_edges, f)
 
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # ap_graph = ap_localizer.get_ap_graph(batch_size=2)
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
+        #     pickle.dump(dict(ap_graph), f)
+
+        model.eval() # Don't need gradients when doing ct task
+        ct_graph = ct_localizer.get_ct_mask(batch_size=2)
+        model.train()
+        with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
+            pickle.dump(dict(ct_graph), f)
+
+        torch.cuda.empty_cache()
+        gc.collect()
+
+        # for THRESHOLD in np.logspace(-8, 1, num=10):
+
+            ### EAP
+            # (
+            #     acdcpp_nodes,
+            #     acdcpp_edges,
+            #     acdcpp_mask_dict,
+            #     acdcpp_weight_mask_attn_dict,
+            #     acdcpp_weight_mask_mlp_dict,
+            # ) = get_masks_from_eap_exp(
+            #     eap_graph, threshold=THRESHOLD, num_layers=model.cfg.n_layers, num_heads=model.cfg.n_heads, filter_neox=True
+            # )
+
+            # eap_mask = CausalGraphMask(
+            #     nodes_set=acdcpp_nodes,
+            #     edges_set=acdcpp_edges,
+            #     ct_mask_dict=acdcpp_mask_dict,
+            #     ct_weight_mask_attn_dict=acdcpp_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict=acdcpp_weight_mask_mlp_dict,
+            # )
+            # eap_mask.save(f"models/{save_model_name}_{name}_eap_mask_{round(THRESHOLD, 10)}_{forget_sport}.pkl")
+
+            ## ATTRIBUTION PATCHING
+
+            # ap_keys = list(ap_graph.keys())
+            # ap_keys_above_threshold = [k for k in ap_keys if ap_graph[k] > THRESHOLD]
+            # (
+            #     nodes_set,
+            #     edges_set,
+            #     ap_mask_dict,
+            #     ap_weight_mask_attn_dict,
+            #     ap_weight_mask_mlp_dict,
+            # ) = get_masks_from_ct_nodes(ap_keys_above_threshold)
+            # ap_mask = CausalGraphMask(
+            #     nodes_set=nodes_set,
+            #     edges_set=edges_set,
+            #     ct_mask_dict=ap_mask_dict,
+            #     ct_weight_mask_attn_dict=ap_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict=ap_weight_mask_mlp_dict,
+            # )
+
+            # ap_mask.save(f"models/{save_model_name}_{name}_ap_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
+            
+            ### CAUSAL TRACING
+            # ct_keys = list(ct_graph.keys())
+            # ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
+
+            # (
+            #     nodes_set,
+            #     edges_set,
+            #     ct_mask_dict,
+            #     ct_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict,
+            # ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
+            # ct_mask = CausalGraphMask(
+            #     nodes_set=nodes_set,
+            #     edges_set=edges_set,
+            #     ct_mask_dict=ct_mask_dict,
+            #     ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
+            #     ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
+            # )
+
+            # ct_mask.save(f"models/{save_model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
+            # torch.cuda.empty_cache()
+            # gc.collect()
+
+            # torch.cuda.empty_cache()
+            # gc.collect()
 # %%

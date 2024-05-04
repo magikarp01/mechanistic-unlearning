@@ -1,5 +1,5 @@
 # %%
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, AutoTokenizer
 from cb_utils.transformer import DemoTransformer as GPT2DemoTransformer, Config as GPT2Config
 from cb_utils.transformers.gpt2.edge_masked_transformer import DemoTransformer as GPT2EdgeDemoTransformer
 from cb_utils.transformers.gpt2.weight_masked_transformer import DemoTransformer as GPT2WeightDemoTransformer
@@ -66,7 +66,15 @@ def load_gpt2_weights():
 
 # %%
 # def load_demo_gpt2(means, edge_masks=True, mask_dict_superset=None, weight_masks_attn=False, weight_masks_mlp=False, weight_mask_attn_dict=None, weight_mask_mlp_dict=None, n_layers=12, n_heads=12):
-def load_demo_gpt2(edge_mask=False, weight_mask=False, finetune=False, means=False, n_layers=12, n_heads=12, **kwargs):
+def load_demo_gpt2(
+    means, 
+    n_layers=12, 
+    n_heads=12, 
+    edge_mask=False, 
+    weight_mask=False, 
+    return_tokenizer=False,
+    **kwargs
+):
     with open("models/gpt2_weights.pkl", "rb") as f:
         gpt2_weights = pickle.load(f)
     # demo_gpt2 = DemoTransformer(Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, edge_masks=edge_masks, mask_dict_superset=mask_dict_superset, weight_masks_attn=weight_masks_attn, weight_masks_mlp=weight_masks_mlp,
@@ -86,6 +94,9 @@ def load_demo_gpt2(edge_mask=False, weight_mask=False, finetune=False, means=Fal
         demo_gpt2 = GPT2DemoTransformer(GPT2Config(debug=False, n_layers=n_layers, n_heads=n_heads), means, **kwargs)
     demo_gpt2.load_state_dict(gpt2_weights, strict=False)
     demo_gpt2.cuda()
+    if return_tokenizer:
+        tokenizer = AutoTokenizer.from_pretrained("gpt2", add_bos_token=True)
+        return demo_gpt2, tokenizer
     return demo_gpt2
 
 from cb_utils.pythia_transformer import DemoTransformer, Config
@@ -108,12 +119,14 @@ def tl_config_to_demo_config(tl_config, debug=False):
         )
 
 # 2.8b: d_model = 2560, 32 layers, 32 heads
-def load_demo_pythia(means=False, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, edge_mask=True, weight_mask=False, **kwargs):
+def load_demo_pythia(
+    means=False, model_name="pythia-2.8b", n_layers=32, n_heads=32, d_model=2560, d_head=None, d_mlp=None, edge_mask=True, weight_mask=False, dtype=torch.float32, **kwargs):
 
     reference_pythia = HookedTransformer.from_pretrained(
         model_name,
         fold_ln=False,
-        device="cpu"
+        device="cpu",
+        dtype=dtype
     )
     reference_pythia.set_use_attn_result(True)
     

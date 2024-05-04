@@ -39,6 +39,7 @@ def EAP_clean_forward_hook(
     graph: EAPGraph
 ):
     hook_slice = graph.get_hook_slice(hook.name)
+    activations = activations.squeeze()
     if activations.ndim == 3:
         upstream_activations_difference[:, :, hook_slice, :] += activations.unsqueeze(-2)
     elif activations.ndim == 4:

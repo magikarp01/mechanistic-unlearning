@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from masks.masks import AbstractMask
+from masks import AbstractMask
 from tasks.task import Task
 
 class AbstractLocalizer(ABC):

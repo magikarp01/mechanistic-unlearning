@@ -44,12 +44,13 @@ class Config:
 cfg = Config()
 
 class LayerNorm(nn.Module):
-    def __init__(self, cfg):
+    
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.w = nn.Parameter(torch.ones(cfg.d_model))
-        self.b = nn.Parameter(torch.zeros(cfg.d_model))
-    
+        self.w = nn.Parameter(torch.ones(cfg.d_model, dtype=dtype))
+        self.b = nn.Parameter(torch.zeros(cfg.d_model, dtype=dtype))
+
     def forward(self, residual, parallel=False):
         # residual: [batch, position, n_heads, d_model]
         if self.cfg.debug: print("Residual:", residual.shape)
@@ -71,12 +72,13 @@ Basically a lookup table from tokens to residual stream vectors.
 """
 
 class Embed(nn.Module):
-    def __init__(self, cfg):
+
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.W_E = nn.Parameter(torch.empty((cfg.d_vocab, cfg.d_model)))
+        self.W_E = nn.Parameter(torch.empty((cfg.d_vocab, cfg.d_model), dtype=dtype))
         nn.init.normal_(self.W_E, std=self.cfg.init_range)
-    
+
     def forward(self, tokens):
         # tokens: [batch, position]
         if self.cfg.debug: print("Tokens:", tokens.shape)
@@ -87,12 +89,12 @@ class Embed(nn.Module):
 """## Positional Embedding"""
 
 class PosEmbed(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.W_pos = nn.Parameter(torch.empty((cfg.n_ctx, cfg.d_model)))
+        self.W_pos = nn.Parameter(torch.empty((cfg.n_ctx, cfg.d_model), dtype=dtype))
         nn.init.normal_(self.W_pos, std=self.cfg.init_range)
-    
+
     def forward(self, tokens):
         # tokens: [batch, position]
         if self.cfg.debug: print("Tokens:", tokens.shape)
@@ -191,31 +193,31 @@ class RotaryEmbed():
 First, it's useful to visualize and play around with attention patterns - what exactly are we looking at here? (Click on a head to lock onto just showing that head's pattern, it'll make it easier to interpret)
 """
 class Attention(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.W_Q = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
+        self.W_Q = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head), dtype=dtype))
         nn.init.normal_(self.W_Q, std=self.cfg.init_range)
-        self.b_Q = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head)))
-        self.W_K = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
+        self.b_Q = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head), dtype=dtype))
+        self.W_K = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head), dtype=dtype))
         nn.init.normal_(self.W_K, std=self.cfg.init_range)
-        self.b_K = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head)))
-        self.W_V = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head)))
+        self.b_K = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head), dtype=dtype))
+        self.W_V = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_model, cfg.d_head), dtype=dtype))
         nn.init.normal_(self.W_V, std=self.cfg.init_range)
-        self.b_V = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head)))
+        self.b_V = nn.Parameter(torch.zeros((cfg.n_heads, cfg.d_head), dtype=dtype))
         
-        self.W_O = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_head, cfg.d_model)))
+        self.W_O = nn.Parameter(torch.empty((cfg.n_heads, cfg.d_head, cfg.d_model), dtype=dtype))
         nn.init.normal_(self.W_O, std=self.cfg.init_range)
-        self.b_O = nn.Parameter(torch.zeros((cfg.d_model)))
+        self.b_O = nn.Parameter(torch.zeros((cfg.d_model), dtype=dtype))
         
-        self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=torch.float32, device=device))
+        self.register_buffer("IGNORE", torch.tensor(-torch.inf, dtype=dtype, device=device))
         if cfg.positional_embedding_type == "rotary":
             self.rotary_embed = RotaryEmbed(cfg)
             sin, cos = self.rotary_embed.calculate_sin_cos_rotary(
                 self.cfg.rotary_dim,
                 self.cfg.n_ctx,
                 rotary_base=self.cfg.rotary_base,
-                dtype=self.cfg.dtype
+                dtype=dtype
             )
             self.register_buffer("rotary_sin", sin)
             self.register_buffer("rotary_cos", cos)
@@ -256,15 +258,15 @@ class Attention(nn.Module):
 
 """## MLP"""
 class MLP(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.W_in = nn.Parameter(torch.empty((cfg.d_model, cfg.d_mlp)))
+        self.W_in = nn.Parameter(torch.empty((cfg.d_model, cfg.d_mlp), dtype=dtype))
         nn.init.normal_(self.W_in, std=self.cfg.init_range)
-        self.b_in = nn.Parameter(torch.zeros((cfg.d_mlp)))
-        self.W_out = nn.Parameter(torch.empty((cfg.d_mlp, cfg.d_model)))
+        self.b_in = nn.Parameter(torch.zeros((cfg.d_mlp), dtype=dtype))
+        self.W_out = nn.Parameter(torch.empty((cfg.d_mlp, cfg.d_model), dtype=dtype))
         nn.init.normal_(self.W_out, std=self.cfg.init_range)
-        self.b_out = nn.Parameter(torch.zeros((cfg.d_model)))
+        self.b_out = nn.Parameter(torch.zeros((cfg.d_model), dtype=dtype))
     
     def forward(self, normalized_resid_mid):
         # normalized_resid_mid: [batch, position, d_model]
@@ -276,14 +278,14 @@ class MLP(nn.Module):
 
 """## Transformer Block"""
 class TransformerBlock(nn.Module):
-    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True,):
+    def __init__(self, cfg, prev_layers: int, frozen_mask_edges=None, freeze_ones=True, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
 
-        self.ln1 = LayerNorm(cfg)
-        self.attn = Attention(cfg)
-        self.ln2 = LayerNorm(cfg)
-        self.mlp = MLP(cfg)
+        self.ln1 = LayerNorm(cfg, dtype=dtype)
+        self.attn = Attention(cfg, dtype=dtype)
+        self.ln2 = LayerNorm(cfg, dtype=dtype)
+        self.mlp = MLP(cfg, dtype=dtype)
 
         self.frozen_mask = True if frozen_mask_edges is not None else False
 
@@ -291,7 +293,7 @@ class TransformerBlock(nn.Module):
             p.requires_grad = False
 
         prev_nodes = (cfg.n_heads + 1) * prev_layers + 1
-        edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads))
+        edge_mask_attentions_init = torch.ones((prev_nodes, cfg.n_heads), dtype=dtype)
         self.edge_mask_attentions = torch.nn.Parameter(edge_mask_attentions_init, requires_grad=True)
 
         if self.frozen_mask:
@@ -302,7 +304,7 @@ class TransformerBlock(nn.Module):
                 self.edge_mask_attentions_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['a']), requires_grad=False)
                 self.edge_mask_attentions_frozen = torch.nn.Parameter(frozen_mask_edges['a'], requires_grad=False)
 
-        edge_mask_mlp_init = torch.ones((prev_nodes, ))# + cfg.n_heads, ))
+        edge_mask_mlp_init = torch.ones((prev_nodes,), dtype=dtype)
         self.edge_mask_mlp = torch.nn.Parameter(edge_mask_mlp_init, requires_grad=True)
         
         if self.frozen_mask:
@@ -312,7 +314,6 @@ class TransformerBlock(nn.Module):
             else:
                 self.edge_mask_mlp_baseline = torch.nn.Parameter(torch.zeros_like(frozen_mask_edges['m']), requires_grad=False)
                 self.edge_mask_mlp_frozen = torch.nn.Parameter(frozen_mask_edges['m'], requires_grad=False)
-    
 
     def forward(self, resid_pre, means=False):
         # resid_pre [batch, position, d_model, prev_head_idx]
@@ -384,13 +385,13 @@ class TransformerBlock(nn.Module):
 """## Unembedding"""
 
 class Unembed(nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg, dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.W_U = nn.Parameter(torch.empty((cfg.d_model, cfg.d_vocab)))
+        self.W_U = nn.Parameter(torch.empty((cfg.d_model, cfg.d_vocab), dtype=dtype))
         nn.init.normal_(self.W_U, std=self.cfg.init_range)
-        self.b_U = nn.Parameter(torch.zeros((cfg.d_vocab), requires_grad=False))
-    
+        self.b_U = nn.Parameter(torch.zeros((cfg.d_vocab), dtype=dtype), requires_grad=False)
+        
     def forward(self, normalized_resid_final):
         # normalized_resid_final [batch, position, d_model]
         if self.cfg.debug: print("Normalized_resid_final:", normalized_resid_final.shape)
@@ -405,20 +406,21 @@ def get_mask_dict_reformatted(layer, n_heads, mask_dict_superset=None):
     return {'a': attn_mask, 'm': mlp_mask}
 
 class DemoTransformer(nn.Module):
+
     def __init__(self, cfg, means,
                  edge_masks=False, 
-                 mask_dict_superset=None, ):
+                 mask_dict_superset=None,
+                 dtype=torch.float32):
         super().__init__()
         self.cfg = cfg
-        self.embed = Embed(cfg)
-        # Rotary embedding handled by attention at every layer
+        self.embed = Embed(cfg, dtype=dtype)
+        
         if cfg.positional_embedding_type == "learned":
-            self.pos_embed = PosEmbed(cfg)
-        self.ln_final = LayerNorm(cfg)
-        self.unembed = Unembed(cfg)
+            self.pos_embed = PosEmbed(cfg, dtype=dtype)
+        self.ln_final = LayerNorm(cfg, dtype=dtype)
+        self.unembed = Unembed(cfg, dtype=dtype)
         for p in self.parameters():
             p.requires_grad = False
-
 
         if mask_dict_superset is not None:
             assert edge_masks, "edge_masks should be True if mask_dict_superset is not None (mask_dict_superset values take precedence over global edge_masks value)"
@@ -429,10 +431,10 @@ class DemoTransformer(nn.Module):
                 mask_dict_superset = get_edge_mask_template(num_layers=cfg.n_layers, num_heads=cfg.n_heads, neox=True)
             
         self.blocks = nn.ModuleList([TransformerBlock(cfg, i,
-                                                      frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None, 
-                                                                  ) for i in range(cfg.n_layers)])
+                                                    frozen_mask_edges=get_mask_dict_reformatted(i, cfg.n_heads, mask_dict_superset) if mask_dict_superset is not None else None,
+                                                    dtype=dtype) for i in range(cfg.n_layers)])
         total_nodes = (cfg.n_heads + 1) * cfg.n_layers + 1
-        self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,)), requires_grad=True)
+        self.output_mask = torch.nn.Parameter(torch.ones((total_nodes,), dtype=dtype), requires_grad=True)
         self.frozen_mask = True if mask_dict_superset is not None else False
         if self.frozen_mask:
             self.output_mask_baseline = torch.nn.Parameter(mask_dict_superset['output'], requires_grad=False)
@@ -440,7 +442,7 @@ class DemoTransformer(nn.Module):
 
 
         self.means = means
-    
+
     def forward(self, tokens, return_states=False):
         # tokens [batch, position]
 

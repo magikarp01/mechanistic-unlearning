@@ -19,14 +19,14 @@ import sys
 import pickle
 sys.path.append('acdcpp/Automatic-Circuit-Discovery/')
 sys.path.append('acdcpp/')
-from acdc import TLACDCExperiment
-from acdcpp.ACDCPPExperiment import ACDCPPExperiment
+# from acdc import TLACDCExperiment
+# from acdcpp.ACDCPPExperiment import ACDCPPExperiment
 import os
 import sys
 import re
 
-from acdc.TLACDCExperiment import TLACDCExperiment
-from acdc.acdc_utils import TorchIndex, EdgeType
+# from acdc.TLACDCExperiment import TLACDCExperiment
+# from acdc.acdc_utils import TorchIndex, EdgeType
 import numpy as np
 import torch as t
 from torch import Tensor
@@ -43,7 +43,7 @@ import torch
 
 device = t.device('cuda') if t.cuda.is_available() else t.device('cpu')
 print(f'Device: {device}')
-from ACDCPPExperiment import ACDCPPExperiment
+# from ACDCPPExperiment import ACDCPPExperiment
 from cb_utils.mask_utils import get_masks_from_acdcpp_exp
 
 
@@ -158,12 +158,12 @@ print(acdcpp_edges)
 
 from cb_utils.transformer import DemoTransformer
 from cb_utils.models import load_demo_gpt2, load_demo_pythia
-from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast
+from transformers import GPT2Tokenizer, GPTNeoXTokenizerFast, AutoTokenizer
 
 #%%
 
 if use_pythia:
-    tokenizer = GPTNeoXTokenizerFast.from_pretrained("EleutherAI/gpt-neox-20b")
+    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-2.8b")
     tokenizer.pad_token_id = tokenizer.eos_token_id
     if edge_masks:
         model = load_demo_pythia(means=False, model_name="pythia-2.8b", 
@@ -177,15 +177,15 @@ if use_pythia:
 
     # In[13]:
 
-    from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
+    from tasks import IOITask, SportsTask, SportsFactsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform, SportsTask_Uniform
     test_batch_size = 32
     sports = SportsTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device)
-    owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30)
+    owt = OWTTask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, ctx_length=30, stream_dataset=True)
     ioi = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
     induction = InductionTask(batch_size=test_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15)
 
     train_batch_size=4
-    owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30)
+    owt_train = OWTTask(batch_size=3, tokenizer=tokenizer, device=device, ctx_length=30, stream_dataset=True)
     if localize_task == "ioi":
 
         ioi_task_2 = IOITask(batch_size=test_batch_size, tokenizer=tokenizer, device=device, nb_templates=1, prompt_type="ABBA", template_start_idx=4) # slightly different template
@@ -218,15 +218,33 @@ if use_pythia:
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
 
     elif localize_task == "sports":
-        if use_uniform:
-            sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
-            train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
-            task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
+        # if use_uniform:
+        #     sports_uniform = SportsTask_Uniform(batch_size=train_batch_size, tokenizer=tokenizer, uniform_over=uniform_type)
+        #     train_tasks = {"sports_uniform": sports_uniform, "owt": owt_train}
+        #     task_weights = {"sports_uniform": unlrn_task_weight, "owt": 1}
         
-        else:
-            sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
-            train_tasks = {"sports": sports_train, "owt": owt_train}
-            task_weights = {"sports": unlrn_task_weight, "owt": 1}
+        # else:
+        #     sports_train = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer)
+        #     train_tasks = {"sports": sports_train, "owt": owt_train}
+        #     task_weights = {"sports": unlrn_task_weight, "owt": 1}
+
+        forget_sports_train = SportsFactsTask(
+            model,
+            tokenizer,
+            batch_size=5,
+            forget_sport_subset={"football"},
+            is_forget_dataset=True
+        )
+        maintain_sports_train = SportsFactsTask(
+            model,
+            tokenizer,
+            batch_size=5,
+            forget_sport_subset={"football"},
+            is_forget_dataset=False
+        )
+
+        train_tasks = {"forget_sports": forget_sports_train, "maintain_sports": maintain_sports_train, "owt": owt_train}
+        task_weights = {"forget_sports": unlrn_task_weight, "maintain_sports": 1, "owt": 1}
 
         eval_tasks = {"ioi": ioi, "induction": induction, "owt": owt, "sports": sports}
 
@@ -269,7 +287,7 @@ else:
     from tasks import IOITask, SportsTask, OWTTask, IOITask_Uniform, GreaterThanTask, InductionTask, InductionTask_Uniform
     batch_size = 80
     # sports = SportsTask(batch_size=batch_size*2, tokenizer=tokenizer, device=device)
-    owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40)
+    owt = OWTTask(batch_size=batch_size, tokenizer=tokenizer, device=device, ctx_length=40, stream_dataset=True)
     greaterthan = GreaterThanTask(batch_size=batch_size, tokenizer=tokenizer, device=device)
     ioi = IOITask(batch_size=batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, nb_templates=4, prompt_type="ABBA")
     induction = InductionTask(batch_size=batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)

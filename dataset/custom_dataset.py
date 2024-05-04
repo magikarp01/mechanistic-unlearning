@@ -50,6 +50,7 @@ class InstructionDataset(Dataset):
             instructions=[instruction.to_string() for instruction in self.instructions],
         ).to(device)
 
+        self.tokenize_instructions = tokenize_instructions
         self.str_toks = [
             [self.tokenizer.decode(tok) for tok in self.toks[i]]
             for i in range(self.toks.shape[0])
@@ -82,6 +83,7 @@ class InstructionDataset(Dataset):
         sliced_dataset = InstructionDataset(
             self.tokenizer,
             instructions=sliced_instructions,
+            tokenize_instructions=self.tokenize_instructions,
             device=self.device,
         )
         return sliced_dataset
