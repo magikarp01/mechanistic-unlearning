@@ -13,8 +13,6 @@ wandb/
 masks_old/
 masks/
 !masks/*config.json
-tasks/
-tasks
 .env
 temp_gens/
 
