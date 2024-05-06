@@ -1,3 +1,6 @@
 [submodule "tasks"]
 	path = tasks
 	url = https://github.com/magikarp01/tasks.git
+[submodule "circuit_breaking"]
+	path = circuit_breaking
+	url = https://github.com/abhay-sheshadri/circuit_breaking.git
