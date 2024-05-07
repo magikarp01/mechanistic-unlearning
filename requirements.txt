@@ -23,7 +23,7 @@ detoxify==0.5.2
 dill==0.3.8
 distro==1.9.0
 docker-pycreds==0.4.0
-git+https://github.com/redwoodresearch/Easy-Transformer.git
+easy-transformer==0.1.0
 einops==0.7.0
 exceptiongroup==1.2.0
 executing==2.0.1
@@ -136,3 +136,4 @@ wandb==0.16.6
 wcwidth==0.2.13
 xxhash==3.4.1
 yarl==1.9.4
+zstandard==0.22.0
