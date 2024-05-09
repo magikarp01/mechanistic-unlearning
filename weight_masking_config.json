@@ -1,0 +1,22 @@
+{
+    "train_batch_size": 10,
+    "eval_batch_size": 50,
+    "device": "cuda",
+    "train_loss_type": "sports",
+    "forget_sport": "basketball",
+    "maintain_sport" : "null",
+    "model_name": "google/gemma-2b",
+    "model_type": "gemma",
+    "learning_rate": 1e-2,
+    "n_epochs": 50,
+    "grad_accum_steps": 5,
+    "alpha": 0.2,
+    "beta": 0.01,
+    "clip_grad": 1,
+    "evaluate_every": 5,
+    "n_eval_iters": 5,
+    "do_adversarial_evals": true,
+    "do_side_effects_evals": true,
+    "localization_type": "none",
+    "localization_top_p": 0.05 
+}
