@@ -470,3 +470,212 @@ def get_masks_from_ct_nodes(nodes_set, **kwargs):
     ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict = get_mask_components(nodes_set, **kwargs)
 
     return nodes_set, edges_set, ct_mask_dict, ct_weight_mask_attn_dict, ct_weight_mask_mlp_dict
+
+
+import numpy as np
+from collections import defaultdict
+
+def convert_attrs_to_components(attrs, n_layers, n_heads, combine_heads=False):
+    """
+    attrs is dictionary of e.g. {'a0.0_q': float, 'm27_in': float}
+
+    If combine_heads, then it will combine all 'a0.0_q', 'a0.1_q', ..., 'a0.15_q', etc into one component.
+    """
+
+    component_dict = defaultdict(int)
+    attn_head_dict = defaultdict(dict)
+    for layer in range(n_layers):
+        for attn_type, component_name in [("q", f"blocks.{layer}.attn.hook_q"), ("k", f"blocks.{layer}.attn.hook_k"), ("v", f"blocks.{layer}.attn.hook_v"), ("result", f"blocks.{layer}.attn.hook_result")]:
+            for head in range(n_heads):    
+                if combine_heads:
+                    component_dict[component_name] += attrs[f"a{layer}.{head}_{attn_type}"]
+                else:
+                    attn_head_dict[component_name][head] = attrs[f"a{layer}.{head}_{attn_type}"]
+        for mlp_type, component_name in [("in", f"blocks.{layer}.mlp.hook_pre"), ("out", f"blocks.{layer}.mlp.hook_post")]:
+            component_dict[component_name] += attrs[f"m{layer}_{mlp_type}"]
+    if combine_heads:
+        return (component_dict,)
+    return (component_dict, attn_head_dict,)
+
+def get_top_components(component_dict, n_heads, attn_head_dict=None, threshold=None, top_p=None, top_k=None, use_abs=True):
+    """
+    component_dict is a dictionary of components to their importance values. If attn_head_dict is not None, then component_dict and attn_head_dict should not overlap in values.
+
+    Can either use a threshold, top_p, or top_k to determine the top components to return (can only specify one). top_p should be a value ranging from 0 to 100. If use_abs is True, then it will take the absolute value of the importance values. 
+
+    Returned final_components are all components (in the form of keys of tl_model.hook_dict), and returned final_attn_heads are a dictionary of components (keys are a subset of final_components that are attn components) to list of attention heads to mask over.
+    """
+    if attn_head_dict is not None:
+        assert (component_dict.keys() & attn_head_dict.keys()) == set(), "Overlapping keys between component_dict and attn_head_dict"
+    
+    # assert only one of threshold, top_p, top_k is specified
+    assert sum([threshold is not None, top_p is not None, top_k is not None]) == 1, "Can only specify one of threshold, top_p, top_k"
+    # will calculate a threshold for top_p or top_k
+
+    if top_p is not None:
+        all_attr_values = list(component_dict.values())
+        if attn_head_dict is not None:
+            all_attr_values += [val for head_dict in attn_head_dict.values() for val in head_dict.values()]
+
+        all_attr_values = np.array(all_attr_values)
+        if use_abs:
+            all_attr_values = np.abs(all_attr_values)
+        print(f"{len(all_attr_values)=}")
+        threshold = np.percentile(all_attr_values, 100 - top_p)
+    elif top_k is not None:
+        all_attr_values = list(component_dict.values())
+        if attn_head_dict is not None:
+            all_attr_values += [val for head_dict in attn_head_dict.values() for val in head_dict.values()]
+
+        all_attr_values = np.array(all_attr_values)
+        if use_abs:
+            all_attr_values = np.abs(all_attr_values)
+        threshold = np.sort(all_attr_values)[-top_k]
+    
+    print(f"Thresholding importance at {threshold}")
+    final_components = []
+    final_attn_heads = defaultdict(list)
+
+    for component, importance in component_dict.items():
+        if use_abs:
+            importance = abs(importance)
+        if importance >= threshold:
+            final_components.append(component)    
+
+    if attn_head_dict is not None:
+        for component, head_dict in attn_head_dict.items():
+            head_list = []
+            for head, importance in head_dict.items():
+                if use_abs:
+                    importance = abs(importance)
+                if importance >= threshold:
+                    head_list.append(head)
+            if len(head_list) > 0:
+                final_attn_heads[component] = head_list
+                final_components.append(component)
+    else:
+        for component in final_components:
+            if "attn" in component:
+                # want to mask over all possible heads
+                final_attn_heads[component] = list(range(n_heads))
+    
+    return final_components, final_attn_heads
+
+def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, use_abs=True, combine_heads=False):
+    combined_attrs = {}
+    # if combine heads, then we will combine all heads into one component per layer
+    if combine_heads:
+        for layer in range(n_layers):
+            combined_attrs[f"a{layer}"] = 0
+            for head in range(n_heads):
+                combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
+            
+            combined_attrs[f"m{layer}"] = attrs[f"m{layer}"]
+    else:
+        combined_attrs = attrs
+
+    assert sum([threshold is not None, top_p is not None, top_k is not None]) == 1, "Can only specify one of threshold, top_p, top_k"
+
+    if top_p is not None:
+        all_attr_values = list(combined_attrs.values())
+
+        all_attr_values = np.array(all_attr_values)
+        if use_abs:
+            all_attr_values = np.abs(all_attr_values)
+        print(f"{len(all_attr_values)=}")
+        threshold = np.percentile(all_attr_values, 100 - top_p)
+
+    elif top_k is not None:
+        all_attr_values = list(combined_attrs.values())
+
+        all_attr_values = np.array(all_attr_values)
+        if use_abs:
+            all_attr_values = np.abs(all_attr_values)
+        threshold = np.sort(all_attr_values)[-top_k]
+    
+    print(f"Thresholding importance at {threshold}")
+
+    final_components = set()
+    final_attn_heads = defaultdict(list)
+
+    for component, importance in combined_attrs.items():
+        if use_abs:
+            importance = abs(importance)
+        if importance >= threshold:
+            print(f"{component=}, {importance=} is being added")
+            # if combine heads, then we will only have one component per layer
+            if combine_heads:
+                layer = int(component[1:])
+                # convert to component name
+                if component[0] == "a":
+                    # add q, k, v, result to tunable params
+                    for attn_type in ['q', 'k', 'v', 'result']:
+                        final_components.add(f"blocks.{layer}.attn.hook_{attn_type}")
+                        final_attn_heads[f"blocks.{layer}.attn.hook_{attn_type}"] = list(range(n_heads))
+                else:
+                    # add in, out to tunable params
+                    for mlp_type in ['pre', 'post']:
+                        final_components.add(f"blocks.{layer}.mlp.hook_{mlp_type}")
+            else:
+                layer = int(component.split(".")[0][1:])
+                if component[0] == "a":
+                    head = int(component.split(".")[1])
+                    # add q, k, v, result to tunable params
+                    for attn_type in ['q', 'k', 'v', 'result']:
+                        final_components.add(f"blocks.{layer}.attn.hook_{attn_type}")
+                        final_attn_heads[f"blocks.{layer}.attn.hook_{attn_type}"].append(head)
+
+                else:
+                    # add in, out to tunable params
+                    for mlp_type in ['pre', 'post']:
+                        final_components.add(f"blocks.{layer}.mlp.hook_{mlp_type}")
+    return final_components, final_attn_heads
+
+
+import math
+import random
+def get_random_components(n_layers, n_heads, top_p=None, top_k=None, combine_subcomponents=False):
+    assert sum([top_p is not None, top_k is not None]) == 1, "Can only specify one of top_p, top_k"
+
+    # select random subset of q, k, v, result, out, in. No combine_heads parameter because I don't think it makes sense to equally randomly select one 256-d head mask vs one 25k-d mlp mask
+    if combine_subcomponents:
+        possible_component_prefixes = []
+        for layer in range(n_layers):
+            possible_component_prefixes.append(f"blocks.{layer}.attn.hook")
+            possible_component_prefixes.append(f"blocks.{layer}.mlp.hook")
+        
+        if top_p is not None:
+            top_k = int(math.ceil(top_p / 100 * len(possible_component_prefixes)))
+        selected_component_prefixes = random.sample(possible_component_prefixes, top_k)
+
+        final_components = []
+        attn_dict = defaultdict(list)
+        for component_prefix in selected_component_prefixes:
+            if "attn" in component_prefix:
+                for attn_type in ['q', 'k', 'v', 'result']:
+                    final_components.append(f"{component_prefix}_{attn_type}")
+                    attn_dict[f"{component_prefix}_{attn_type}"] = list(range(n_heads))
+            else:
+                for mlp_type in ['pre', 'post']:
+                    final_components.append(f"{component_prefix}_{mlp_type}")
+        
+        return final_components, attn_dict
+    else:
+        all_possible_components = []
+        for layer in range(n_layers):
+            for attn_type in ['q', 'k', 'v', 'result']:
+                all_possible_components.append(f"blocks.{layer}.attn.hook_{attn_type}")
+            for mlp_type in ['pre', 'post']:
+                all_possible_components.append(f"blocks.{layer}.mlp.hook_{mlp_type}")
+        
+        if top_p is not None:
+            top_k = int(math.ceil(top_p / 100 * len(all_possible_components)))
+
+        selected_components = random.sample(all_possible_components, top_k)
+        
+        attn_dict = defaultdict(list)
+        for component in selected_components:
+            if "attn" in component:
+                attn_dict[component] = list(range(n_heads))
+        
+        return selected_components, attn_dict
