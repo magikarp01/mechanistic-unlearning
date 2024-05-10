@@ -497,7 +497,7 @@ def convert_attrs_to_components(attrs, n_layers, n_heads, combine_heads=False):
         return (component_dict,)
     return (component_dict, attn_head_dict,)
 
-def get_top_components(component_dict, n_heads, attn_head_dict=None, threshold=None, top_p=None, top_k=None, use_abs=True):
+def get_top_components(component_dict, attn_head_dict=None, n_heads=None, threshold=None, top_p=None, top_k=None, use_abs=True):
     """
     component_dict is a dictionary of components to their importance values. If attn_head_dict is not None, then component_dict and attn_head_dict should not overlap in values.
 
@@ -679,3 +679,22 @@ def get_random_components(n_layers, n_heads, top_p=None, top_k=None, combine_sub
                 attn_dict[component] = list(range(n_heads))
         
         return selected_components, attn_dict
+
+def load_mask_from_state_dict(mask_path, n_heads):
+    """
+    For now only meant for random. DO NOT USE yet if combine_heads=False.
+    """
+    from circuit_breaking.src.masks import convert_param_name
+    state_dict = torch.load(mask_path)
+    final_components = []
+    final_attn_heads = defaultdict(list)
+    for key in state_dict.keys():
+        if "masks.blocks" not in key:
+            continue
+        component_name = convert_param_name(key, inverse=True)
+        # cut off "masks."
+        component_name = component_name[6:]
+        final_components.append(component_name)
+        if "attn" in component_name:
+            final_attn_heads[component_name] = list(range(n_heads))
+
