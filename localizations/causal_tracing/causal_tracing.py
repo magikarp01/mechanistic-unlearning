@@ -359,7 +359,7 @@ def causal_tracing_sports(
         model.reset_hooks()
         clean_logits, save_cache = model.run_with_cache(
             toks_slice,
-            names_filter=lambda name: "hook_z" in name or "hook_q" in name or "post" in name
+            names_filter=lambda name: "hook_z" in name or "hook_q" in name or "mlp_out" in name
         )
         model.reset_hooks()
         # Get corrupt logits by noising embeddings but not saving anything
@@ -438,7 +438,7 @@ def causal_tracing_sports(
                 toks_slice,
                 fwd_hooks=[
                     (utils.get_act_name('embed'), hook_fn),
-                    (utils.get_act_name('post', layer), hook_fn)
+                    (utils.get_act_name('mlp_out', layer), hook_fn)
                 ]
             )
             results[f'm{layer}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
