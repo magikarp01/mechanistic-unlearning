@@ -55,6 +55,19 @@ def create_random_weight_mask_dicts(model, top_p):
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
+def create_mlp_only_mask_dicts(model):
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        # Set to false: we train a mask over these
+        weight_mask_mlp_dict[layer]['W_in'] = not (layer >= 1 and layer <= 7)
+        weight_mask_mlp_dict[layer]['W_out'] = not (layer >= 1 and layer <= 7)
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
 
 def get_mask_from_ap_graph(model, ap_graph, top_p):
     # Attention masks are of form:
@@ -280,6 +293,9 @@ def run():
         weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, localization_top_p)
     elif localization_type == "none":
         weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 1)
+    elif localization_type == "manual":
+        # Manual interp means only training the MLP weights from layer 1 to 7
+        weight_mask_attn_dict, weight_mask_mlp_dict = create_mlp_only_mask_dicts(model)
 
     gc.collect()
     torch.cuda.empty_cache()
@@ -348,7 +364,7 @@ def run():
             all_train_losses["reg"].append(loss.item())
             # Step and log
             if clip_grad is not None:
-                torch.nn.utils.clip_grad_norm_(mask.parameters(), clip_grad)
+                torch.nn.utils.clip_grad_norm_(mask_params, clip_grad)
             # zero_nan_grads(mask)
             optimizer.step()
             mask.on_step_end()
@@ -381,8 +397,8 @@ def run():
     wandb.finish()
 
     ### SAVE
-    torch.save(mask.attention_masks, f"weight_masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_attn.pt")
-    torch.save(mask.mlp_masks, f"weight_masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_mlp.pt")
+    torch.save(mask.attention_masks, f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_attn.pt")
+    torch.save(mask.mlp_masks, f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_mlp.pt")
 
 if __name__ == "__main__":
     # Get config file as argument
