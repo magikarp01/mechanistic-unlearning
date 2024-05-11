@@ -216,7 +216,7 @@ for forget_sport in ['all']:
     plt.plot(random_percent_ablated, random_losses, label="Random Ablation")
     plt.xlabel("Percent Top Components Ablated")
     plt.ylabel("Test Loss (Log Scale)")
-    plt.yscale('log')
+    # plt.yscale('log')
     plt.legend()
     plt.grid()
 
