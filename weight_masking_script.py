@@ -381,8 +381,8 @@ def run():
     wandb.finish()
 
     ### SAVE
-    torch.save(mask.attention_masks, f"models/masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_attn.pt")
-    torch.save(mask.mlp_masks, f"models/masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_mlp.pt")
+    torch.save(mask.attention_masks, f"weight_masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_attn.pt")
+    torch.save(mask.mlp_masks, f"weight_masks/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_mlp.pt")
 
 if __name__ == "__main__":
     # Get config file as argument
