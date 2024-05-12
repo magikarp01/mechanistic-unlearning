@@ -1,6 +1,7 @@
 # *.pkl
 *.pt
 *.pyc
+*.zip
 *gpt2_weights.pkl
 */models/masked_gpt2_mean_ablation_v6.pkl
 ioi/models/gpt2_weights.pkl
