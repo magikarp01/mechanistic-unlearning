@@ -23,7 +23,7 @@ def make_partly_differentiable_mask(W, frozen_heads, device="cuda"):
 class WeightMaskedTransformer(nn.Module):
     def __init__(self, tl_transformer, weight_mask_attn_dict=None, weight_mask_mlp_dict=None, torch_dtype=torch.bfloat16):
         """
-        weight_mask_attn_dict: {layer: {"W_Q": unfrozen_heads, "W_K": unfrozen_heads, "W_V": unfrozen_heads, "W_O": unfrozen_heads}} (frozen_heads is shape (n_heads,) of bools). If none, train mask over all heads
+        weight_mask_attn_dict: {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}} (frozen_heads is shape (n_heads,) of bools). If none, train mask over all heads
         weight_mask_mlp_dict: {layer: bool}. If none, train mask over all mlps
 
         """
@@ -37,7 +37,7 @@ class WeightMaskedTransformer(nn.Module):
 
         self.weight_mask_attn_dict = weight_mask_attn_dict
         self.weight_mask_mlp_dict = weight_mask_mlp_dict
-        # store weight masks for every component that is unfrozen
+        # store weight masks for every component that is frozen
         
         # need to store reference weights so that you can reset W_Q, etc after a forward pass
         self.reference_attn_weights = {}
@@ -53,42 +53,47 @@ class WeightMaskedTransformer(nn.Module):
             # Attention heads
             for component, parameter in [("W_Q", tl_transformer.blocks[layer].attn.W_Q), ("W_K", tl_transformer.blocks[layer].attn.W_K), ("W_V", tl_transformer.blocks[layer].attn.W_V), ("W_O", tl_transformer.blocks[layer].attn.W_O)]:
                 if self.weight_mask_attn_dict is None:
-                    unfrozen_heads = list(range(tl_transformer.cfg.n_heads)) # all heads are unfrozen
+                    frozen_heads = list(range(tl_transformer.cfg.n_heads)) # all heads are frozen
                 else:
-                    unfrozen_heads = self.weight_mask_attn_dict[layer][component]
+                    frozen_heads = self.weight_mask_attn_dict[layer][component]
                 # make frozen and baseline masks, and also a copy of the original weights
 
-                if unfrozen_heads is not None and len(unfrozen_heads) > 0:
-                    W_frozen, W_baseline = make_partly_differentiable_mask(parameter, unfrozen_heads)
+                if not all(frozen_heads):
+                    W_frozen, W_baseline = make_partly_differentiable_mask(parameter, frozen_heads)
                     weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype), requires_grad=True)
                     
                     self.attention_masks[layer][component] = (W_frozen, W_baseline, weight_mask)
-                    self.reference_attn_weights[layer][component] = parameter.clone()
+                    self.reference_attn_weights[layer][component] = parameter.cpu().clone()
 
             # MLPs
 
             for component, parameter in [("W_in", tl_transformer.blocks[layer].mlp.W_in), ("W_out", tl_transformer.blocks[layer].mlp.W_out)]:
-                if self.weight_mask_mlp_dict is None or self.weight_mask_mlp_dict[layer][component]:
+                # If not frozen
+                if not self.weight_mask_mlp_dict[layer][component]:
                     weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype), requires_grad=True)
 
                     self.mlp_masks[layer][component] = weight_mask
-                    self.reference_mlp_weights[layer][component] = parameter.clone()
+                    self.reference_mlp_weights[layer][component] = parameter.cpu().clone()
 
                 
     def forward(self, *args, **kwargs):
         for layer in range(self.tl_transformer.cfg.n_layers):
             for component, parameter in [("W_Q", self.tl_transformer.blocks[layer].attn.W_Q), ("W_K", self.tl_transformer.blocks[layer].attn.W_K), ("W_V", self.tl_transformer.blocks[layer].attn.W_V), ("W_O", self.tl_transformer.blocks[layer].attn.W_O)]:
-                if self.weight_mask_attn_dict is None or component in self.attention_masks[layer]:
+                if component in self.attention_masks[layer]:
                     W_frozen, W_baseline, weight_mask = self.attention_masks[layer][component]
-                    reference_data = self.reference_attn_weights[layer][component]
+                    reference_data = self.reference_attn_weights[layer][component].cuda()
                     mask = W_frozen + W_baseline * weight_mask
                     self.tl_transformer.blocks[layer].attn.__dict__['_parameters'][component] = reference_data * mask
+                    del reference_data
+                    torch.cuda.empty_cache()
 
             for component, parameter in [("W_in", self.tl_transformer.blocks[layer].mlp.W_in), ("W_out", self.tl_transformer.blocks[layer].mlp.W_out)]:
-                if self.weight_mask_mlp_dict is None or self.weight_mask_mlp_dict[layer][component]:
+                if component in self.mlp_masks[layer]:
                     weight_mask = self.mlp_masks[layer][component]
-                    reference_data = self.reference_mlp_weights[layer][component]
+                    reference_data = self.reference_mlp_weights[layer][component].to("cuda")
                     self.tl_transformer.blocks[layer].mlp.__dict__['_parameters'][component] = reference_data * weight_mask
+                    del reference_data
+                    torch.cuda.empty_cache()
 
         return self.tl_transformer(*args, **kwargs)
 
@@ -103,20 +108,24 @@ class WeightMaskedTransformer(nn.Module):
             comp_loss = 0
             for component, parameter in [("W_Q", self.tl_transformer.blocks[layer].attn.W_Q), ("W_K", self.tl_transformer.blocks[layer].attn.W_K), ("W_V", self.tl_transformer.blocks[layer].attn.W_V), ("W_O", self.tl_transformer.blocks[layer].attn.W_O)]:
                 num_comps += 1
-                if self.weight_mask_attn_dict is None or component in self.attention_masks[layer]:
+                if component in self.attention_masks[layer]:
                     W_frozen, W_baseline, weight_mask = self.attention_masks[layer][component]
                     mask = W_frozen + (W_baseline * weight_mask) # 1s for frozen, heads
                     # Add (weights away from 1) / (total weights * percent_masks_active)
                     comp_loss += torch.sum(torch.abs(mask - 1)) / (mask.numel() * (W_baseline.sum() / W_baseline.numel()) + 1e-5)
+                    del mask, W_frozen, W_baseline, weight_mask
+                    torch.cuda.empty_cache()
                     
             loss += comp_loss / (num_comps + 1e-5)
 
             for component, parameter in [("W_in", self.tl_transformer.blocks[layer].mlp.W_in), ("W_out", self.tl_transformer.blocks[layer].mlp.W_out)]:
                 num_comps = 0
                 comp_loss = 0
-                if self.weight_mask_mlp_dict is None or self.weight_mask_mlp_dict[layer][component]:
+                if component in self.mlp_masks[layer]:
                     weight_mask = self.mlp_masks[layer][component]
                     comp_loss += torch.sum(torch.abs(weight_mask - 1)) / weight_mask.numel()
+                    del weight_mask
+                    torch.cuda.empty_cache()
 
             loss += comp_loss / (num_comps + 1e-5)
         loss /= self.tl_transformer.cfg.n_layers
@@ -127,11 +136,11 @@ class WeightMaskedTransformer(nn.Module):
 
         for layer in range(self.tl_transformer.cfg.n_layers):
             for component, parameter in [("W_Q", self.tl_transformer.blocks[layer].attn.W_Q), ("W_K", self.tl_transformer.blocks[layer].attn.W_K), ("W_V", self.tl_transformer.blocks[layer].attn.W_V), ("W_O", self.tl_transformer.blocks[layer].attn.W_O)]:
-                if self.weight_mask_attn_dict is None or component in self.attention_masks[layer]:
+                if component in self.attention_masks[layer]:
                     W_frozen, W_baseline, weight_mask = self.attention_masks[layer][component]
                     weight_mask.data = torch.clamp(weight_mask.data, 0, 1)
 
             for component, parameter in [("W_in", self.tl_transformer.blocks[layer].mlp.W_in), ("W_out", self.tl_transformer.blocks[layer].mlp.W_out)]:
-                if self.weight_mask_mlp_dict is None or self.weight_mask_mlp_dict[layer][component]:
+                if component in self.mlp_masks[layer]:
                     weight_mask = self.mlp_masks[layer][component]
                     weight_mask.data = torch.clamp(weight_mask.data, 0, 1)

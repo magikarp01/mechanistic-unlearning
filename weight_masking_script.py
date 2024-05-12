@@ -235,12 +235,12 @@ def run():
     else:
         maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
 
-    train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
+    train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=10, shuffle=True, buffer_size=1000)
     train_tasks = {"sports_1mp": (sports_1mp, .2), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
 
     # want to eval on other sports
     forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
-    test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
+    test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=10, shuffle=True, buffer_size=1000)
 
     induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
     if maintain_sport is None or maintain_sport == "null":
@@ -326,7 +326,7 @@ def run():
         for layer, layer_mask_weights in mask.mlp_masks.items()
         for k, v in layer_mask_weights.items()
     ]
-    optimizer = torch.optim.AdamW(mask_params, lr=learning_rate)
+    optimizer = torch.optim.SGD(mask_params, lr=learning_rate, momentum=0.9, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
     # Cycle dataloaders
     # Train a sparse mask
@@ -339,6 +339,7 @@ def run():
         with torch.autocast(device_type="cuda"):
             # Compute normal loss over retain
             for task_name, (task, task_weight) in train_tasks.items():
+                print(f"Running {task_name}")
                 task_loss = 0
                 for i in range(grad_accum_steps):
                     loss = task.get_train_loss(mask) / grad_accum_steps
@@ -369,6 +370,7 @@ def run():
             optimizer.step()
             mask.on_step_end()
             scheduler.step()
+            mask.on_step_end()
 
             if epoch % evaluate_every == 0 or epoch == n_epochs - 1:
                 for task_name, task in eval_tasks.items():
@@ -382,6 +384,8 @@ def run():
                 if do_side_effects_evals:
                     print("Running side effects evals")
                     side_effect_evals.append(run_side_effects_evals(mask, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["Sports Answers"]))
+            gc.collect()
+            torch.cuda.empty_cache()
             
             log_dict = {}
             for k, v in all_train_losses.items():

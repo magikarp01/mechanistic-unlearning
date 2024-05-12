@@ -3,7 +3,7 @@
     "eval_batch_size": 50,
     "device": "cuda",
     "train_loss_type": "sports",
-    "forget_sport": "baseball",
+    "forget_sport": "basketball",
     "maintain_sport" : "null",
     "model_name": "google/gemma-7b",
     "model_type": "gemma",
@@ -17,6 +17,6 @@
     "n_eval_iters": 5,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-    "localization_type": "random",
+    "localization_type": "ap",
     "localization_top_p": 0.05 
 }
