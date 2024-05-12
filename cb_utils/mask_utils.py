@@ -698,3 +698,47 @@ def load_mask_from_state_dict(mask_path, n_heads):
         if "attn" in component_name:
             final_attn_heads[component_name] = list(range(n_heads))
 
+
+def get_parameter(hf_model, component_name):
+    layer_str, component_type, hook_type = component_name.split(".")[1:]
+    layer = int(layer_str)
+
+    param = None
+    if component_type == "attn":
+        if hook_type == "hook_q":
+            param = hf_model.model.layers[layer].self_attn.q_proj.weight
+        elif hook_type == "hook_k":
+            param = hf_model.model.layers[layer].self_attn.k_proj.weight
+        elif hook_type == "hook_v":
+            param = hf_model.model.layers[layer].self_attn.v_proj.weight
+        elif hook_type == "hook_result":
+            # for now ignore, not sure if result maps to o_proj
+            print(f"Ignoring {component_name}")
+            # param = hf_model.model.layers[layer].self_attn.o_proj.weight
+        else:
+            print(f"Unknown component type {component_type}")
+    elif component_type == "mlp":
+        if hook_type == "hook_pre":
+            param = hf_model.model.layers[layer].mlp.up_proj.weight
+        elif hook_type == "hook_post":
+            param = hf_model.model.layers[layer].mlp.down_proj.weight
+        else:
+            print(f"Unknown component type {component_type}")
+
+    else:
+        print(f"Unknown component type {component_type}")
+    
+    return param
+    
+def apply_localized_gradients(hf_model, components):
+    # set everything else False
+    for parameter in hf_model.parameters():
+        parameter.requires_grad = False
+    
+    for component in components:
+        param = get_parameter(hf_model, component)
+        if param is None:
+            print(f"Could not find parameter for {component}")
+            continue
+        param.requires_grad = True
+        print(f"Setting {component} to True")
