@@ -1,8 +1,3 @@
-#%%
-%cd ~/mechanistic-unlearning
-%load_ext autoreload
-%autoreload 2
-
 from transformer_lens import HookedTransformer, ActivationCache
 import random
 import os
@@ -51,14 +46,14 @@ def create_random_weight_mask_dicts(model, top_p):
         weight_mask_attn_dict[layer] = {}
         weight_mask_mlp_dict[layer] = {}
         # Want bool of length n_head, randomly set to True
-        weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) < top_p
+        weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) > top_p
 
         # Randomly set to true or false
-        weight_mask_mlp_dict[layer]['W_in'] = random.random() < top_p
-        weight_mask_mlp_dict[layer]['W_out'] = random.random() < top_p
+        weight_mask_mlp_dict[layer]['W_in'] = random.random() > top_p
+        weight_mask_mlp_dict[layer]['W_out'] = random.random() > top_p
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
@@ -225,12 +220,12 @@ def run():
     model = HookedTransformer.from_pretrained(
         model_name,
         tokenizer=tokenizer,
-        device='cuda',
         default_padding_side="right",
         fold_ln=False,
         fold_value_biases=False,
         center_writing_weights=False,
-        dtype=torch.bfloat16
+        dtype=torch.bfloat16,
+        n_devices=torch.cuda.device_count()
     )
 
     ### DATASETS
@@ -313,8 +308,8 @@ def run():
         weight_mask_attn_dict=weight_mask_attn_dict, 
         weight_mask_mlp_dict=weight_mask_mlp_dict
     )
-    for param in mask.tl_transformer.parameters():
-        param.requires_grad = False
+    # print(mask)
+    # print(mask.blocks[0].attention_masks['W_Q'][-1].is_leaf)
 
     all_train_losses = defaultdict(list)
     all_test_losses = defaultdict(list)
@@ -322,16 +317,15 @@ def run():
     side_effect_evals = []
 
     # Initialize optimizer
-    mask = mask.cuda()
     mask_params = [
         v[-1]
-        for layer, layer_mask_weights in mask.attention_masks.items()
-        for k, v in layer_mask_weights.items()
+        for layer in mask.blocks
+        for k, v in layer.attention_masks.items()
     ] + \
     [
         v
-        for layer, layer_mask_weights in mask.mlp_masks.items()
-        for k, v in layer_mask_weights.items()
+        for layer in mask.blocks
+        for k, v in layer.mlp_masks.items()
     ]
     optimizer = torch.optim.SGD(mask_params, lr=learning_rate, momentum=0.9, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)

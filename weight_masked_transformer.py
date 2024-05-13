@@ -21,13 +21,45 @@ def make_partly_differentiable_mask(W, frozen_heads, device="cuda"):
     # convert into float
     return W_frozen.float(), W_baseline.float()
 
+class EmbedWrapper(nn.Module):
+    """
+        Use to reduce embed and pos embed into a single layer 
+    """
+
+    def __init__(self, embed, pos_embed=None):
+        super().__init__()
+        self.embed = embed
+        self.pos_embed = pos_embed
+    
+    def forward(self, inp):
+
+        if len(inp.shape) == 1:
+            x = self.embed(inp.unsqueeze(0))
+            # print("Embed:", x.shape)
+            # Does not have batch dim
+            if self.pos_embed is not None:
+                pos_x = self.pos_embed(inp.unsqueeze(0))
+        else:
+            x = self.embed(inp)
+            # print("Embed:", x.shape)
+            # Does have batch dim >= 1
+            if self.pos_embed is not None:
+                pos_x = self.pos_embed(inp[0].unsqueeze(0))
+
+        # print("Pos Embed:", pos_x.shape)
+        if self.pos_embed is not None:
+            x += pos_x
+        # print(f"Final Embed shape: {x.shape}")
+
+        return x
+
 class WeightMaskedLayer(nn.Module):
     """
         Implements one layer of a weight masked transformer
         Masks the W_Q, W_K, W_V, W_O of the attention layer and W_in, W_out of the MLP
     """
 
-    def __init__(self, tl_layer, attn_mask_dict, mlp_mask_dict, torch_dtype=torch.bfloat16):
+    def __init__(self, tl_layer, attn_mask_dict, mlp_mask_dict, torch_dtype=torch.bfloat16, device="cuda:0"):
         '''
             tl_layer is a module containing attn.W_Q, attn.W_K, attn.W_V, attn.W_O, mlp.W_in, mlp.W_out
             attn_mask_dict: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads} 
@@ -50,15 +82,15 @@ class WeightMaskedLayer(nn.Module):
             # If the component exists and not all heads are frozen
             if component in attn_mask_dict and not all(attn_mask_dict[component]):
                 frozen_heads = attn_mask_dict[component]
-                W_frozen, W_baseline = make_partly_differentiable_mask(parameter, frozen_heads)
-                weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype), requires_grad=True)
+                W_frozen, W_baseline = make_partly_differentiable_mask(parameter, frozen_heads, device)
+                weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype).detach(), requires_grad=True).to(device)
                 self.attention_masks[component] = (W_frozen, W_baseline, weight_mask)
                 self.reference_attn_weights[component] = parameter.clone()
         
         # Populate the reference weights for MLP
         for component, parameter in [("W_in", tl_layer.mlp.W_in), ("W_out", tl_layer.mlp.W_out)]:
             if component in mlp_mask_dict:
-                weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype), requires_grad=True)
+                weight_mask = nn.Parameter(torch.ones_like(parameter).type(torch_dtype).detach(), requires_grad=True).to(device)
                 self.mlp_masks[component] = weight_mask
                 self.reference_mlp_weights[component] = parameter.clone()
 
@@ -67,15 +99,15 @@ class WeightMaskedLayer(nn.Module):
         for component in ["W_Q", "W_K", "W_V", "W_O"]:
             if component in self.attention_masks:
                 W_frozen, W_baseline, weight_mask = self.attention_masks[component]
-                reference_data = self.reference_attn_weights[component].cuda()
+                reference_data = self.reference_attn_weights[component]
                 mask = W_frozen + W_baseline * weight_mask
-                self.tl_layer.attn._parameters[component] = reference_data * mask
+                self.tl_layer.attn.__dict__['_parameters'][component] = reference_data * mask
 
         for component in ["W_in", "W_out"]:
             if component in self.mlp_masks:
                 weight_mask = self.mlp_masks[component]
-                reference_data = self.reference_mlp_weights[component].to("cuda")
-                self.tl_layer.mlp._parameters[component] = reference_data * weight_mask
+                reference_data = self.reference_mlp_weights[component]
+                self.tl_layer.mlp.__dict__['_parameters'][component] = reference_data * weight_mask
 
         return self.tl_layer(*args, **kwargs)
     
@@ -116,9 +148,9 @@ class WeightMaskedLayer(nn.Module):
     def on_step_end(self):
         # Clip all the masks
 
-        for component in ["W_Q", "W_K", "W_V", "W_O"]:
+        for component in ["W_Q", "W_K", "W_V", "W_O"] :
             if component in self.attention_masks:
-                W_frozen, W_baseline, weight_mask = self.attention_masks[component]
+                _, _, weight_mask = self.attention_masks[component]
                 weight_mask.data = torch.clamp(weight_mask.data, 0, 1)
 
         for component in ["W_in", "W_out"]:
@@ -128,7 +160,13 @@ class WeightMaskedLayer(nn.Module):
 
 
 class WeightMaskedTransformer(nn.Module):
-    def __init__(self, tl_transformer, weight_mask_attn_dict=None, weight_mask_mlp_dict=None, torch_dtype=torch.bfloat16):
+    def __init__(
+        self, 
+        tl_transformer, 
+        weight_mask_attn_dict=None, 
+        weight_mask_mlp_dict=None, 
+        torch_dtype=torch.bfloat16
+    ):
         """
             Consists of an embed layer, n_layers of WeightMaskedLayer, and then the final layernorm and unembed layer
 
@@ -140,15 +178,28 @@ class WeightMaskedTransformer(nn.Module):
         self.torch_dtype = torch_dtype
         self.tl_transformer = tl_transformer
 
+        n_devices = torch.cuda.device_count()
+
         # Turn off gradients for tl_transformer
-        for param in self.tl_transformer.parameters():
-            param.requires_grad = False
+        # for param in self.tl_transformer.parameters():
+            # param.requires_grad = False
 
-        self.weight_mask_attn_dict = weight_mask_attn_dict
-        self.weight_mask_mlp_dict = weight_mask_mlp_dict
+        try:
+            # If pos_embed is present
+            self.embed = EmbedWrapper(tl_transformer.embed, tl_transformer.pos_embed).to("cuda:0")
+        except AttributeError:
+            self.embed = EmbedWrapper(tl_transformer.embed).to("cuda:0")
 
+        self.ln_final = tl_transformer.ln_final.to(n_devices-1)
+        self.unembed = tl_transformer.unembed.to(n_devices-1)
         # Each layer is named layer{i}, and is a WeightMaskedLayer
+        self.num_layers_per_device = tl_transformer.cfg.n_layers // n_devices
+        self.blocks = []
+        device_id = 0
         for layer in range(self.tl_transformer.cfg.n_layers):
+            if layer != 0 and layer % self.num_layers_per_device == 0:
+                device_id += 1
+            # print(layer, device_id)
             setattr(
                 self,
                 f"layer{layer}",
@@ -156,151 +207,137 @@ class WeightMaskedTransformer(nn.Module):
                     tl_layer=self.tl_transformer.blocks[layer],
                     attn_mask_dict=weight_mask_attn_dict[layer] if weight_mask_attn_dict is not None else {},
                     mlp_mask_dict=weight_mask_mlp_dict[layer] if weight_mask_mlp_dict is not None else {},
-                    torch_dtype=torch_dtype
+                    torch_dtype=torch_dtype,
+                    device=f"cuda:{device_id}"
                 )
             )
+            self.blocks.append(getattr(self, f"layer{layer}"))
                 
     def forward(self, inp):
         # Forward pass through all the layers
-
-        # Embedding
-        # Positional encoding
-
-        if len(inp.shape) == 1:
-            x = self.tl_transformer.embed(inp.unsqueeze(0))
-            print("Embed:", x.shape)
-            # Does not have batch dim
-            pos_x = self.tl_transformer.pos_embed(inp.unsqueeze(0))
-        else:
-            x = self.tl_transformer.embed(inp)
-            print("Embed:", x.shape)
-            # Does have batch dim >= 1
-            pos_x = self.tl_transformer.pos_embed(inp[0].unsqueeze(0))
-
-        print("Pos Embed:", pos_x.shape)
-        x += pos_x
-        print(f"Final Embed shape: {x.shape}")
-
-        # Forward pass through all the layers
+        x = self.embed(inp)
+        prev_id = 0
+        device_id = 0
         for layer in range(self.tl_transformer.cfg.n_layers):
-            x = getattr(self, f"layer{layer}")(x)
-            print(f"Layer {layer} shape: {x.shape}")
-        
-        # Final layernorm and unembed
-        x = self.tl_transformer.ln_final(x)
-        print(f"LN shape: {x.shape}")
-        x = self.tl_transformer.unembed(x)
-        print(f"Unembed shape: {x.shape}")
+            if layer != 0 and layer % self.num_layers_per_device == 0:
+                device_id += 1
+            
+            # print(layer, device_id)
+            if device_id != prev_id:
+                x = x.to(device_id)
+                prev_id = device_id
 
-        return x
+            func = getattr(self, f"layer{layer}").to(device_id)
+            # print(f'On device {device_id}. Func on {func.tl_layer.attn.W_K.device}, Tensor on {x.device}')
+            x = func(x)
+
+        x = self.ln_final(x)
+        x = self.unembed(x)
+        return x.to("cuda:0")
 
     def generate(self, *args, **kwargs):
         return self.tl_transformer.generate(*args, **kwargs)
 
-    def regularization_loss(self):
+    def regularization_loss(self, collect_device="cuda:0"):
         # Compute the average L1 sparsity penalty over layers using the masks
+        # Returns result on collect_device
         loss = 0
         for layer in range(self.tl_transformer.cfg.n_layers):
-            loss += getattr(self, f"layer{layer}").regularization_loss()
+            loss += getattr(self, f"layer{layer}").regularization_loss().to(collect_device)
         
         return loss / self.tl_transformer.cfg.n_layers
 
     def on_step_end(self):
         # Clip all the masks
 
-        for layer in range(self.tl_transformer.cfg.n_layers):
-            for component, parameter in [("W_Q", self.tl_transformer.blocks[layer].attn.W_Q), ("W_K", self.tl_transformer.blocks[layer].attn.W_K), ("W_V", self.tl_transformer.blocks[layer].attn.W_V), ("W_O", self.tl_transformer.blocks[layer].attn.W_O)]:
-                if component in self.attention_masks[layer]:
-                    _, _, weight_mask = self.attention_masks[layer][component]
-                    weight_mask.data = torch.clamp(weight_mask.data, 0, 1)
+        for layer in self.blocks:
+            layer.on_step_end() 
 
-            for component, parameter in [("W_in", self.tl_transformer.blocks[layer].mlp.W_in), ("W_out", self.tl_transformer.blocks[layer].mlp.W_out)]:
-                if component in self.mlp_masks[layer]:
-                    weight_mask = self.mlp_masks[layer][component]
-                    weight_mask.data = torch.clamp(weight_mask.data, 0, 1)
+#%% gpt2-small
+# from transformer_lens import HookedTransformer
 
-#%%
-from transformer_lens import HookedTransformer
+# model = HookedTransformer.from_pretrained(
+#     "Qwen/Qwen1.5-1.8B-Chat",
+#     default_padding_side="right",
+#     fold_ln=False,
+#     fold_value_biases=False,
+#     center_writing_weights=False,
+#     n_devices=2
+# )
+# %% Create Mask
+# import random
+# import einops
 
-gpt2_small = HookedTransformer.from_pretrained(
-    "gpt2-small",
-)
-# %%
-import random
-import einops
+# def create_random_weight_mask_dicts(model, top_p):
+#     # Creates random weight masks for testing
+#     weight_mask_attn_dict = {}
+#     weight_mask_mlp_dict = {}
 
-def create_random_weight_mask_dicts(model, top_p):
-    # Creates random weight masks for testing
-    weight_mask_attn_dict = {}
-    weight_mask_mlp_dict = {}
+#     for layer in range(model.cfg.n_layers):
+#         weight_mask_attn_dict[layer] = {}
+#         weight_mask_mlp_dict[layer] = {}
+#         # Want bool of length n_head, randomly set to True
+#         weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) > top_p
+#         weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) > top_p
+#         weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) > top_p
+#         weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) > top_p
 
-    for layer in range(model.cfg.n_layers):
-        weight_mask_attn_dict[layer] = {}
-        weight_mask_mlp_dict[layer] = {}
-        # Want bool of length n_head, randomly set to True
-        weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) < top_p
-        weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) < top_p
+#         # Randomly set to true or false
+#         weight_mask_mlp_dict[layer]['W_in'] = random.random() > top_p
+#         weight_mask_mlp_dict[layer]['W_out'] = random.random() > top_p
 
-        # Randomly set to true or false
-        weight_mask_mlp_dict[layer]['W_in'] = random.random() < top_p
-        weight_mask_mlp_dict[layer]['W_out'] = random.random() < top_p
+#     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-    return weight_mask_attn_dict, weight_mask_mlp_dict
+# weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 0.95)
 
-weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(gpt2_small, 0.05)
-
-mask = WeightMaskedTransformer(
-    gpt2_small,
-    weight_mask_attn_dict=weight_mask_attn_dict,
-    weight_mask_mlp_dict=weight_mask_mlp_dict
-)
 
 #%%
-# Test both gpt2_small and mask, and make sure they have the same output
+# example_input = torch.stack(
+#     [
+#         torch.tensor(model.tokenizer.encode("Hello My name is")),
+#         torch.tensor(model.tokenizer.encode("Hello My name is")),
+#         torch.tensor(model.tokenizer.encode("Hello My name is")),
+#         torch.tensor(model.tokenizer.encode("Hello My name is"))
+#     ]
+# ).to("cuda")
 
-toks = torch.tensor(gpt2_small.tokenizer.encode("Hello, my name is")).unsqueeze(0)
+# mask = WeightMaskedTransformer(
+#     model, 
+#     weight_mask_attn_dict=weight_mask_attn_dict, 
+#     weight_mask_mlp_dict=weight_mask_mlp_dict
+# )
+# from tasks.facts.SportsTask import SportsTask
 
-with torch.set_grad_enabled(False):
-    gpt2_small_output = gpt2_small(toks)
-    gpt2_small_logits = torch.nn.functional.softmax(gpt2_small_output, dim=-1)
-    mask_output = mask(toks)
-    mask_logits = torch.nn.functional.softmax(mask_output, dim=-1)
+# mask_params = [
+#     v[-1]
+#     for layer in mask.blocks
+#     for k, v in layer.attention_masks.items()
+# ] + \
+# [
+#     v
+#     for layer in mask.blocks
+#     for k, v in layer.mlp_masks.items()
+# ]
+# sports_train = SportsTask(batch_size=8, tokenizer=model.tokenizer)
 
-# # print(gpt2_small_logits)
-# # print(mask_logits)
-print(torch.allclose(gpt2_small_logits, mask_logits, atol=1e-3))
-# %%
-from pippy import pipeline, annotate_split_points, Pipe, SplitPoint
-from pippy import split_into_equal_size
+# optimizer = torch.optim.SGD(mask_params, lr=0.1, momentum=0.9, weight_decay=0.01)
+# with torch.autocast(device_type="cuda"):
+#     loss = sports_train.get_train_loss(mask, 1)
+#     print(loss)
+#     loss.backward()
+#     optimizer.step()
+# print(mask.blocks[0].attention_masks['W_O'][-1].grad)
+#%%
+# # Test both gpt2_small and mask, and make sure they have the same output
 
-device="cuda"
-split_policy = split_into_equal_size(2)
+# # toks = torch.tensor(gpt2_small.tokenizer.encode("Hello, my name is")).unsqueeze(0)
 
-mask.to(device)
-mask.eval()
+# # with torch.set_grad_enabled(False):
+# #     gpt2_small_output = gpt2_small(toks)
+# #     gpt2_small_logits = torch.nn.functional.softmax(gpt2_small_output, dim=-1)
+# #     mask_output = mask(toks)
+# #     mask_logits = torch.nn.functional.softmax(mask_output, dim=-1)
 
-batch_size = 4
-example_input = torch.stack(
-    [
-        torch.tensor(gpt2_small.tokenizer.encode("Hello My name is")),
-        torch.tensor(gpt2_small.tokenizer.encode("Hello My name is")),
-        torch.tensor(gpt2_small.tokenizer.encode("Hello My name is")),
-        torch.tensor(gpt2_small.tokenizer.encode("Hello My name is"))
-    ]
-).to("cuda")
-chunks = 1
-
-pipe = pipeline(
-    mask, 
-    num_chunks=chunks, 
-    example_args=(), 
-    example_kwargs={"inp": example_input},
-    split_policy=split_policy
-)
-# print(pipe)
-
-# %%
-# import pippy
-# %%
+# # # print(gpt2_small_logits)
+# # # print(mask_logits)
+# # print(torch.allclose(gpt2_small_logits, mask_logits, atol=1e-3))
