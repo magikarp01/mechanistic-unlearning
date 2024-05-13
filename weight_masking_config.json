@@ -5,11 +5,11 @@
     "train_loss_type": "sports",
     "forget_sport": "basketball",
     "maintain_sport" : "null",
-    "model_name": "google/gemma-7b",
+    "model_name": "google/gemma-2b",
     "model_type": "gemma",
     "learning_rate": 10,
     "n_epochs": 4,
-    "grad_accum_steps": 15,
+    "grad_accum_steps": 2,
     "alpha": 0.2,
     "beta": 5,
     "clip_grad": 1,
@@ -17,6 +17,6 @@
     "n_eval_iters": 5,
     "do_adversarial_evals": false,
     "do_side_effects_evals": false,
-    "localization_type": "ap",
-    "localization_top_p": 0.05 
+    "localization_type": "random",
+    "localization_top_p": 0.20
 }
