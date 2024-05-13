@@ -257,14 +257,14 @@ class WeightMaskedTransformer(nn.Module):
 # from transformer_lens import HookedTransformer
 
 # model = HookedTransformer.from_pretrained(
-#     "Qwen/Qwen1.5-1.8B-Chat",
+#     "google/gemma-7b",
 #     default_padding_side="right",
 #     fold_ln=False,
 #     fold_value_biases=False,
 #     center_writing_weights=False,
 #     n_devices=2
 # )
-# %% Create Mask
+# # %% Create Mask
 # import random
 # import einops
 
@@ -288,10 +288,8 @@ class WeightMaskedTransformer(nn.Module):
 
 #     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-# weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 0.95)
+# weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 0.05)
 
-
-#%%
 # example_input = torch.stack(
 #     [
 #         torch.tensor(model.tokenizer.encode("Hello My name is")),
@@ -318,7 +316,7 @@ class WeightMaskedTransformer(nn.Module):
 #     for layer in mask.blocks
 #     for k, v in layer.mlp_masks.items()
 # ]
-# sports_train = SportsTask(batch_size=8, tokenizer=model.tokenizer)
+# sports_train = SportsTask(batch_size=2, tokenizer=model.tokenizer)
 
 # optimizer = torch.optim.SGD(mask_params, lr=0.1, momentum=0.9, weight_decay=0.01)
 # with torch.autocast(device_type="cuda"):
