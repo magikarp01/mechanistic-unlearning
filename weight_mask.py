@@ -5,10 +5,10 @@
 # Then, we zero the gradients of the components we don't want to update
 # Then, we step the optimizer
 
-#%%
-%cd ~/mechanistic-unlearning
-%load_ext autoreload
-%autoreload 2
+# #%%
+# %cd ~/mechanistic-unlearning
+# %load_ext autoreload
+# %autoreload 2
 from transformer_lens import HookedTransformer, ActivationCache
 import random
 import os
@@ -42,7 +42,7 @@ from tasks.facts.SportsTask import SportsTask, SportsTask_NPO, SportsTask_Unifor
 from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 from weight_masked_transformer import WeightMaskedTransformer
-#%% Hyperparams
+### Hyperparams
 def load_global_hyperparams(config_file):
     global train_batch_size, eval_batch_size, device, train_loss_type, forget_sport, maintain_sport, \
            model_name, model_type, learning_rate, n_epochs, grad_accum_steps, alpha, beta, clip_grad, \
@@ -74,23 +74,7 @@ def load_global_hyperparams(config_file):
     localization_type = config['localization_type']
     localization_top_p = float(config['localization_top_p'])
     
-load_global_hyperparams("weight_masking_config.json")
-#%%
-os.environ['HF_TOKEN'] = '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'
-model_name = 'google/gemma-2b'
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = HookedTransformer.from_pretrained(
-    model_name,
-    tokenizer=tokenizer,
-    device='cuda',
-    default_padding_side="right",
-    fold_ln=False,
-    fold_value_biases=False,
-    center_writing_weights=False,
-    dtype=torch.bfloat16
-)
-
-#%% Localization helper funcs
+### Localization helper funcs
 def create_random_weight_mask_dicts(model, top_p):
     # Creates random weight masks for testing
     weight_mask_attn_dict = {}
@@ -235,61 +219,8 @@ def get_mask_from_ct_graph(model, ct_graph, threshold):
     
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-#%% Datasets
-### DATASETS
-train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', streaming=True)
-sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", forget_sport_subset={forget_sport}, is_forget_dataset=True)
-
-if maintain_sport is None or maintain_sport == "null":
-    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
-else:
-    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
-
-train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
-train_tasks = {"sports_1mp": (sports_1mp, .4), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
-
-# want to eval on other sports
-forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
-test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
-
-induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
-if maintain_sport is None or maintain_sport == "null":
-    maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
-else:
-    raise NotImplemented
-
-#%% Load Localizations
-
-### LOCALIZATIONS
-
-if localization_type == "ap":
-    with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
-        localization_graph = pickle.load(f)
-    weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ap_graph(model, localization_graph, localization_top_p)
-elif localization_type == "ct":
-    with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
-        localization_graph = pickle.load(f)
-    weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ct_graph(model, localization_graph, localization_top_p)
-elif localization_type == "random":
-    weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, localization_top_p)
-elif localization_type == "none":
-    weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 1)
-elif localization_type == "manual":
-    # Manual interp means only training the MLP weights from layer 1 to 7
-    weight_mask_attn_dict, weight_mask_mlp_dict = create_mlp_only_mask_dicts(model)
-
-gc.collect()
-torch.cuda.empty_cache()
-# Testing only
-for layer in range(model.cfg.n_layers):
-    del weight_mask_attn_dict[layer]['W_K']
-    del weight_mask_attn_dict[layer]['W_V']
-
-#%% Train loop
-### TRAIN 
-
-def get_unfrozen_weights(model):
+### Mask helper funcs
+def get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict):
     # Get a copy of the weights that are not frozen
     unfrozen_weights = {}
     for layer, block in enumerate(model.blocks):
@@ -305,13 +236,17 @@ def get_unfrozen_weights(model):
                     unfrozen_weights[layer][component] = getattr(block.mlp, component).clone()
     return unfrozen_weights
 
-def zero_grad(model):
+def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
     for layer, block in enumerate(model.blocks):
         # If head is frozen or doesnt exist, set grad to 0
         for component in ["W_Q", "W_K", "W_V", "W_O"]:
             if component in weight_mask_attn_dict[layer]:
                 frozen_heads = weight_mask_attn_dict[layer][component]
-                getattr(block.attn, component).grad[frozen_heads] = 0
+                param = getattr(block.attn, component)
+                if param.grad is not None:
+                    param.grad[frozen_heads] = torch.zeros_like(param.grad[frozen_heads])
+                else:
+                    print(f"None grad for {component} in layer {layer}")
             else:
                 # Set grad of all heads to 0
                 param = getattr(block.attn, component)
@@ -336,7 +271,7 @@ def zero_grad(model):
                 else:
                     print(f"None grad for {component} in layer {layer}")
 
-def regularization_loss(model):
+def regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict):
     # L1 sparsity, but only for components that are not frozen
     loss = 0
     for layer, block in enumerate(model.blocks):
@@ -353,24 +288,25 @@ def regularization_loss(model):
                     loss += torch.sum(torch.abs(getattr(block.mlp, component)))
     return loss
 
-def clamp_unfrozen_weights(model, original_weights):
+def clamp_unfrozen_weights(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict):
     # Clamp all the non-frozen weights to be between 0 and original_weights
     for layer, block in enumerate(model.blocks):
         for component in ["W_Q", "W_K", "W_V", "W_O"]:
             if component in weight_mask_attn_dict[layer]:
                 frozen_heads = weight_mask_attn_dict[layer][component]
-                param = getattr(block.attn, component)[~frozen_heads]
-                param.data = torch.where(
-                    param > 0,
+                param = getattr(block.attn, component)
+                orig = original_weights[layer][component]
+                param.data[~frozen_heads] = torch.where(
+                    orig > 0,
                     torch.clamp(
-                        param.data, 
-                        torch.zeros_like(param),
-                        original_weights[layer][component]
+                        param[~frozen_heads],
+                        torch.zeros_like(param[~frozen_heads]),
+                        orig
                     ),
                     torch.clamp(
-                        param.data, 
-                        original_weights[layer][component], 
-                        torch.zeros_like(param)
+                        param[~frozen_heads],
+                        orig,
+                        torch.zeros_like(param[~frozen_heads])
                     )
                 )
         
@@ -378,28 +314,35 @@ def clamp_unfrozen_weights(model, original_weights):
             if component in weight_mask_mlp_dict[layer]:
                 if not weight_mask_mlp_dict[layer][component]:
                     param = getattr(block.mlp, component)
+                    orig = original_weights[layer][component]
                     param.data = torch.where(
-                        param > 0,
+                        orig > 0,
                         torch.clamp(
-                            param.data, 
+                            param, 
                             torch.zeros_like(param),
-                            original_weights[layer][component]
+                            orig
                         ),
                         torch.clamp(
-                            param.data, 
-                            original_weights[layer][component], 
+                            param, 
+                            orig, 
                             torch.zeros_like(param)
                         )
                     )
         
-def get_mask(model, original_weights):
+def get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict):
     # Get masks, where a mask is model weight / original weight
     mask = {}
     for layer, block in enumerate(model.blocks):
         mask[layer] = {}
         for component in ["W_Q", "W_K", "W_V", "W_O"]:
             if component in weight_mask_attn_dict[layer]:
-                mask[layer][component] = getattr(block.attn, component) / original_weights[layer][component]
+                frozen_heads = weight_mask_attn_dict[layer][component]
+                param = getattr(block.attn, component)
+
+                total_original = torch.ones_like(param).to(device)
+                total_original[~frozen_heads] = original_weights[layer][component]
+                mask[layer][component] = param / total_original
+                mask[layer][component][frozen_heads] = 1
         
         for component in ["W_in", "W_out"]:
             if component in weight_mask_mlp_dict[layer]:
@@ -407,107 +350,193 @@ def get_mask(model, original_weights):
                     mask[layer][component] = getattr(block.mlp, component) / original_weights[layer][component]
     return mask
 
-#%%
-all_train_losses = defaultdict(list)
-all_test_losses = defaultdict(list)
-adversarial_evals = []
-side_effect_evals = []
+def run():
+    os.environ['HF_TOKEN'] = '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'
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = HookedTransformer.from_pretrained(
+        model_name,
+        tokenizer=tokenizer,
+        device='cuda',
+        default_padding_side="right",
+        fold_ln=False,
+        fold_value_biases=False,
+        center_writing_weights=False,
+        dtype=torch.bfloat16
+    )
 
-# Initialize optimizer, want to optimize over all weights
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
-original_weights = get_unfrozen_weights(model)
+    ### DATASETS
+    train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', streaming=True)
+    sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", forget_sport_subset={forget_sport}, is_forget_dataset=True)
 
-# Cycle dataloaders
-# Train a sparse mask
-# pbar = tqdm(range(n_epochs))
-# for epoch in pbar:
-# Sample batches
-# Reset grad
-optimizer.zero_grad()
+    if maintain_sport is None or maintain_sport == "null":
+        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
+    else:
+        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
 
-epoch = 1
-beta = 1e-6
-with torch.autocast(device_type="cuda"):
-    # Compute normal loss over retain
-    for task_name, (task, task_weight) in train_tasks.items():
-        print(f"Running {task_name}")
-        task_loss = 0
-        for i in range(grad_accum_steps):
-            loss = task.get_train_loss(model) / grad_accum_steps
-            task_loss += loss.item()
-            loss *= task_weight
-            print(task_name, i, loss)
-            loss.backward()
+    train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
+    train_tasks = {"sports_1mp": (sports_1mp, .4), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
 
-            gc.collect()
-            torch.cuda.empty_cache()
-        all_train_losses[task_name].append(task_loss)
+    # want to eval on other sports
+    forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
+    test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
 
-        gc.collect()
-        torch.cuda.empty_cache()
-        
+    induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
+    if maintain_sport is None or maintain_sport == "null":
+        maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
+        eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
+    else:
+        raise NotImplemented
+
+    ### LOCALIZATIONS
+
+    if localization_type == "ap":
+        with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
+            localization_graph = pickle.load(f)
+        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ap_graph(model, localization_graph, localization_top_p)
+    elif localization_type == "ct":
+        with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
+            localization_graph = pickle.load(f)
+        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ct_graph(model, localization_graph, localization_top_p)
+    elif localization_type == "random":
+        weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, localization_top_p)
+    elif localization_type == "none":
+        weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 1)
+    elif localization_type == "manual":
+        # Manual interp means only training the MLP weights from layer 1 to 7
+        weight_mask_attn_dict, weight_mask_mlp_dict = create_mlp_only_mask_dicts(model)
+
     gc.collect()
     torch.cuda.empty_cache()
-    # Add sparsity loss and backprop
-    # Linearly increase from negative to positive, with 0 at 10
-    loss = min(beta * (epoch-15), beta) * regularization_loss(model)
-    loss.backward()
-    print(f"reg loss, {loss.item()}")
-    all_train_losses["reg"].append(loss.item())
-    # Step and log
-    if clip_grad is not None:
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+
+    ### TRAIN 
+
+    all_train_losses = defaultdict(list)
+    all_test_losses = defaultdict(list)
+    adversarial_evals = []
+    side_effect_evals = []
+
+    # Initialize optimizer, want to optimize over all weights
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
+    original_weights = get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+
+
+    ### LOGGING
+    # wandb.init(
+    #     # set the wandb project where this run will be logged
+    #     project="mech-unlearning",
+    #     name=f"{model_name.split('/')[-1]}-{forget_sport}-{localization_type}",
+
+    #     # track hyperparameters and run metadata
+    #     config={
+    #         "model_type": model_type,
+    #         "model_name": model_name,
+    #         "forget_sport": forget_sport,
+    #         "learning_rate": learning_rate,
+    #         "n_epochs": n_epochs,
+    #         "grad_accum_steps": grad_accum_steps,
+    #         "alpha": alpha,
+    #         "beta": beta,
+    #         "clip_grad": clip_grad,
+    #         "evaluate_every": evaluate_every,
+    #         "n_eval_iters": n_eval_iters,
+    #         "do_adversarial_evals": do_adversarial_evals,
+    #         "do_side_effects_evals": do_side_effects_evals,
+    #         "train_task_weights": {k:v[1] for k, v in train_tasks.items()},
+    #         "localization_type": localization_type,
+    #         "localization_top_p": localization_top_p
+    #     }
+    # )
     
-    print(model.blocks[0].attn.W_Q.grad[2])
-    print(model.blocks[0].attn.W_Q.grad[1])
-    # Remove gradients from frozen components
-    zero_grad(model)
-    print(model.blocks[0].attn.W_Q.grad[1])
-    optimizer.step()
-    scheduler.step()
-    clamp_unfrozen_weights(model, original_weights)
-    
-    # print(mask.blocks[27].attention_masks['W_O'][-1][1])
+    # Train a sparse mask
+    pbar = tqdm(range(n_epochs))
+    for epoch in pbar:
+        # Reset grad
+        optimizer.zero_grad()
 
-    # if epoch % evaluate_every == 0 or epoch == n_epochs - 1:
-    #     for task_name, task in eval_tasks.items():
-    #         task_loss = 0
-    #         for i in range(n_eval_iters):
-    #             task_loss += task.get_test_loss(mask).item()
-    #         all_test_losses[task_name].append(task_loss / n_eval_iters)
-    #     if do_adversarial_evals:
-    #         print("Running adversarial evals")
-    #         adversarial_evals.append(adversarial_sports_eval(mask, model_type=model_type, batch_size=eval_batch_size, use_system_prompt=True, include_evals=["Normal", "MC"]))
-    #     if do_side_effects_evals:
-    #         print("Running side effects evals")
-    #         side_effect_evals.append(run_side_effects_evals(mask, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["Sports Answers"]))
-    # gc.collect()
-    # torch.cuda.empty_cache()
-    
-    # log_dict = {}
-    # for k, v in all_train_losses.items():
-    #     log_dict[f"train_loss_{k}"] = v[-1]
-    # for k, v in all_test_losses.items():
-    #     log_dict[f"test_loss_{k}"] = v[-1]
-    # for k, v in adversarial_evals[-1].items():
-    #     log_dict[f"adversarial_{k}"] = v
-    # for k, v in side_effect_evals[-1].items():
-    #     log_dict[f"side_effects_{k}"] = v
-    # wandb.log(log_dict)
+        with torch.autocast(device_type="cuda"):
+            # Compute normal loss over retain
+            for task_name, (task, task_weight) in train_tasks.items():
+                print(f"Running {task_name}")
+                task_loss = 0
+                for i in range(grad_accum_steps):
+                    loss = task.get_train_loss(model) / grad_accum_steps
+                    task_loss += loss.item()
+                    loss *= task_weight
+                    print(task_name, i, loss)
+                    loss.backward()
 
-# Get masks
-mask = get_mask(model, original_weights) 
-# wandb.finish()
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                all_train_losses[task_name].append(task_loss)
 
-#%% Save
-attention_masks = {}
-mlp_masks = {}
-for layer, block in enumerate(mask.blocks):
-    attention_masks[layer] = block.attention_masks
-    mlp_masks[layer] = block.mlp_masks
+                gc.collect()
+                torch.cuda.empty_cache()
+                
+            gc.collect()
+            torch.cuda.empty_cache()
+            # Add sparsity loss and backprop
+            # Linearly increase from negative to positive, with 0 at 10
+            loss = min(beta * (epoch-15), beta) * regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+            loss.backward()
+            print(f"reg loss, {loss.item()}")
+            all_train_losses["reg"].append(loss.item())
+            # Step and log
+            if clip_grad is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+            
+            print(model.blocks[0].attn.W_Q.grad[2])
+            print(model.blocks[0].attn.W_Q.grad[1])
+            # Remove gradients from frozen components
+            zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+            print(model.blocks[0].attn.W_Q[2])
+            optimizer.step()
+            scheduler.step()
+            clamp_unfrozen_weights(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict)
+            
 
-### SAVE
-torch.save(attention_masks, f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_attn.pt")
-torch.save(mlp_masks, f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}_mlp.pt")
+            if epoch % evaluate_every == 0 or epoch == n_epochs - 1:
+                for task_name, task in eval_tasks.items():
+                    task_loss = 0
+                    for i in range(n_eval_iters):
+                        task_loss += task.get_test_loss(model).item()
+                    all_test_losses[task_name].append(task_loss / n_eval_iters)
+                if do_adversarial_evals:
+                    print("Running adversarial evals")
+                    adversarial_evals.append(adversarial_sports_eval(model, model_type=model_type, batch_size=eval_batch_size, use_system_prompt=True, include_evals=["Normal", "MC"]))
+                if do_side_effects_evals:
+                    print("Running side effects evals")
+                    side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["Sports Answers"]))
+            gc.collect()
+            torch.cuda.empty_cache()
+            
+            # log_dict = {}
+            # for k, v in all_train_losses.items():
+            #     log_dict[f"train_loss_{k}"] = v[-1]
+            # for k, v in all_test_losses.items():
+            #     log_dict[f"test_loss_{k}"] = v[-1]
+            # for k, v in adversarial_evals[-1].items():
+            #     log_dict[f"adversarial_{k}"] = v
+            # for k, v in side_effect_evals[-1].items():
+            #     log_dict[f"side_effects_{k}"] = v
+            # wandb.log(log_dict)
 
+    # Get masks
+    wandb.finish()
+
+    ### SAVE
+    mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
+    # torch.save(mask, f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
+    torch.save(mask, f'results/test.pt')
+
+if __name__ == "__main__":
+    # Get config file as argument
+    import argparse
+
+    parser = argparse.ArgumentParser("weight_mask_script")
+    parser.add_argument("--config_dir", help="Config file directory", type=str)
+    args = parser.parse_args()
+
+    load_global_hyperparams(args.config_dir)
+
+    run()
