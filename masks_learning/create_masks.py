@@ -13,19 +13,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
 ### LOAD MODELS
-model_name = 'google/gemma-7b'
+model_name = "gpt2-small"
+    #'google/gemma-7b'
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
     # 'EleutherAI/pythia-2.8b',
-    # "gpt2-small",
 
 from transformer_lens import HookedTransformer
 from transformers import AutoTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(
     model_name,
-    tokenizer=tokenizer,
+    # tokenizer=tokenizer,
     device='cuda',
     default_padding_side="left",
     fold_ln=False,
@@ -33,6 +33,7 @@ model = HookedTransformer.from_pretrained(
     center_writing_weights=False,
     dtype=torch.bfloat16
 )
+tokenizer= model.tokenizer
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
 model.set_use_hook_mlp_in(True)
@@ -73,7 +74,7 @@ import pickle
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
 gc.collect()
-for forget_sport in ['basketball', 'baseball']: # ['all']:#
+for forget_sport in ['football', 'basketball', 'baseball']: # ['all']:#
     torch.cuda.empty_cache()
     gc.collect()
     sports_task = SportsFactsTask(

@@ -1,12 +1,12 @@
 {
     "train_batch_size": 2,
     "eval_batch_size": 50,
-    "device": "cuda",
+    "device": "cuda:1",
     "train_loss_type": "sports",
     "forget_sport": "football",
     "maintain_sport" : "null",
-    "model_name": "google/gemma-7b",
-    "model_type": "gemma",
+    "model_name": "gpt2-small",
+    "model_type": "gpt",
     "learning_rate": 0.01,
     "n_epochs": 50,
     "grad_accum_steps": 15,
@@ -15,8 +15,9 @@
     "clip_grad": 1,
     "evaluate_every": 5,
     "n_eval_iters": 5,
-    "do_adversarial_evals": true,
-    "do_side_effects_evals": true,
-    "localization_type": "manual",
-    "localization_top_p": 0.05
+    "do_adversarial_evals": false,
+    "do_side_effects_evals": false,
+    "localization_type": "ct",
+    "localization_top_p": 0.05,
+    "n_devices": 2
 }
