@@ -419,8 +419,10 @@ def run():
         weight_mask_attn_dict, weight_mask_mlp_dict = create_mlp_only_mask_dicts(model)
 
     for layer in weight_mask_attn_dict.keys():
-        weight_mask_attn_dict[layer]['_W_K'] = weight_mask_attn_dict[layer]['W_K']
-        weight_mask_attn_dict[layer]['_W_V'] = weight_mask_attn_dict[layer]['W_V']
+        if 'W_K' in weight_mask_attn_dict[layer]:
+            weight_mask_attn_dict[layer]['_W_K'] = weight_mask_attn_dict[layer]['W_K']
+        if 'W_V' in weight_mask_attn_dict[layer]:
+            weight_mask_attn_dict[layer]['_W_V'] = weight_mask_attn_dict[layer]['W_V']
     gc.collect()
     torch.cuda.empty_cache()
 

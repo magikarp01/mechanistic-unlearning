@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
 ### LOAD MODELS
-model_name = 'google/gemma-2b'
+model_name = 'google/gemma-7b'
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
     # 'EleutherAI/pythia-2.8b',
@@ -73,7 +73,7 @@ import pickle
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
 gc.collect()
-for forget_sport in ['football', 'basketball', 'baseball']: # ['all']:#
+for forget_sport in ['basketball', 'baseball']: # ['all']:#
     torch.cuda.empty_cache()
     gc.collect()
     sports_task = SportsFactsTask(
@@ -100,22 +100,22 @@ for forget_sport in ['football', 'basketball', 'baseball']: # ['all']:#
         # with open(f"models/{save_model_name}_{name}_{forget_sport}_eap_graph.pkl", "wb") as f:
         #     pickle.dump(top_edges, f)
 
-        torch.cuda.empty_cache()
-        gc.collect()
-        ap_graph = ap_localizer.get_ap_graph(batch_size=2)
-        torch.cuda.empty_cache()
-        gc.collect()
-        with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
-            pickle.dump(dict(ap_graph), f)
-
-        # model.eval() # Don't need gradients when doing ct task
-        # ct_graph = ct_localizer.get_ct_mask(batch_size=2)
-        # model.train()
-        # with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
-        #     pickle.dump(dict(ct_graph), f)
-
         # torch.cuda.empty_cache()
         # gc.collect()
+        # ap_graph = ap_localizer.get_ap_graph(batch_size=2)
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
+        #     pickle.dump(dict(ap_graph), f)
+
+        model.eval() # Don't need gradients when doing ct task
+        ct_graph = ct_localizer.get_ct_mask(batch_size=15)
+        model.train()
+        with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
+            pickle.dump(dict(ct_graph), f)
+
+        torch.cuda.empty_cache()
+        gc.collect()
 
         # for THRESHOLD in np.logspace(-8, 1, num=10):
 
