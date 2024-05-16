@@ -74,7 +74,7 @@ def apply_mask(model, mask):
 # %%
 from functools import partial
 import gc
-
+import json
 from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
@@ -87,11 +87,11 @@ evals = {
 eval_batch_size=50
 results = {}
 with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
-    for localization_type in ["random"]:
+    for localization_type in ["ct", "manual", "random"]:
         results[localization_type] = {}
-        for forget_sport in ["baseball", "basketball", "football"]:
+        for forget_sport in tqdm(["baseball", "basketball", "football"]):
             results[localization_type][forget_sport] = {}
-            for threshold in [0, 0.05, 0.2, 0.5, 0.8, 0.95]:
+            for threshold in tqdm([0, 0.05, 0.2, 0.5, 0.8, 0.95]):
                 print(localization_type, forget_sport, threshold)
                 results[localization_type][forget_sport][threshold] = {}
                 # Load Model
@@ -104,8 +104,8 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 torch.cuda.empty_cache()
                 for eval_name, eval_func in evals.items():
                     results[localization_type][forget_sport][threshold][eval_name] = {}
-                    eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
                     print(f'{eval_name=}')
+                    eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
                     for k, v in eval_result.items():
                         results[localization_type][forget_sport][threshold][eval_name][k] = v
                         print(k, v)
@@ -115,10 +115,8 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 gc.collect()
                 torch.cuda.empty_cache()
 
+        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results.json", "w") as f:
+            json.dump(results[localization_type], f, indent=2)
 
-
-# %%
-import json
-
-with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results.json", "w") as f:
+with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
     json.dump(results, f, indent=2)
