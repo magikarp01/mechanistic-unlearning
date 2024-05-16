@@ -188,7 +188,7 @@ def get_mask_from_ap_graph(model, ap_graph, top_p):
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-def get_mask_from_ct_graph(model, ct_graph, threshold):
+def get_mask_from_ct_graph(model, ct_graph, top_p):
     # Attention masks are of form:
     # {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}}
     # TRUE for the heads we want to FREEZE, FALSE for heads we want to MASK over
@@ -197,6 +197,14 @@ def get_mask_from_ct_graph(model, ct_graph, threshold):
 
     # Localizations are of form:
     # {alayer.head:int, mlayer: int}
+
+    top_p *= 100
+    all_weights = []
+    for key, value in ct_graph.items():
+        all_weights.append(value)
+
+    all_weights = np.array(all_weights)
+    threshold = np.percentile(all_weights, 100 - top_p)
 
     weight_mask_attn_dict = {}
     weight_mask_mlp_dict = {}
