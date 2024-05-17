@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
 ### LOAD MODELS
-model_name = 'google/gemma-2b'
+model_name = 'google/gemma-7b'
 #"gpt2-small"
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
