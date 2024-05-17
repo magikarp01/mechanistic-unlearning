@@ -386,6 +386,12 @@ def run():
         dtype=torch.bfloat16,
         # n_devices=2
     )
+    model.W_E.requires_grad = False
+    model.W_U.requires_grad = False
+    for block in model.blocks:
+        block.ln1.w.requires_grad = False
+        block.ln2.w.requires_grad = False
+    model.ln_final.w.requires_grad = False
 
     ### DATASETS
     # train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', streaming=True)

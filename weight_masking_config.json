@@ -1,9 +1,9 @@
 {
-    "train_batch_size": 2,
+    "train_batch_size": 1,
     "eval_batch_size": 50,
     "device": "cuda",
     "train_loss_type": "sports",
-    "forget_sport": "football",
+    "forget_sport": "baseball",
     "maintain_sport" : "null",
     "model_name": "google/gemma-7b",
     "model_type": "gemma",
@@ -17,7 +17,7 @@
     "n_eval_iters": 5,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-    "localization_type": "random",
+    "localization_type": "none",
     "localization_top_p": 0.05,
     "n_devices": 2
 }
