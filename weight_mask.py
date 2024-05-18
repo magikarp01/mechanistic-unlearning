@@ -556,10 +556,12 @@ def run():
                 log_dict[f"train_loss_{k}"] = v[-1]
             for k, v in all_test_losses.items():
                 log_dict[f"test_loss_{k}"] = v[-1]
-            for k, v in adversarial_evals[-1].items():
-                log_dict[f"adversarial_{k}"] = v
-            for k, v in side_effect_evals[-1].items():
-                log_dict[f"side_effects_{k}"] = v
+            if adversarial_evals:
+                for k, v in adversarial_evals[-1].items():
+                    log_dict[f"adversarial_{k}"] = v
+            if side_effect_evals:
+                for k, v in side_effect_evals[-1].items():
+                    log_dict[f"side_effects_{k}"] = v
             wandb.log(log_dict)
 
     # Get masks

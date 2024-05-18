@@ -1,4 +1,4 @@
-# # %%
+# %%
 # %load_ext autoreload
 # %autoreload 2
 from transformer_lens import HookedTransformer, ActivationCache
@@ -70,6 +70,19 @@ def apply_mask(model, mask):
             else:
                 raise ValueError(f"Invalid mask name: {name} {layer=}")
 
+def sort_mask_weights(mask):
+    sorted_nonzero = []
+    for layer in mask.keys():
+        for param in mask[layer].values():
+            sorted_nonzero.append(param[param < 1].flatten())
+    return torch.cat(sorted_nonzero).sort().values 
+
+def count_thresholdable(mask):
+    total = 0
+    for layer in mask.keys():
+        for param in mask[layer].values():
+            total += param[param < 1].numel()
+    return total
 
 # %%
 from functools import partial
@@ -80,37 +93,62 @@ from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
 # Final evals
 evals = {
-    "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
-    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
+    # "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
+    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),
     "Side Effects": partial(run_side_effects_evals, evals_to_run=["Cross Entropy", "Sports Answers"], verbose=False), #  "Sports Familiarity",
 }
 eval_batch_size=50
 results = {}
+localization_types = ["manual", "random"] #["ap", "ct"] 
+forget_sports = ["baseball", "basketball", "football"]
+
+# min_thresholdable = float('inf')
+# for localization_type in localization_types:
+#     for forget_sport in forget_sports:
+#         mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
+#         min_thresholdable = min(min_thresholdable, count_thresholdable(mask))
+#         del mask
+#         gc.collect()
+#         torch.cuda.empty_cache()
+
+min_thresholdable = 2_072_472
 with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
-    for localization_type in ["ct", "manual", "random"]:
+    for localization_type in localization_types:
         results[localization_type] = {}
-        for forget_sport in tqdm(["baseball", "basketball", "football"]):
+
+        for forget_sport in tqdm(forget_sports):
             results[localization_type][forget_sport] = {}
-            for threshold in tqdm([0, 0.05, 0.2, 0.5, 0.8, 0.95]):
-                print(localization_type, forget_sport, threshold)
-                results[localization_type][forget_sport][threshold] = {}
+            mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
+            sorted_nonzero = sort_mask_weights(mask)
+            del mask
+
+            for num_weights in tqdm(np.linspace(0, min_thresholdable, num=10, dtype=int)):
+                threshold = sorted_nonzero[num_weights - 1]
+                print(localization_type, forget_sport, num_weights)
+                results[localization_type][forget_sport][num_weights] = {}
+
                 # Load Model
                 model = load_model()
                 mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
                 threshold_mask(mask, threshold)
                 apply_mask(model, mask)
+
                 del mask
                 gc.collect()
                 torch.cuda.empty_cache()
+
                 for eval_name, eval_func in evals.items():
-                    results[localization_type][forget_sport][threshold][eval_name] = {}
+                    results[localization_type][forget_sport][num_weights][eval_name] = {}
                     print(f'{eval_name=}')
                     eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
+
                     for k, v in eval_result.items():
-                        results[localization_type][forget_sport][threshold][eval_name][k] = v
+                        results[localization_type][forget_sport][num_weights][eval_name][k] = v
                         print(k, v)
+
                     gc.collect()
                     torch.cuda.empty_cache()
+
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()

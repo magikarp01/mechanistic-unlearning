@@ -11,13 +11,13 @@
     "n_epochs": 50,
     "grad_accum_steps": 15,
     "alpha": 0.2,
-    "beta": 5e-7,
+    "beta": 5e-8,
     "clip_grad": 1,
     "evaluate_every": 5,
     "n_eval_iters": 5,
-    "do_adversarial_evals": true,
-    "do_side_effects_evals": true,
-    "localization_type": "none",
+    "do_adversarial_evals": false,
+    "do_side_effects_evals": false,
+    "localization_type": "ct",
     "localization_top_p": 0.05,
     "n_devices": 2
 }
