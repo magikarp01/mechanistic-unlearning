@@ -99,8 +99,10 @@ evals = {
 }
 eval_batch_size=50
 results = {}
-localization_types = ["manual", "random"] #["ap", "ct"] 
+localization_types = ["ap", "ct"] # ["random", "manual"]
 forget_sports = ["baseball", "basketball", "football"]
+# localization_types = ["ap"]
+# forget_sports = ["baseball"]
 
 # min_thresholdable = float('inf')
 # for localization_type in localization_types:
@@ -122,10 +124,11 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
             sorted_nonzero = sort_mask_weights(mask)
             del mask
 
-            for num_weights in tqdm(np.linspace(0, min_thresholdable, num=10, dtype=int)):
+            for num_weights in tqdm(np.logspace(0, np.log10(min_thresholdable), base=10, num=10, dtype=int)):
                 threshold = sorted_nonzero[num_weights - 1]
+                str_num_weights = str(num_weights)
                 print(localization_type, forget_sport, num_weights)
-                results[localization_type][forget_sport][num_weights] = {}
+                results[localization_type][forget_sport][str_num_weights] = {}
 
                 # Load Model
                 model = load_model()
@@ -138,12 +141,12 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 torch.cuda.empty_cache()
 
                 for eval_name, eval_func in evals.items():
-                    results[localization_type][forget_sport][num_weights][eval_name] = {}
+                    results[localization_type][forget_sport][str_num_weights][eval_name] = {}
                     print(f'{eval_name=}')
                     eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
 
                     for k, v in eval_result.items():
-                        results[localization_type][forget_sport][num_weights][eval_name][k] = v
+                        results[localization_type][forget_sport][str_num_weights][eval_name][k] = v
                         print(k, v)
 
                     gc.collect()
