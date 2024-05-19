@@ -135,7 +135,6 @@ def fwd_pass_with_embeds(
     unembed = model.unembed(ln_final)
     return unembed.squeeze(0)
 
-
 def greedy_coordinate_descent(
     model,
     prompt,
@@ -188,12 +187,22 @@ def greedy_coordinate_descent(
     suffix_history = []
     # Initialize list with suffix_buffer_size random suffixes
     for _ in range(suffix_buffer_size):
-        suffix_history.append(
-            (
-                float('inf'), 
-                model.tokenizer.encode(random_suffix(prompt, suffix_tok_len, inst_format_fn, inst_before_suffix, inst_after_suffix), return_tensors='pt').squeeze() 
+        rand_suffix = model.tokenizer.encode(random_suffix(prompt, suffix_tok_len, inst_format_fn, inst_before_suffix, inst_after_suffix), return_tensors='pt').squeeze() 
+
+        # Evaluate this suffix
+        with torch.no_grad():
+            rand_suffix_embeds = model.W_E[rand_suffix].detach()
+            rand_outputs = fwd_pass_with_embeds(
+                model, 
+                prompt_toks, 
+                rand_suffix_embeds, 
+                target_toks,
+                inst_after_suffix
             )
-        )
+            rand_target_logits = rand_outputs[-target_seq-1:-1]
+            rand_ce_loss = loss_fn(rand_target_logits, target_toks).item()
+
+        suffix_history.append((rand_ce_loss.item(), rand_suffix.clone()))
 
     init_suffix_update_size = suffix_update_size
     init_batch_size = batch_size

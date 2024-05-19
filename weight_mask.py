@@ -395,10 +395,68 @@ def run():
 
     ### DATASETS
     # train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', streaming=True)
-    sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", forget_sport_subset={forget_sport}, is_forget_dataset=True)
+    if forget_sport == "athlete":
+        sports_1mp = SportsTask(
+            batch_size=train_batch_size, 
+            tokenizer=tokenizer, 
+            device=device, 
+            prep_acdcpp=False, 
+            criterion="log_1_minus_p", 
+            forget_player_subset={
+                "Lance Stephenson",
+                "Nnamdi Asomugha",
+                "Philip Rivers",
+                "Andre Iguodala",
+                "Tyus Jones",
+                "Jonathan Papelbon",
+                "Brandon Roy",
+                "Nick Markakis",
+                "Deion Jones",
+                "Thon Maker",
+                "Tony Gonzalez",
+                "David Robertson",
+                "Tom Izzo",
+                "Billy Hamilton",
+                "Brendan Haywood",
+                "Brett Hundley"
+            },
+            is_forget_dataset=True,
+            train_test_split=False
+        )
+    else:
+        sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", forget_sport_subset={forget_sport}, is_forget_dataset=True)
 
     if maintain_sport is None or maintain_sport == "null":
-        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
+        if forget_sport == "athlete":
+            maintain_sports = SportsTask(
+                batch_size=train_batch_size, 
+                tokenizer=tokenizer, 
+                device=device, 
+                prep_acdcpp=False, 
+                criterion="cross_entropy", 
+                forget_player_subset={
+                    "Lance Stephenson",
+                    "Nnamdi Asomugha",
+                    "Philip Rivers",
+                    "Andre Iguodala",
+                    "Tyus Jones",
+                    "Jonathan Papelbon",
+                    "Brandon Roy",
+                    "Nick Markakis",
+                    "Deion Jones",
+                    "Thon Maker",
+                    "Tony Gonzalez",
+                    "David Robertson",
+                    "Tom Izzo",
+                    "Billy Hamilton",
+                    "Brendan Haywood",
+                    "Brett Hundley"
+                },
+                is_forget_dataset=False,
+                train_test_split=True
+            )
+        else:
+            maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
     else:
         maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
 
@@ -406,12 +464,71 @@ def run():
     train_tasks = {"sports_1mp": (sports_1mp, .3), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
 
     # want to eval on other sports
-    forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
+
+    if forget_sport == "athlete":
+        forget_sport_eval = SportsTask(
+            batch_size=train_batch_size, 
+            tokenizer=tokenizer, 
+            device=device, 
+            prep_acdcpp=False, 
+            criterion="cross_entropy", 
+            forget_player_subset={
+                "Lance Stephenson",
+                "Nnamdi Asomugha",
+                "Philip Rivers",
+                "Andre Iguodala",
+                "Tyus Jones",
+                "Jonathan Papelbon",
+                "Brandon Roy",
+                "Nick Markakis",
+                "Deion Jones",
+                "Thon Maker",
+                "Tony Gonzalez",
+                "David Robertson",
+                "Tom Izzo",
+                "Billy Hamilton",
+                "Brendan Haywood",
+                "Brett Hundley"
+            },
+            is_forget_dataset=True,
+            train_test_split=False
+        )
+    else:
+        forget_sport_eval = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
     test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
 
     induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
     if maintain_sport is None or maintain_sport == "null":
-        maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
+        if forget_sport == "athlete":
+            maintain_sports_eval = SportsTask(
+                batch_size=train_batch_size, 
+                tokenizer=tokenizer, 
+                device=device, 
+                prep_acdcpp=False, 
+                criterion="cross_entropy", 
+                forget_player_subset={
+                    "Lance Stephenson",
+                    "Nnamdi Asomugha",
+                    "Philip Rivers",
+                    "Andre Iguodala",
+                    "Tyus Jones",
+                    "Jonathan Papelbon",
+                    "Brandon Roy",
+                    "Nick Markakis",
+                    "Deion Jones",
+                    "Thon Maker",
+                    "Tony Gonzalez",
+                    "David Robertson",
+                    "Tom Izzo",
+                    "Billy Hamilton",
+                    "Brendan Haywood",
+                    "Brett Hundley"
+                },
+                is_forget_dataset=False,
+                train_test_split=True
+            )
+        else:
+            maintain_sports_eval = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
         eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
     else:
         raise NotImplemented

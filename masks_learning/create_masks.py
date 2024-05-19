@@ -187,3 +187,76 @@ for forget_sport in ['football', 'basketball', 'baseball']: # ['all']:#
             # torch.cuda.empty_cache()
             # gc.collect()
 # %%
+
+from localizations.eap.localizer import EAPLocalizer
+from localizations.causal_tracing.localizer import CausalTracingLocalizer
+from localizations.ap.localizer import APLocalizer
+
+from cb_utils.mask_utils import get_masks_from_ct_nodes
+from cb_utils.mask_utils import get_masks_from_eap_exp
+
+from masks import CausalGraphMask, MaskType
+import pickle
+
+save_model_name = model_name.replace('/', '_')
+torch.cuda.empty_cache()
+gc.collect()
+torch.cuda.empty_cache()
+gc.collect()
+sports_task = SportsFactsTask(
+    model=model, 
+    N=26, 
+    batch_size=2, 
+    tokenizer=tokenizer,
+    forget_player_subset={
+        "Lance Stephenson",
+        "Nnamdi Asomugha",
+        "Philip Rivers",
+        "Andre Iguodala",
+        "Tyus Jones",
+        "Jonathan Papelbon",
+        "Brandon Roy",
+        "Nick Markakis",
+        "Deion Jones",
+        "Thon Maker",
+        "Tony Gonzalez",
+        "David Robertson",
+        "Tom Izzo",
+        "Billy Hamilton",
+        "Brendan Haywood",
+        "Brett Hundley"
+    },
+    is_forget_dataset=True,
+    device=device
+)
+
+for name, task in zip(["sports"], [sports_task]):
+    eap_localizer = EAPLocalizer(model, task)
+    ap_localizer = APLocalizer(model, task)
+    ct_localizer = CausalTracingLocalizer(model, task)
+
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # eap_graph = eap_localizer.get_exp_graph(batch=2, threshold=-1)
+    # top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
+    # with open(f"models/{save_model_name}_{name}_athlete_eap_graph.pkl", "wb") as f:
+    #     pickle.dump(top_edges, f)
+
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # ap_graph = ap_localizer.get_ap_graph(batch_size=2)
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # with open(f"models/{save_model_name}_{name}_athlete_ap_graph.pkl", "wb") as f:
+    #     pickle.dump(dict(ap_graph), f)
+
+    model.eval() # Don't need gradients when doing ct task
+    ct_graph = ct_localizer.get_ct_mask(batch_size=12)
+    model.train()
+    with open(f"models/{save_model_name}_{name}_athlete_ct_graph.pkl", "wb") as f:
+        pickle.dump(dict(ct_graph), f)
+
+    torch.cuda.empty_cache()
+    gc.collect()
+
+# %%
