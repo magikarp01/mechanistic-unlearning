@@ -99,7 +99,7 @@ evals = {
 }
 eval_batch_size=50
 results = {}
-localization_types = ["ap", "ct"] # ["random", "manual"]
+localization_types =  ["random", "manual", "none"] # ["ap", "ct"]
 forget_sports = ["baseball", "basketball", "football"]
 # localization_types = ["ap"]
 # forget_sports = ["baseball"]
@@ -113,7 +113,6 @@ forget_sports = ["baseball", "basketball", "football"]
 #         gc.collect()
 #         torch.cuda.empty_cache()
 
-min_thresholdable = 2_072_472
 with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
     for localization_type in localization_types:
         results[localization_type] = {}
@@ -124,7 +123,9 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
             sorted_nonzero = sort_mask_weights(mask)
             del mask
 
-            for num_weights in tqdm(np.logspace(0, np.log10(min_thresholdable), base=10, num=10, dtype=int)):
+            for num_weights in [100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000]:
+                if num_weights > len(sorted_nonzero):
+                    num_weights = len(sorted_nonzero)
                 threshold = sorted_nonzero[num_weights - 1]
                 str_num_weights = str(num_weights)
                 print(localization_type, forget_sport, num_weights)
