@@ -27,3 +27,5 @@ results/llama-2_forget_sport='basketball'_maintain_sport=None_Lora128_Log_1MP
 results/qwen_forget_sport='basketball'_maintain_sport=None_Log_1MP
 !models/neuron_mask_basketball.pt
 results/neuron_cb_unlearn_athletes
+results/localized_finetuning_basketball/*.pt
+results/localized_finetuning_basketball_old/*.pt
