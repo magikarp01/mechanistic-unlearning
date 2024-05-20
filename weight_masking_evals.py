@@ -99,8 +99,8 @@ evals = {
 }
 eval_batch_size=50
 results = {}
-localization_types =  ["random", "manual", "none"] # ["ap", "ct"]
-forget_sports = ["baseball", "basketball", "football"]
+localization_types = ["ap"] #["random", "manual", "none"] # ["ap", "ct"]
+forget_sports = ["baseball"] #["baseball", "basketball", "football"]
 # localization_types = ["ap"]
 # forget_sports = ["baseball"]
 

@@ -2,9 +2,9 @@
 import pandas as pd
 import json
 #%%
-localization_types = ['ap', 'ct', 'random', 'manual', 'none']
+localization_types = ['ap'] #['ap', 'ct', 'random', 'manual', 'none']
 eval_names = ['Adversarial: System Prompt']
-forget_sports = ['baseball', 'basketball', 'football']
+forget_sports = ['baseball'] #['baseball', 'basketball', 'football']
 
 results = {}
 for localization_type in localization_types:
