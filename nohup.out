@@ -1,352 +1,3860 @@
-Gemma's activation function should be approximate GeLU and not exact GeLU.
-Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
-OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
-
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
-Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.99s/it]
-Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.95s/it]
-Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.93s/it]
-Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.50s/it]
-Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.67s/it]
-/root/mechanistic-unlearning/weight_mask.py:140: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.96s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.88s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.49s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.65s/it]
+/root/mechanistic-unlearning/weight_mask.py:141: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
   weight_mask_attn_dict[layer]['W_Q'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:150: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+/root/mechanistic-unlearning/weight_mask.py:151: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
   weight_mask_attn_dict[layer]['W_K'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:160: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+/root/mechanistic-unlearning/weight_mask.py:161: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
   weight_mask_attn_dict[layer]['W_V'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:170: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+/root/mechanistic-unlearning/weight_mask.py:171: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
   weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
 wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
 wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
 wandb: wandb version 0.17.0 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240520_192418-g7t9bhaw
+wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240521_000901-ydf5aedj
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run gemma-7b-baseball-ap
+wandb: Syncing run gemma-7b-basketball-ap
 wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
-wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/g7t9bhaw
+wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/ydf5aedj
 Loaded pretrained model google/gemma-7b into HookedTransformer
-  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [01:11<58:21, 71.45s/it]  2%|▏         | 1/50 [01:39<1:21:04, 99.27s/it]
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+Setting 0: W_in to not require grad
+Setting 5: W_out to not require grad
+Setting 7: W_in to not require grad
+Setting 8: W_out to not require grad
+Setting 9: W_in to not require grad
+Setting 11: W_in to not require grad
+Setting 16: W_out to not require grad
+Setting 18: W_in to not require grad
+  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [00:57<47:08, 57.73s/it]  4%|▍         | 2/50 [01:45<41:29, 51.87s/it]  6%|▌         | 3/50 [02:33<39:14, 50.09s/it]  8%|▊         | 4/50 [03:21<37:41, 49.16s/it] 10%|█         | 5/50 [04:08<36:22, 48.50s/it] 12%|█▏        | 6/50 [05:06<37:55, 51.72s/it] 14%|█▍        | 7/50 [05:54<36:13, 50.56s/it] 16%|█▌        | 8/50 [06:42<34:41, 49.56s/it] 18%|█▊        | 9/50 [07:28<33:15, 48.67s/it] 20%|██        | 10/50 [08:16<32:18, 48.45s/it] 22%|██▏       | 11/50 [09:14<33:16, 51.20s/it] 24%|██▍       | 12/50 [10:03<31:59, 50.51s/it] 26%|██▌       | 13/50 [10:53<31:06, 50.44s/it] 28%|██▊       | 14/50 [11:41<29:52, 49.78s/it] 30%|███       | 15/50 [12:31<28:59, 49.70s/it] 32%|███▏      | 16/50 [13:28<29:28, 52.00s/it] 34%|███▍      | 17/50 [14:16<27:55, 50.79s/it] 36%|███▌      | 18/50 [15:04<26:41, 50.04s/it] 38%|███▊      | 19/50 [15:52<25:33, 49.46s/it] 40%|████      | 20/50 [16:44<25:00, 50.00s/it] 42%|████▏     | 21/50 [17:42<25:24, 52.57s/it] 44%|████▍     | 22/50 [18:30<23:54, 51.22s/it] 46%|████▌     | 23/50 [19:18<22:32, 50.10s/it] 48%|████▊     | 24/50 [20:06<21:27, 49.51s/it]Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535336256027222
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
 Running sports_1mp
 Running maintain_sports
 Running pile
-reg loss, 1.2533036470413208
+reg loss, 1.853533387184143
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
 Running sports_1mp
 Running maintain_sports
 Running pile
-Traceback (most recent call last):
-  File "/root/mechanistic-unlearning/weight_mask.py", line 702, in <module>
-    run()
-  File "/root/mechanistic-unlearning/weight_mask.py", line 617, in run
-    loss = task.get_train_loss(model) / grad_accum_steps
-  File "/root/mechanistic-unlearning/tasks/task.py", line 61, in get_train_loss
-    total_loss += self.calculate_loss(model, batch)
-  File "/root/mechanistic-unlearning/tasks/general/EveryTokenTask.py", line 60, in calculate_loss
-    loss = self.criterion(out.transpose(1, 2), shifted_token_batch)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/loss.py", line 1179, in forward
-    return F.cross_entropy(input, target, weight=self.weight,
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/functional.py", line 3059, in cross_entropy
-    return torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 968.00 MiB. GPU 0 has a total capacity of 79.15 GiB of which 561.75 MiB is free. Process 536911 has 78.58 GiB memory in use. Of the allocated memory 77.55 GiB is allocated by PyTorch, and 530.52 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-Traceback (most recent call last):
-  File "/root/mechanistic-unlearning/weight_mask.py", line 702, in <module>
-    run()
-  File "/root/mechanistic-unlearning/weight_mask.py", line 617, in run
-    loss = task.get_train_loss(model) / grad_accum_steps
-  File "/root/mechanistic-unlearning/tasks/task.py", line 61, in get_train_loss
-    total_loss += self.calculate_loss(model, batch)
-  File "/root/mechanistic-unlearning/tasks/general/EveryTokenTask.py", line 60, in calculate_loss
-    loss = self.criterion(out.transpose(1, 2), shifted_token_batch)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/loss.py", line 1179, in forward
-    return F.cross_entropy(input, target, weight=self.weight,
-  File "/root/venv/lib/python3.10/site-packages/torch/nn/functional.py", line 3059, in cross_entropy
-    return torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 968.00 MiB. GPU 0 has a total capacity of 79.15 GiB of which 561.75 MiB is free. Process 536911 has 78.58 GiB memory in use. Of the allocated memory 77.55 GiB is allocated by PyTorch, and 530.52 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-wandb: - 0.008 MB of 0.008 MB uploadedwandb: \ 0.008 MB of 0.009 MB uploadedwandb: | 0.015 MB of 0.015 MB uploadedwandb: 
+reg loss, 1.8535332679748535
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535326719284058
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853531837463379
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853531002998352
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535306453704834
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853529453277588
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535292148590088
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853528380393982
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535274267196655
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535265922546387
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853525996208191
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535248041152954
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535239696502686
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535233736038208
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535221815109253
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853521466255188
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853520393371582
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535196781158447
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535188436508179
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535183668136597
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535176515579224
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535171747207642
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535168170928955
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+ 50%|█████     | 25/50 [20:53<20:20, 48.82s/it] 52%|█████▏    | 26/50 [21:49<20:22, 50.93s/it] 54%|█████▍    | 27/50 [22:37<19:09, 49.98s/it] 56%|█████▌    | 28/50 [23:25<18:08, 49.47s/it] 58%|█████▊    | 29/50 [24:13<17:09, 49.04s/it] 60%|██████    | 30/50 [25:00<16:09, 48.47s/it] 62%|██████▏   | 31/50 [25:56<16:03, 50.73s/it] 64%|██████▍   | 32/50 [26:44<14:56, 49.80s/it] 66%|██████▌   | 33/50 [27:31<13:54, 49.09s/it] 68%|██████▊   | 34/50 [28:19<12:57, 48.62s/it] 70%|███████   | 35/50 [29:07<12:07, 48.52s/it] 72%|███████▏  | 36/50 [30:05<12:00, 51.46s/it] 74%|███████▍  | 37/50 [30:54<10:56, 50.48s/it] 76%|███████▌  | 38/50 [31:41<09:54, 49.55s/it] 78%|███████▊  | 39/50 [32:31<09:06, 49.69s/it] 80%|████████  | 40/50 [33:25<08:28, 50.85s/it] 82%|████████▏ | 41/50 [34:22<07:55, 52.84s/it] 84%|████████▍ | 42/50 [35:10<06:51, 51.46s/it] 86%|████████▌ | 43/50 [35:59<05:53, 50.53s/it] 88%|████████▊ | 44/50 [36:46<04:57, 49.55s/it] 90%|█████████ | 45/50 [37:34<04:05, 49.16s/it] 92%|█████████▏| 46/50 [38:31<03:25, 51.37s/it] 94%|█████████▍| 47/50 [39:20<02:32, 50.86s/it] 96%|█████████▌| 48/50 [40:08<01:39, 49.98s/it] 98%|█████████▊| 49/50 [40:56<00:49, 49.17s/it]None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535164594650269
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535159826278687
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853515863418579
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853515625
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853515625
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.853515386581421
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535150289535522
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535147905349731
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535147905349731
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535147905349731
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535146713256836
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535146713256836
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535146713256836
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8535144329071045
+None grad for W_in in layer 0
+None grad for W_out in layer 5
+100%|██████████| 50/50 [41:53<00:00, 51.62s/it]100%|██████████| 50/50 [41:53<00:00, 50.27s/it]
+wandb: - 0.008 MB of 0.008 MB uploadedwandb: \ 0.008 MB of 0.029 MB uploadedwandb: | 0.008 MB of 0.029 MB uploadedwandb: / 0.029 MB of 0.029 MB uploadedwandb:                                                                                
+wandb: 
 wandb: Run history:
-wandb:     test_loss_forget_sport ▁
-wandb:        test_loss_induction ▁
-wandb:   test_loss_maintain_sport ▁
-wandb:             test_loss_pile ▁
-wandb: train_loss_maintain_sports ▁
-wandb:            train_loss_pile ▁
-wandb:             train_loss_reg ▁
-wandb:      train_loss_sports_1mp ▁
-wandb: 
-wandb: Run summary:
-wandb:     test_loss_forget_sport 13.91208
-wandb:        test_loss_induction 0.62799
-wandb:   test_loss_maintain_sport 10.035
-wandb:             test_loss_pile 2.82111
-wandb: train_loss_maintain_sports 0.21256
-wandb:            train_loss_pile 2.78664
-wandb:             train_loss_reg 1.2533
-wandb:      train_loss_sports_1mp 2.77274
-wandb: 
-wandb: 🚀 View run gemma-7b-baseball-ap at: https://wandb.ai/aaquib111/mech-unlearning/runs/g7t9bhaw
-wandb: ⭐️ View project at: https://wandb.ai/aaquib111/mech-unlearning
-wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240520_192418-g7t9bhaw/logs
-Gemma's activation function should be approximate GeLU and not exact GeLU.
-Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
-OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.83s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.87s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.80s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.40s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.56s/it]
-/root/mechanistic-unlearning/weight_mask.py:140: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
-  weight_mask_attn_dict[layer]['W_Q'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:150: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
-  weight_mask_attn_dict[layer]['W_K'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:160: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
-  weight_mask_attn_dict[layer]['W_V'] = torch.tensor(
-/root/mechanistic-unlearning/weight_mask.py:170: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
-  weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
-wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
-wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
-wandb: wandb version 0.17.0 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240520_192751-cn3hrkdc
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run gemma-7b-baseball-ap
-wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
-wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/cn3hrkdc
-Loaded pretrained model google/gemma-7b into HookedTransformer
-  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [00:59<48:16, 59.12s/it]  4%|▍         | 2/50 [01:48<42:42, 53.39s/it]  6%|▌         | 3/50 [02:42<42:11, 53.85s/it]  8%|▊         | 4/50 [03:32<39:59, 52.15s/it] 10%|█         | 5/50 [04:25<39:25, 52.56s/it] 12%|█▏        | 6/50 [05:23<39:47, 54.26s/it] 14%|█▍        | 7/50 [06:12<37:36, 52.49s/it] 16%|█▌        | 8/50 [07:00<35:46, 51.12s/it] 18%|█▊        | 9/50 [07:51<35:00, 51.23s/it] 20%|██        | 10/50 [08:42<33:58, 50.95s/it] 22%|██▏       | 11/50 [09:45<35:34, 54.74s/it] 24%|██▍       | 12/50 [10:44<35:26, 55.97s/it] 26%|██▌       | 13/50 [11:35<33:32, 54.39s/it] 28%|██▊       | 14/50 [12:23<31:35, 52.66s/it] 30%|███       | 15/50 [13:13<30:14, 51.85s/it] 32%|███▏      | 16/50 [14:11<30:21, 53.59s/it] 34%|███▍      | 17/50 [15:00<28:41, 52.16s/it] 36%|███▌      | 18/50 [15:57<28:35, 53.60s/it] 38%|███▊      | 19/50 [16:54<28:15, 54.69s/it] 40%|████      | 20/50 [17:53<27:57, 55.93s/it] 42%|████▏     | 21/50 [18:58<28:21, 58.69s/it] 44%|████▍     | 22/50 [19:50<26:25, 56.64s/it] 46%|████▌     | 23/50 [20:42<24:54, 55.34s/it] 48%|████▊     | 24/50 [21:32<23:18, 53.81s/it] 50%|█████     | 25/50 [22:21<21:50, 52.42s/it] 52%|█████▏    | 26/50 [23:19<21:37, 54.07s/it] 54%|█████▍    | 27/50 [24:15<20:58, 54.70s/it] 56%|█████▌    | 28/50 [25:10<20:00, 54.59s/it] 58%|█████▊    | 29/50 [26:02<18:54, 54.01s/it] 60%|██████    | 30/50 [26:51<17:26, 52.33s/it] 62%|██████▏   | 31/50 [27:49<17:04, 53.94s/it] 64%|██████▍   | 32/50 [28:39<15:50, 52.83s/it] 66%|██████▌   | 33/50 [29:32<14:58, 52.83s/it] 68%|██████▊   | 34/50 [30:29<14:26, 54.17s/it] 70%|███████   | 35/50 [31:21<13:21, 53.43s/it] 72%|███████▏  | 36/50 [32:28<13:24, 57.49s/it] 74%|███████▍  | 37/50 [33:19<12:03, 55.66s/it] 76%|███████▌  | 38/50 [34:12<10:57, 54.76s/it] 78%|███████▊  | 39/50 [35:04<09:54, 54.05s/it] 80%|████████  | 40/50 [35:54<08:47, 52.72s/it] 82%|████████▏ | 41/50 [36:52<08:08, 54.28s/it] 84%|████████▍ | 42/50 [37:41<07:02, 52.76s/it] 86%|████████▌ | 43/50 [38:30<06:01, 51.62s/it] 88%|████████▊ | 44/50 [39:19<05:04, 50.80s/it] 90%|█████████ | 45/50 [40:07<04:11, 50.24s/it] 92%|█████████▏| 46/50 [41:07<03:31, 52.93s/it] 94%|█████████▍| 47/50 [41:57<02:36, 52.04s/it] 96%|█████████▌| 48/50 [42:46<01:42, 51.13s/it] 98%|█████████▊| 49/50 [43:34<00:50, 50.41s/it]100%|██████████| 50/50 [44:32<00:00, 52.53s/it]100%|██████████| 50/50 [44:32<00:00, 53.45s/it]
-wandb: - 0.008 MB of 0.017 MB uploadedwandb: \ 0.008 MB of 0.017 MB uploadedwandb: | 0.018 MB of 0.018 MB uploadedwandb:                                                                                
-wandb: 
-wandb: Run history:
-wandb:     test_loss_forget_sport ▆▆▆▆▁▁▁▁▄▄▄▄████▆▆▆▆▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃
-wandb:        test_loss_induction ▁▁▁▁████▇▇▇▇▆▆▆▆▅▅▅▅▅▅▅▅▅▅▅▅▃▃▃▃▂▂▂▂▂▂▂▂
+wandb:     test_loss_forget_sport ████▁▁▁▁▂▂▂▂▄▄▄▄▅▅▅▅▅▅▅▅▃▃▃▃▄▄▄▄▄▄▄▄▄▄▄▃
+wandb:        test_loss_induction ▁▁▁▁▅▅▅▅████████▅▅▅▅▆▆▆▆▅▅▅▅▅▅▅▅▄▄▄▄▄▄▄▃
 wandb:   test_loss_maintain_sport ████▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:             test_loss_pile ▁▁▁▁████▆▆▆▆▅▅▅▅▃▃▃▃▃▃▃▃▂▂▂▂▁▁▁▁▂▂▂▂▁▁▁▂
-wandb: train_loss_maintain_sports ▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:            train_loss_pile ▁▂▃▃█▄▃▂▃▃▃▃▃▃▃▃▃▁▂▃▂▃▂▃▂▂▂▂▁▂▂▂▁▁▁▁▁▁▁▂
-wandb:             train_loss_reg ████▇▇▇▆▆▅▅▅▄▄▄▃▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      train_loss_sports_1mp █▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:             test_loss_pile ▂▂▂▂▅▅▅▅████▇▇▇▇▄▄▄▄▅▅▅▅▁▁▁▁▁▁▁▁▂▂▂▂▁▁▁▂
+wandb: train_loss_maintain_sports ▁█▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:            train_loss_pile ▁▂▅▅▅▅▃█▆▆▄█▃▄▆▄▅▃▄▃▅▄▅▂▂▁▁▃▂▃▂▂▂▂▂▂▁▂▂▁
+wandb:             train_loss_reg ████▇▇▆▆▆▅▅▅▄▄▄▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:      train_loss_sports_1mp █▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 wandb: 
 wandb: Run summary:
-wandb:     test_loss_forget_sport 10.14441
-wandb:        test_loss_induction 1.32956
-wandb:   test_loss_maintain_sport 0.30637
-wandb:             test_loss_pile 2.63201
-wandb: train_loss_maintain_sports 0.00135
-wandb:            train_loss_pile 2.55567
-wandb:             train_loss_reg 1.92814
-wandb:      train_loss_sports_1mp 0.0007
+wandb:     test_loss_forget_sport 11.18977
+wandb:        test_loss_induction 1.43734
+wandb:   test_loss_maintain_sport 0.00046
+wandb:             test_loss_pile 2.54964
+wandb: train_loss_maintain_sports 0.001
+wandb:            train_loss_pile 2.47567
+wandb:             train_loss_reg 1.85351
+wandb:      train_loss_sports_1mp 0.00028
 wandb: 
-wandb: 🚀 View run gemma-7b-baseball-ap at: https://wandb.ai/aaquib111/mech-unlearning/runs/cn3hrkdc
+wandb: 🚀 View run gemma-7b-basketball-ap at: https://wandb.ai/aaquib111/mech-unlearning/runs/ydf5aedj
 wandb: ⭐️ View project at: https://wandb.ai/aaquib111/mech-unlearning
 wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240520_192751-cn3hrkdc/logs
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928159475326538
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281589984893799
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281588792800903
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928158164024353
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281572103500366
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281566143035889
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281562566757202
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281556606292725
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281548261642456
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281542301177979
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.92815363407135
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281527996063232
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281524419784546
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281516075134277
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.92815101146698
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281501770019531
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281489849090576
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281480312347412
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281474351882935
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281468391418457
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281466007232666
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928145408630371
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281450510025024
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281445741653442
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928143858909607
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281433820724487
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281432628631592
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928142786026001
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281426668167114
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281424283981323
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281424283981323
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281418323516846
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281418323516846
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281418323516846
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281415939331055
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281415939331055
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928141474723816
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.928141474723816
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281412363052368
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.9281409978866577
+wandb: Find logs at: ./wandb/run-20240521_000901-ydf5aedj/logs
+None grad for W_in in layer 7
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_in in layer 11
+None grad for W_out in layer 16
+None grad for W_in in layer 18
 Gemma's activation function should be approximate GeLU and not exact GeLU.
 Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
 OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.99s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.08s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.98s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.56s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.73s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.88s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.91s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.88s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.50s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.65s/it]
+/root/mechanistic-unlearning/weight_mask.py:141: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_Q'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:151: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_K'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:161: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_V'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:171: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
+wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
+wandb: wandb version 0.17.0 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240521_005331-c6tnfs4d
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run gemma-7b-football-ap
+wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
+wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/c6tnfs4d
+Loaded pretrained model google/gemma-7b into HookedTransformer
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+Setting 4: W_out to not require grad
+Setting 5: W_in to not require grad
+Setting 5: W_out to not require grad
+Setting 6: W_in to not require grad
+Setting 8: W_out to not require grad
+Setting 9: W_in to not require grad
+Setting 9: W_out to not require grad
+Setting 12: W_out to not require grad
+Setting 19: W_out to not require grad
+  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [00:59<48:40, 59.60s/it]  4%|▍         | 2/50 [01:47<42:15, 52.82s/it]  6%|▌         | 3/50 [02:34<39:16, 50.13s/it]  8%|▊         | 4/50 [03:22<37:43, 49.20s/it] 10%|█         | 5/50 [04:09<36:21, 48.47s/it] 12%|█▏        | 6/50 [05:05<37:19, 50.90s/it] 14%|█▍        | 7/50 [05:53<35:50, 50.01s/it] 16%|█▌        | 8/50 [06:40<34:27, 49.22s/it] 18%|█▊        | 9/50 [07:28<33:19, 48.76s/it] 20%|██        | 10/50 [08:16<32:17, 48.44s/it] 22%|██▏       | 11/50 [09:13<33:10, 51.04s/it] 24%|██▍       | 12/50 [10:01<31:45, 50.16s/it] 26%|██▌       | 13/50 [10:49<30:32, 49.52s/it] 28%|██▊       | 14/50 [11:36<29:17, 48.83s/it] 30%|███       | 15/50 [12:24<28:22, 48.65s/it] 32%|███▏      | 16/50 [13:21<28:58, 51.12s/it] 34%|███▍      | 17/50 [14:09<27:29, 49.99s/it] 36%|███▌      | 18/50 [14:56<26:18, 49.33s/it] 38%|███▊      | 19/50 [15:44<25:12, 48.80s/it] 40%|████      | 20/50 [16:31<24:11, 48.37s/it] 42%|████▏     | 21/50 [17:28<24:32, 50.77s/it] 44%|████▍     | 22/50 [18:16<23:16, 49.89s/it]Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497612476348877
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497610092163086
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.84976065158844
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497600555419922
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497592210769653
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849758267402649
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497576713562012
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849757194519043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497565984725952
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497562408447266
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497551679611206
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849754810333252
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497542142868042
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849753975868225
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497533798217773
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497527837753296
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497520685195923
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497518301010132
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497514724731445
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497509956359863
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849750280380249
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497495651245117
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849748969078064
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+ 46%|████▌     | 23/50 [19:04<22:12, 49.37s/it] 48%|████▊     | 24/50 [19:51<21:06, 48.72s/it] 50%|█████     | 25/50 [20:41<20:27, 49.08s/it] 52%|█████▏    | 26/50 [21:38<20:34, 51.43s/it] 54%|█████▍    | 27/50 [22:26<19:17, 50.33s/it] 56%|█████▌    | 28/50 [23:14<18:14, 49.74s/it] 58%|█████▊    | 29/50 [24:03<17:18, 49.46s/it] 60%|██████    | 30/50 [24:51<16:20, 49.04s/it] 62%|██████▏   | 31/50 [25:47<16:15, 51.33s/it] 64%|██████▍   | 32/50 [26:37<15:16, 50.94s/it] 66%|██████▌   | 33/50 [27:26<14:13, 50.21s/it] 68%|██████▊   | 34/50 [28:13<13:08, 49.30s/it] 70%|███████   | 35/50 [29:01<12:12, 48.84s/it] 72%|███████▏  | 36/50 [30:00<12:05, 51.83s/it] 74%|███████▍  | 37/50 [30:48<11:01, 50.85s/it] 76%|███████▌  | 38/50 [31:36<10:00, 50.02s/it] 78%|███████▊  | 39/50 [32:24<09:01, 49.23s/it] 80%|████████  | 40/50 [33:12<08:08, 48.80s/it] 82%|████████▏ | 41/50 [34:08<07:38, 50.99s/it] 84%|████████▍ | 42/50 [34:56<06:40, 50.06s/it] 86%|████████▌ | 43/50 [35:44<05:46, 49.48s/it] 88%|████████▊ | 44/50 [36:32<04:54, 49.02s/it] 90%|█████████ | 45/50 [37:20<04:03, 48.77s/it]None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497486114501953
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497483730316162
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497477769851685
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497474193572998
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497474193572998
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497471809387207
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497470617294312
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497470617294312
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849746584892273
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.849746584892273
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497464656829834
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497464656829834
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+ 92%|█████████▏| 46/50 [38:16<03:24, 51.03s/it] 94%|█████████▍| 47/50 [39:04<02:30, 50.05s/it] 96%|█████████▌| 48/50 [39:53<01:39, 49.83s/it] 98%|█████████▊| 49/50 [40:42<00:49, 49.42s/it]100%|██████████| 50/50 [41:39<00:00, 51.66s/it]100%|██████████| 50/50 [41:39<00:00, 49.98s/it]
+wandb: - 0.008 MB of 0.008 MB uploadedwandb: \ 0.008 MB of 0.008 MB uploadedwandb: | 0.031 MB of 0.031 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:     test_loss_forget_sport ▃▃▃▃▁▁▁▁▅▅▅▅▅▅▅▅████████▇▇▇▇████▇▇▇▇▇▇▇▇
+wandb:        test_loss_induction ▁▁▁▁▆▆▆▆▄▄▄▄████▄▄▄▄▅▅▅▅▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁
+wandb:   test_loss_maintain_sport ████▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▁▁▁▁
+wandb:             test_loss_pile ▂▂▂▂████▆▆▆▆▆▆▆▆▄▄▄▄▆▆▆▆▂▂▂▂▁▁▁▁▂▂▂▂▁▁▁▂
+wandb: train_loss_maintain_sports ▁▂▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:            train_loss_pile ▁▁▂▄▆▄█▅▄▂▄▂▅▄▂▂▂▂▃▂▂▂▂▂▂▂▂▂▂▁▂▂▂▁▁▁▂▁▁▁
+wandb:             train_loss_reg ███▇▇▆▆▆▅▅▅▅▄▄▄▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:      train_loss_sports_1mp █▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:     test_loss_forget_sport 20.66712
+wandb:        test_loss_induction 1.19551
+wandb:   test_loss_maintain_sport 0.00713
+wandb:             test_loss_pile 2.58848
+wandb: train_loss_maintain_sports 0.00181
+wandb:            train_loss_pile 2.55304
+wandb:             train_loss_reg 1.84975
+wandb:      train_loss_sports_1mp 0.0
+wandb: 
+wandb: 🚀 View run gemma-7b-football-ap at: https://wandb.ai/aaquib111/mech-unlearning/runs/c6tnfs4d
+wandb: ⭐️ View project at: https://wandb.ai/aaquib111/mech-unlearning
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20240521_005331-c6tnfs4d/logs
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 1.8497462272644043
+None grad for W_out in layer 4
+None grad for W_in in layer 5
+None grad for W_out in layer 5
+None grad for W_in in layer 6
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_out in layer 12
+None grad for W_out in layer 19
+Gemma's activation function should be approximate GeLU and not exact GeLU.
+Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
+OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:06,  2.06s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.93s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  2.00s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.58s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.73s/it]
+wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
+wandb: wandb version 0.17.0 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240521_023700-acl2au0d
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run gemma-7b-baseball-manual
+wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
+wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/acl2au0d
+Loaded pretrained model google/gemma-7b into HookedTransformer
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+Setting layer 0 to {'W_in': True, 'W_out': True}
+Setting layer 1 to {'W_in': False, 'W_out': False}
+Setting layer 2 to {'W_in': False, 'W_out': False}
+Setting layer 3 to {'W_in': False, 'W_out': False}
+Setting layer 4 to {'W_in': False, 'W_out': False}
+Setting layer 5 to {'W_in': False, 'W_out': False}
+Setting layer 6 to {'W_in': False, 'W_out': False}
+Setting layer 7 to {'W_in': False, 'W_out': False}
+Setting layer 8 to {'W_in': True, 'W_out': True}
+Setting layer 9 to {'W_in': True, 'W_out': True}
+Setting layer 10 to {'W_in': True, 'W_out': True}
+Setting layer 11 to {'W_in': True, 'W_out': True}
+Setting layer 12 to {'W_in': True, 'W_out': True}
+Setting layer 13 to {'W_in': True, 'W_out': True}
+Setting layer 14 to {'W_in': True, 'W_out': True}
+Setting layer 15 to {'W_in': True, 'W_out': True}
+Setting layer 16 to {'W_in': True, 'W_out': True}
+Setting layer 17 to {'W_in': True, 'W_out': True}
+Setting layer 18 to {'W_in': True, 'W_out': True}
+Setting layer 19 to {'W_in': True, 'W_out': True}
+Setting layer 20 to {'W_in': True, 'W_out': True}
+Setting layer 21 to {'W_in': True, 'W_out': True}
+Setting layer 22 to {'W_in': True, 'W_out': True}
+Setting layer 23 to {'W_in': True, 'W_out': True}
+Setting layer 24 to {'W_in': True, 'W_out': True}
+Setting layer 25 to {'W_in': True, 'W_out': True}
+Setting layer 26 to {'W_in': True, 'W_out': True}
+Setting layer 27 to {'W_in': True, 'W_out': True}
+Setting 0: W_in to not require grad
+Setting 0: W_out to not require grad
+Setting 8: W_in to not require grad
+Setting 8: W_out to not require grad
+Setting 9: W_in to not require grad
+Setting 9: W_out to not require grad
+Setting 10: W_in to not require grad
+Setting 10: W_out to not require grad
+Setting 11: W_in to not require grad
+Setting 11: W_out to not require grad
+Setting 12: W_in to not require grad
+Setting 12: W_out to not require grad
+Setting 13: W_in to not require grad
+Setting 13: W_out to not require grad
+Setting 14: W_in to not require grad
+Setting 14: W_out to not require grad
+Setting 15: W_in to not require grad
+Setting 15: W_out to not require grad
+Setting 16: W_in to not require grad
+Setting 16: W_out to not require grad
+Setting 17: W_in to not require grad
+Setting 17: W_out to not require grad
+Setting 18: W_in to not require grad
+Setting 18: W_out to not require grad
+Setting 19: W_in to not require grad
+Setting 19: W_out to not require grad
+Setting 20: W_in to not require grad
+Setting 20: W_out to not require grad
+Setting 21: W_in to not require grad
+Setting 21: W_out to not require grad
+Setting 22: W_in to not require grad
+Setting 22: W_out to not require grad
+Setting 23: W_in to not require grad
+Setting 23: W_out to not require grad
+Setting 24: W_in to not require grad
+Setting 24: W_out to not require grad
+Setting 25: W_in to not require grad
+Setting 25: W_out to not require grad
+Setting 26: W_in to not require grad
+Setting 26: W_out to not require grad
+Setting 27: W_in to not require grad
+Setting 27: W_out to not require grad
+  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [01:03<51:54, 63.55s/it]  4%|▍         | 2/50 [01:54<45:07, 56.40s/it]  6%|▌         | 3/50 [02:45<41:56, 53.55s/it]  8%|▊         | 4/50 [03:32<39:02, 50.93s/it] 10%|█         | 5/50 [04:18<36:58, 49.31s/it]Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72887420654297
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72886085510254
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72884178161621
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72881507873535
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728784561157227
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72874641418457
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+ 12%|█▏        | 6/50 [05:18<38:53, 53.04s/it] 14%|█▍        | 7/50 [06:05<36:37, 51.11s/it] 16%|█▌        | 8/50 [06:52<34:53, 49.84s/it] 18%|█▊        | 9/50 [07:38<33:07, 48.48s/it] 20%|██        | 10/50 [08:25<32:00, 48.00s/it] 22%|██▏       | 11/50 [09:21<32:45, 50.40s/it]None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72870635986328
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728666305541992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728614807128906
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728574752807617
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728525161743164
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728477478027344
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+ 24%|██▍       | 12/50 [10:13<32:13, 50.89s/it] 26%|██▌       | 13/50 [11:04<31:25, 50.95s/it] 28%|██▊       | 14/50 [11:55<30:34, 50.97s/it] 30%|███       | 15/50 [12:52<30:52, 52.93s/it] 32%|███▏      | 16/50 [13:48<30:26, 53.73s/it] 34%|███▍      | 17/50 [14:35<28:26, 51.72s/it]None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728424072265625
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72836685180664
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728317260742188
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728269577026367
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.728208541870117
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.7281551361084
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+ 36%|███▌      | 18/50 [15:22<26:45, 50.18s/it] 38%|███▊      | 19/50 [16:13<26:10, 50.67s/it] 40%|████      | 20/50 [17:11<26:22, 52.73s/it] 42%|████▏     | 21/50 [18:09<26:15, 54.32s/it] 44%|████▍     | 22/50 [19:01<25:04, 53.73s/it] 46%|████▌     | 23/50 [19:52<23:46, 52.82s/it]None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72809600830078
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72805404663086
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72800636291504
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727964401245117
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72792625427246
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72789192199707
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+ 48%|████▊     | 24/50 [20:43<22:42, 52.41s/it] 50%|█████     | 25/50 [21:33<21:26, 51.47s/it] 52%|█████▏    | 26/50 [22:30<21:19, 53.31s/it] 54%|█████▍    | 27/50 [23:17<19:43, 51.44s/it] 56%|█████▌    | 28/50 [24:05<18:27, 50.33s/it] 58%|█████▊    | 29/50 [24:52<17:14, 49.27s/it]None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72786521911621
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72783851623535
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727811813354492
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.7277889251709
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727773666381836
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727754592895508
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+ 60%|██████    | 30/50 [25:39<16:10, 48.55s/it] 62%|██████▏   | 31/50 [26:34<16:01, 50.59s/it] 64%|██████▍   | 32/50 [27:28<15:25, 51.42s/it] 66%|██████▌   | 33/50 [28:16<14:20, 50.60s/it] 68%|██████▊   | 34/50 [29:04<13:14, 49.66s/it] 70%|███████   | 35/50 [29:50<12:11, 48.75s/it]None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727745056152344
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727733612060547
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727725982666016
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727718353271484
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727712631225586
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+ 72%|███████▏  | 36/50 [30:45<11:49, 50.68s/it] 74%|███████▍  | 37/50 [31:36<10:57, 50.61s/it] 76%|███████▌  | 38/50 [32:22<09:51, 49.31s/it] 78%|███████▊  | 39/50 [33:09<08:52, 48.42s/it] 80%|████████  | 40/50 [33:55<07:59, 47.98s/it]reg loss, 27.727706909179688
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.72770118713379
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727697372436523
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727693557739258
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727691650390625
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727689743041992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+ 82%|████████▏ | 41/50 [34:54<07:39, 51.11s/it] 84%|████████▍ | 42/50 [35:42<06:40, 50.10s/it] 86%|████████▌ | 43/50 [36:29<05:44, 49.20s/it] 88%|████████▊ | 44/50 [37:14<04:48, 48.06s/it] 90%|█████████ | 45/50 [38:01<03:58, 47.60s/it] 92%|█████████▏| 46/50 [38:56<03:19, 49.92s/it]None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727689743041992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727689743041992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727689743041992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727689743041992
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727685928344727
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727685928344727
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+ 94%|█████████▍| 47/50 [39:45<02:28, 49.50s/it] 96%|█████████▌| 48/50 [40:30<01:36, 48.38s/it] 98%|█████████▊| 49/50 [41:20<00:48, 48.84s/it]100%|██████████| 50/50 [42:19<00:00, 51.78s/it]100%|██████████| 50/50 [42:19<00:00, 50.79s/it]
+wandb: - 0.008 MB of 0.008 MB uploadedwandb: \ 0.008 MB of 0.008 MB uploadedwandb: | 0.008 MB of 0.080 MB uploadedwandb: / 0.008 MB of 0.080 MB uploadedwandb: - 0.080 MB of 0.080 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:     test_loss_forget_sport ▁▁▁▁▇▇▇▇████▇▇▇▇▇▇▇▇▇▇▇▇████▇▇▇▇▇▇▇▇▇▇▇▇
+wandb:        test_loss_induction ▁▁▁▁▆▆▆▆▆▆▆▆▅▅▅▅████▆▆▆▆▃▃▃▃▄▄▄▄▄▄▄▄▅▅▅▄
+wandb:   test_loss_maintain_sport ▂▂▂▂▂▂▂▂▁▁▁▁▃▃▃▃████▁▁▁▁▁▁▁▁▁▁▁▁▆▆▆▆▁▁▁▁
+wandb:             test_loss_pile ▄▄▄▄▃▃▃▃████▄▄▄▄▇▇▇▇▂▂▂▂▄▄▄▄▄▄▄▄▁▁▁▁▂▂▂▄
+wandb: train_loss_maintain_sports ▂▂▄▃▃▂▂▂▁▁▁▁▁▁▁█▁▃▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:            train_loss_pile ▄▄▇▅▆▆▃▆▄▄▅█▃▃▄▆▅▄▄▅▆▆▅▄▆▆▃▃▅▂▄▆▅▅▄▃▃▃▁▄
+wandb:             train_loss_reg ████▇▇▇▆▆▆▅▅▄▄▄▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:      train_loss_sports_1mp █▇▄▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:     test_loss_forget_sport 7.96168
+wandb:        test_loss_induction 1.61828
+wandb:   test_loss_maintain_sport 0.00332
+wandb:             test_loss_pile 2.56303
+wandb: train_loss_maintain_sports 0.00343
+wandb:            train_loss_pile 2.51651
+wandb:             train_loss_reg 27.72769
+wandb:      train_loss_sports_1mp 0.00323
+wandb: 
+wandb: 🚀 View run gemma-7b-baseball-manual at: https://wandb.ai/aaquib111/mech-unlearning/runs/acl2au0d
+wandb: ⭐️ View project at: https://wandb.ai/aaquib111/mech-unlearning
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20240521_023700-acl2au0d/logs
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727685928344727
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727685928344727
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27
+Running sports_1mp
+Running maintain_sports
+Running pile
+reg loss, 27.727685928344727
+None grad for W_in in layer 0
+None grad for W_out in layer 0
+None grad for W_in in layer 8
+None grad for W_out in layer 8
+None grad for W_in in layer 9
+None grad for W_out in layer 9
+None grad for W_in in layer 10
+None grad for W_out in layer 10
+None grad for W_in in layer 11
+None grad for W_out in layer 11
+None grad for W_in in layer 12
+None grad for W_out in layer 12
+None grad for W_in in layer 13
+None grad for W_out in layer 13
+None grad for W_in in layer 14
+None grad for W_out in layer 14
+None grad for W_in in layer 15
+None grad for W_out in layer 15
+None grad for W_in in layer 16
+None grad for W_out in layer 16
+None grad for W_in in layer 17
+None grad for W_out in layer 17
+None grad for W_in in layer 18
+None grad for W_out in layer 18
+None grad for W_in in layer 19
+None grad for W_out in layer 19
+None grad for W_in in layer 20
+None grad for W_out in layer 20
+None grad for W_in in layer 21
+None grad for W_out in layer 21
+None grad for W_in in layer 22
+None grad for W_out in layer 22
+None grad for W_in in layer 23
+None grad for W_out in layer 23
+None grad for W_in in layer 24
+None grad for W_out in layer 24
+None grad for W_in in layer 25
+None grad for W_out in layer 25
+None grad for W_in in layer 26
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_out in layer 27

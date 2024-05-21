@@ -105,8 +105,9 @@ def create_mlp_only_mask_dicts(model):
         weight_mask_mlp_dict[layer] = {}
 
         # Set to false: we train a mask over these
-        weight_mask_mlp_dict[layer]['W_in'] = not (layer >= 1 and layer <= 7)
-        weight_mask_mlp_dict[layer]['W_out'] = not (layer >= 1 and layer <= 7)
+        weight_mask_mlp_dict[layer]['W_in'] = not (1 <= layer <= 7)
+        weight_mask_mlp_dict[layer]['W_out'] = not (1 <= layer <= 7)
+        print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
@@ -248,6 +249,7 @@ def get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict):
                     unfrozen_weights[layer][component] = getattr(block.mlp, component).clone()
                 else:
                     getattr(block.mlp, component).requires_grad = False
+                    print(f"Setting {layer}: {component} to not require grad")
     return unfrozen_weights
 
 def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
@@ -279,15 +281,13 @@ def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
                     if param.grad is not None:
                         param.grad = torch.zeros_like(param.grad).to("cuda")
                     else:
-                        pass
-                        # print(f"None grad for {component} in layer {layer}")
+                        print(f"None grad for {component} in layer {layer}")
             else:
                 param = getattr(block.mlp, component)
                 if param.grad is not None:
                     param.grad = torch.zeros_like(param.grad).to("cuda")
                 else:
-                    pass
-                    # print(f"None grad for {component} in layer {layer}")
+                    print(f"None grad for {component} in layer {layer}")
 
 def regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict):
     # L1 sparsity, but only for components that are not frozen
@@ -389,6 +389,7 @@ def run():
     model.W_E.requires_grad = False
     model.W_U.requires_grad = False
     for block in model.blocks:
+        print(block.mlp.W_in.requires_grad)
         block.ln1.w.requires_grad = False
         block.ln2.w.requires_grad = False
     model.ln_final.w.requires_grad = False

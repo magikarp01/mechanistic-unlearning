@@ -1,0 +1,30 @@
+{
+  "baseball": {
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9940709352493287,
+          "baseball": 0.9172825217247009,
+          "basketball": 0.9660219907760621
+        },
+        "MC": {
+          "football": 0.981810522079468,
+          "baseball": 0.8674030303955078,
+          "basketball": 0.8592837214469911
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.98,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2162142276763914,
+          "OWT": 2.4551016330718993
+        }
+      }
+    }
+  }
+}

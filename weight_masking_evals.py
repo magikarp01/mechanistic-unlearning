@@ -99,7 +99,7 @@ evals = {
 }
 eval_batch_size=50
 results = {}
-localization_types = ["ap"] #["random", "manual", "none"] # ["ap", "ct"]
+localization_types = ["manual"] #["random", "manual", "none"] # ["ap", "ct"]
 forget_sports = ["baseball"] #["baseball", "basketball", "football"]
 # localization_types = ["ap"]
 # forget_sports = ["baseball"]
@@ -134,7 +134,7 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 # Load Model
                 model = load_model()
                 mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-                threshold_mask(mask, threshold)
+                # threshold_mask(mask, threshold)
                 apply_mask(model, mask)
 
                 del mask
@@ -157,7 +157,9 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 gc.collect()
                 torch.cuda.empty_cache()
 
-        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results.json", "w") as f:
+        # with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update-nondisc.json", "w") as f:
+        #     json.dump(results[localization_type], f, indent=2)
+        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update.json", "w") as f:
             json.dump(results[localization_type], f, indent=2)
 
 with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
