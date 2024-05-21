@@ -134,7 +134,7 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
                 # Load Model
                 model = load_model()
                 mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-                # threshold_mask(mask, threshold)
+                threshold_mask(mask, threshold)
                 apply_mask(model, mask)
 
                 del mask
