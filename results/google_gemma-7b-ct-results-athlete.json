@@ -1,0 +1,225 @@
+{
+  "athlete": {
+    "0": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.99779071778059006,
+          "maintain": 0.9965822315216065
+        },
+        "MC": {
+          "forget": 0.9997295165061951,
+          "maintain": 0.9945703935623168
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.68
+        }
+      }
+    },
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.9936447739601135,
+          "maintain": 0.9824583768844606
+        },
+        "MC": {
+          "forget": 0.8937007188796997,
+          "maintain": 0.9209803700447082
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6799999999999999
+        }
+      }
+    },
+    "200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.9804396629333496,
+          "maintain": 0.9751431465148925
+        },
+        "MC": {
+          "forget": 0.8738358020782471,
+          "maintain": 0.9126182436943053
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.63
+        }
+      }
+    },
+    "300000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.9273578524589539,
+          "maintain": 0.9598325729370116
+        },
+        "MC": {
+          "forget": 0.6860522031784058,
+          "maintain": 0.9219465255737305
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6199999999999999
+        }
+      }
+    },
+    "400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.7513412237167358,
+          "maintain": 0.9420919299125671
+        },
+        "MC": {
+          "forget": 0.6557581424713135,
+          "maintain": 0.903204882144928
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6
+        }
+      }
+    },
+    "500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.692588210105896,
+          "maintain": 0.9106853723526
+        },
+        "MC": {
+          "forget": 0.6549845933914185,
+          "maintain": 0.9009352087974548
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.5700000000000001
+        }
+      }
+    },
+    "700000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.5184515714645386,
+          "maintain": 0.7911782145500184
+        },
+        "MC": {
+          "forget": 0.6143868565559387,
+          "maintain": 0.8960929036140441
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.5700000000000001
+        }
+      }
+    },
+    "900000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.34396085143089294,
+          "maintain": 0.6868892908096313
+        },
+        "MC": {
+          "forget": 0.5906218528747559,
+          "maintain": 0.8825430154800415
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.54
+        }
+      }
+    },
+    "1200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.07280103578238504,
+          "maintain": 0.6167954683303833
+        },
+        "MC": {
+          "forget": 0.5597295165061951,
+          "maintain": 0.8750423789024352
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.55
+        }
+      }
+    },
+    "1500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.07079021374054006,
+          "maintain": 0.6212615434821151
+        },
+        "MC": {
+          "forget": 0.5363395135021453,
+          "maintain": 0.8560416290364643
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.54
+        }
+      }
+    },
+    "1800000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.0720678204286590,
+          "maintain": 0.6331378021433181
+        },
+        "MC": {
+          "forget": 0.5597295165061951,
+          "maintain": 0.8760416388511657
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.55
+        }
+      }
+    },
+    "2100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.06789046724428706,
+          "maintain": 0.6321415414810181
+        },
+        "MC": {
+          "forget": 0.5530612161114951,
+          "maintain": 0.870951180865736
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.53
+        }
+      }
+    },
+    "2400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "forget": 0.06520678835904145,
+          "maintain": 0.6336607018175342
+        },
+        "MC": {
+          "forget": 0.5597295407609531,
+          "maintain": 0.8768111592863657
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.50
+        }
+      }
+    }
+  }
+}

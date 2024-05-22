@@ -1,253 +1,918 @@
-Gemma's activation function should be approximate GeLU and not exact GeLU.
-Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
 OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.07s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.15s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.16s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.10it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.01it/s]
-wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
-wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
-wandb: wandb version 0.17.0 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.16.6
-wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240522_040111-floph9sd
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run gemma-7b-athlete-none
-wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
-wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/floph9sd
+  0%|          | 0/1 [00:00<?, ?it/s]Gemma's activation function should be approximate GeLU and not exact GeLU.
+Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
+random athlete 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.25it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.23it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.24it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.50it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.39it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
 Loaded pretrained model google/gemma-7b into HookedTransformer
-  0%|          | 0/50 [00:00<?, ?it/s]  2%|▏         | 1/50 [00:50<40:55, 50.11s/it]  4%|▍         | 2/50 [01:21<31:26, 39.31s/it]  6%|▌         | 3/50 [01:53<28:00, 35.75s/it]  8%|▊         | 4/50 [02:26<26:41, 34.81s/it] 10%|█         | 5/50 [03:00<25:41, 34.26s/it] 12%|█▏        | 6/50 [03:53<30:00, 40.92s/it] 14%|█▍        | 7/50 [04:25<27:11, 37.94s/it] 16%|█▌        | 8/50 [04:58<25:31, 36.46s/it] 18%|█▊        | 9/50 [05:30<23:53, 34.96s/it] 20%|██        | 10/50 [06:02<22:36, 33.92s/it] 22%|██▏       | 11/50 [06:58<26:34, 40.88s/it] 24%|██▍       | 12/50 [07:32<24:33, 38.78s/it] 26%|██▌       | 13/50 [08:06<22:58, 37.24s/it] 28%|██▊       | 14/50 [08:40<21:43, 36.20s/it] 30%|███       | 15/50 [09:14<20:40, 35.46s/it] 32%|███▏      | 16/50 [10:10<23:35, 41.63s/it] 34%|███▍      | 17/50 [10:45<21:51, 39.75s/it] 36%|███▌      | 18/50 [11:18<20:10, 37.83s/it] 38%|███▊      | 19/50 [11:54<19:09, 37.10s/it] 40%|████      | 20/50 [12:27<18:00, 36.03s/it] 42%|████▏     | 21/50 [13:23<20:18, 42.00s/it] 44%|████▍     | 22/50 [13:58<18:37, 39.91s/it] 46%|████▌     | 23/50 [14:34<17:20, 38.54s/it] 48%|████▊     | 24/50 [15:07<16:03, 37.06s/it] 50%|█████     | 25/50 [15:41<15:01, 36.05s/it] 52%|█████▏    | 26/50 [16:36<16:42, 41.78s/it] 54%|█████▍    | 27/50 [17:12<15:21, 40.09s/it] 56%|█████▌    | 28/50 [17:47<14:04, 38.39s/it] 58%|█████▊    | 29/50 [18:20<12:55, 36.94s/it] 60%|██████    | 30/50 [18:55<12:08, 36.40s/it] 62%|██████▏   | 31/50 [19:51<13:20, 42.12s/it] 64%|██████▍   | 32/50 [20:24<11:51, 39.52s/it] 66%|██████▌   | 33/50 [20:58<10:42, 37.79s/it] 68%|██████▊   | 34/50 [21:34<09:55, 37.22s/it] 70%|███████   | 35/50 [22:07<09:00, 36.05s/it] 72%|███████▏  | 36/50 [23:03<09:47, 41.99s/it] 74%|███████▍  | 37/50 [23:38<08:39, 39.97s/it] 76%|███████▌  | 38/50 [24:12<07:36, 38.07s/it] 78%|███████▊  | 39/50 [24:46<06:46, 36.95s/it] 80%|████████  | 40/50 [25:20<06:00, 36.04s/it] 82%|████████▏ | 41/50 [26:17<06:19, 42.20s/it] 84%|████████▍ | 42/50 [26:50<05:17, 39.65s/it] 86%|████████▌ | 43/50 [27:24<04:25, 37.95s/it] 88%|████████▊ | 44/50 [27:58<03:39, 36.61s/it] 90%|█████████ | 45/50 [28:31<02:58, 35.66s/it] 92%|█████████▏| 46/50 [29:27<02:46, 41.53s/it] 94%|█████████▍| 47/50 [30:02<01:58, 39.62s/it] 96%|█████████▌| 48/50 [30:35<01:15, 37.77s/it] 98%|█████████▊| 49/50 [31:09<00:36, 36.57s/it]100%|██████████| 50/50 [32:06<00:00, 42.83s/it]100%|██████████| 50/50 [32:06<00:00, 38.54s/it]
-wandb: - 0.040 MB of 0.040 MB uploadedwandb: \ 0.040 MB of 0.050 MB uploadedwandb: | 0.040 MB of 0.050 MB uploadedwandb: / 0.050 MB of 0.050 MB uploadedwandb:                                                                                
-wandb: 
-wandb: Run history:
-wandb:     test_loss_forget_sport ▁▁▁▁▂▂▂▂▃▃▃▃▃▃▃▃▃▃▃▃▅▅▅▅▄▄▄▄▇▇▇▇▇▇▇▇████
-wandb:        test_loss_induction ▂▂▂▂▅▅▅▅▅▅▅▅▂▂▂▂▂▂▂▂▅▅▅▅▄▄▄▄▆▆▆▆▁▁▁▁███▂
-wandb:   test_loss_maintain_sport ▁▁▁▁████▂▂▂▂▁▁▁▁▃▃▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▄▄▄▁
-wandb:             test_loss_pile ▆▆▆▆▆▆▆▆▆▆▆▆▁▁▁▁████▄▄▄▄▅▅▅▅▄▄▄▄▅▅▅▅▇▇▇▁
-wandb: train_loss_maintain_sports ▁▂█▄▂▂▂▂▂▅▂▄▂▁▂▂▂▂▁▂▃▂▁▁▂▂▂▂▂▁▁▁▂▂▂▂▂▂▂▁
-wandb:            train_loss_pile ▄▅▄▁▆▃▆▆█▅▃▃▂▄▆▆▃▆▅▄▄▆▇▃▆▅▅▇▇▄▄▄▄▃█▄▅▃▄▃
-wandb:             train_loss_reg █▆▆▆▆▆▆▆▆▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      train_loss_sports_1mp █▇▂▃▄▅▄▄▃▄▅▃▃▄▄▂▃▅▄▂▂▂▄▅▂▂▂▁▁▂▂▂▁▁▁▂▂▁▁▁
-wandb: 
-wandb: Run summary:
-wandb:     test_loss_forget_sport 1.15668
-wandb:        test_loss_induction 0.54801
-wandb:   test_loss_maintain_sport 0.1154
-wandb:             test_loss_pile 2.28619
-wandb: train_loss_maintain_sports 0.14899
-wandb:            train_loss_pile 2.19586
-wandb:             train_loss_reg 1.61045
-wandb:      train_loss_sports_1mp 0.47271
-wandb: 
-wandb: 🚀 View run gemma-7b-athlete-none at: https://wandb.ai/aaquib111/mech-unlearning/runs/floph9sd
-wandb: ⭐️ View project at: https://wandb.ai/aaquib111/mech-unlearning
-wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240522_040111-floph9sd/logs
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.610448956489563
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104488372802734
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104487180709839
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running adversarial evals
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running sports_1mp
-Running maintain_sports
-Running pile
-reg loss, 1.6104485988616943
-Running adversarial evals
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9167962670326233, 'maintain': 0.9709408164024353}
+MC {'forget': 0.8956003189086914, 'maintain': 0.9289921164512636}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random athlete 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9955925464630127, 'maintain': 0.9843715667724611}
+MC {'forget': 0.9027704000473022, 'maintain': 0.920287835597992}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.73it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9960716366767883, 'maintain': 0.9849142074584962}
+MC {'forget': 0.9065916538238525, 'maintain': 0.9209176659584046}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.55it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9963842630386353, 'maintain': 0.9849410653114319}
+MC {'forget': 0.9085749387741089, 'maintain': 0.9199530839920045}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.46it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9967954158782959, 'maintain': 0.9781681418418884}
+MC {'forget': 0.9038075804710388, 'maintain': 0.9156198859214784}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.65it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.62it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9969020128250121, 'maintain': 0.9796072244644165}
+MC {'forget': 0.9079359173774719, 'maintain': 0.9157358169555664}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.58it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.50it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.82it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.71it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9968490600585938, 'maintain': 0.98329735994339}
+MC {'forget': 0.9076389074325562, 'maintain': 0.9179988265037538}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.51it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.45it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.74it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.62it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9962711453437805, 'maintain': 0.9872122168540954}
+MC {'forget': 0.9107046127319336, 'maintain': 0.9300195932388305}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9941962957382202, 'maintain': 0.9831371665000916}
+MC {'forget': 0.9095902323722839, 'maintain': 0.9292470574378967}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.56it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.990666389465332, 'maintain': 0.9918259382247925}
+MC {'forget': 0.9096184372901917, 'maintain': 0.923261857032776}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random athlete 1790743
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9167962193489074, 'maintain': 0.9699604749679566}
+MC {'forget': 0.8956003189086914, 'maintain': 0.9311488032341004}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random athlete 1790743
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.35it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.33it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.32it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.52it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9167962431907655, 'maintain': 0.9722494840621948}
+MC {'forget': 0.8956003189086914, 'maintain': 0.9277966618537903}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random athlete 1790743
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.66it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [13:44<00:00, 824.74s/it]100%|██████████| 1/1 [13:44<00:00, 824.75s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9167962431907654, 'maintain': 0.9720414280891418}
+MC {'forget': 0.8956003189086914, 'maintain': 0.9354023933410645}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+  0%|          | 0/1 [00:00<?, ?it/s]manual athlete 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.45it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.56it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.41975241899490356, 'maintain': 0.9812350034713745}
+MC {'forget': 0.4097995162010193, 'maintain': 0.9218377828598023}
+eval_name='Side Effects'
+General {'MMLU': 0.66}
+manual athlete 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.56it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9940481781959534, 'maintain': 0.985770046710968}
+MC {'forget': 0.8980884552001953, 'maintain': 0.9199541211128234}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual athlete 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9880953431129456, 'maintain': 0.9831133008003234}
+MC {'forget': 0.8940411806106567, 'maintain': 0.9165169596672058}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual athlete 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9533886909484863, 'maintain': 0.9868850827217102}
+MC {'forget': 0.8399257659912109, 'maintain': 0.915831196308136}
+eval_name='Side Effects'
+General {'MMLU': 0.66}
+manual athlete 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.890460729598999, 'maintain': 0.9807564616203308}
+MC {'forget': 0.695837676525116, 'maintain': 0.921798861026764}
+eval_name='Side Effects'
+General {'MMLU': 0.66}
+manual athlete 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.8208222389221191, 'maintain': 0.9805419921874999}
+MC {'forget': 0.6589220762252808, 'maintain': 0.9192735910415649}
+eval_name='Side Effects'
+General {'MMLU': 0.66}
+manual athlete 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.50it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.38it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.56it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7345899939537048, 'maintain': 0.9826138973236083}
+MC {'forget': 0.6298534870147705, 'maintain': 0.9249347925186158}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.48it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.35it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.29it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.50it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.5763207077980042, 'maintain': 0.9845760822296143}
+MC {'forget': 0.543358325958252, 'maintain': 0.9247733592987061}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.56it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.49398893117904663, 'maintain': 0.9818523883819581}
+MC {'forget': 0.440852552652359, 'maintain': 0.9235224843025207}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.47914166450500484, 'maintain': 0.9801374316215515}
+MC {'forget': 0.4348347306251526, 'maintain': 0.9227268815040588}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.41it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.35it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.34it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.53it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.4567403197288513, 'maintain': 0.9835718631744386}
+MC {'forget': 0.4263705015182495, 'maintain': 0.9250190138816834}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.51it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.37it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.4390268325805664, 'maintain': 0.9785146951675414}
+MC {'forget': 0.41868793964385986, 'maintain': 0.9259527087211609}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual athlete 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [13:22<00:00, 802.67s/it]100%|██████████| 1/1 [13:22<00:00, 802.67s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.426708322763443, 'maintain': 0.9819501161575317}
+MC {'forget': 0.4141632914543152, 'maintain': 0.9217708230018615}
+eval_name='Side Effects'
+General {'MMLU': 0.66}
+  0%|          | 0/1 [00:00<?, ?it/s]none athlete 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.44it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.38it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.31it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.50it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.5196399092674255, 'maintain': 0.9014875888824463}
+MC {'forget': 0.23811349272727966, 'maintain': 0.668257761001587}
+eval_name='Side Effects'
+General {'MMLU': 0.48999999999999994}
+none athlete 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9957112550735474, 'maintain': 0.9814107894897461}
+MC {'forget': 0.8952207565307617, 'maintain': 0.9187890768051148}
+eval_name='Side Effects'
+General {'MMLU': 0.64}
+none athlete 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.994999885559082, 'maintain': 0.9878495097160338}
+MC {'forget': 0.8947585821151733, 'maintain': 0.9177125096321106}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+none athlete 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.42it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.54it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9921516299247742, 'maintain': 0.9810201168060302}
+MC {'forget': 0.8883687257766724, 'maintain': 0.9243786096572877}
+eval_name='Side Effects'
+General {'MMLU': 0.62}
+none athlete 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.72it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9841411709785461, 'maintain': 0.9855402350425719}
+MC {'forget': 0.8872182250022889, 'maintain': 0.9303979754447936}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+none athlete 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.58it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9494880437850952, 'maintain': 0.9856409668922425}
+MC {'forget': 0.8724987506866455, 'maintain': 0.9271519541740416}
+eval_name='Side Effects'
+General {'MMLU': 0.6}
+none athlete 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.66it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.62it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.8687002539634705, 'maintain': 0.9759485602378846}
+MC {'forget': 0.7469520568847656, 'maintain': 0.9176962494850158}
+eval_name='Side Effects'
+General {'MMLU': 0.62}
+none athlete 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.53it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7342826724052429, 'maintain': 0.9759926199913025}
+MC {'forget': 0.5642934441566467, 'maintain': 0.9071777939796448}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}
+none athlete 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.6960220336914062, 'maintain': 0.9591417670249939}
+MC {'forget': 0.39588941335678096, 'maintain': 0.8567202448844911}
+eval_name='Side Effects'
+General {'MMLU': 0.58}
+none athlete 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.5923089385032654, 'maintain': 0.9347251892089843}
+MC {'forget': 0.3571849465370178, 'maintain': 0.8507473707199097}
+eval_name='Side Effects'
+General {'MMLU': 0.5}
+none athlete 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.74it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.46790230870246885, 'maintain': 0.9039637684822082}
+MC {'forget': 0.3187774419784546, 'maintain': 0.8048050999641418}
+eval_name='Side Effects'
+General {'MMLU': 0.47000000000000003}
+none athlete 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.34043951034545894, 'maintain': 0.8626222968101502}
+MC {'forget': 0.28701929450035096, 'maintain': 0.7169934272766113}
+eval_name='Side Effects'
+General {'MMLU': 0.41999999999999993}
+none athlete 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [14:16<00:00, 856.92s/it]100%|██████████| 1/1 [14:16<00:00, 856.92s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.36349649429321285, 'maintain': 0.842058289051056}
+MC {'forget': 0.2751360237598419, 'maintain': 0.6651939749717712}
+eval_name='Side Effects'
+General {'MMLU': 0.41999999999999993}
+  0%|          | 0/1 [00:00<?, ?it/s]ap athlete 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.33it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.32it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.28it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.47it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.720740795135498, 'maintain': 0.5778752565383911}
+MC {'forget': 0.27777594327926636, 'maintain': 0.38229885697364807}
+eval_name='Side Effects'
+General {'MMLU': 0.35000000000000003}
+ap athlete 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.41it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.39it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.34it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.53it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9960249900817872, 'maintain': 0.9882784008979798}
+MC {'forget': 0.9023611545562744, 'maintain': 0.9249652504920961}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+ap athlete 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9961367249488831, 'maintain': 0.9854730248451233}
+MC {'forget': 0.9009432792663574, 'maintain': 0.9280304312705994}
+eval_name='Side Effects'
+General {'MMLU': 0.68}
+ap athlete 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.993746817111969, 'maintain': 0.986272644996643}
+MC {'forget': 0.9143939018249512, 'maintain': 0.9408391237258912}
+eval_name='Side Effects'
+General {'MMLU': 0.64}
+ap athlete 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9527556777000427, 'maintain': 0.9838158011436463}
+MC {'forget': 0.8757896900177001, 'maintain': 0.9312859296798706}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+ap athlete 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.8005096912384033, 'maintain': 0.9803308129310608}
+MC {'forget': 0.7402875423431396, 'maintain': 0.9246459603309631}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+ap athlete 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.73it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7497051358222961, 'maintain': 0.9691778659820557}
+MC {'forget': 0.6689425706863403, 'maintain': 0.9287748694419862}
+eval_name='Side Effects'
+General {'MMLU': 0.5900000000000001}
+ap athlete 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.43it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.36it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.56it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7497521400451661, 'maintain': 0.9552002429962159}
+MC {'forget': 0.652910590171814, 'maintain': 0.9250555515289306}
+eval_name='Side Effects'
+General {'MMLU': 0.5399999999999999}
+ap athlete 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.65it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7491671442985535, 'maintain': 0.9285332918167115}
+MC {'forget': 0.6425891280174255, 'maintain': 0.9142094254493713}
+eval_name='Side Effects'
+General {'MMLU': 0.53}
+ap athlete 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7167330980300903, 'maintain': 0.9129586219787598}
+MC {'forget': 0.5850473642349243, 'maintain': 0.8958467602729798}
+eval_name='Side Effects'
+General {'MMLU': 0.51}
+ap athlete 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.6408467411994934, 'maintain': 0.8801557064056396}
+MC {'forget': 0.5048105716705322, 'maintain': 0.8511211156845093}
+eval_name='Side Effects'
+General {'MMLU': 0.4699999999999999}
+ap athlete 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.71it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.48it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7248479723930359, 'maintain': 0.8945030689239502}
+MC {'forget': 0.4677407145500183, 'maintain': 0.8274250388145447}
+eval_name='Side Effects'
+General {'MMLU': 0.4600000000000001}
+ap athlete 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.62it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [13:25<00:00, 805.48s/it]100%|██████████| 1/1 [13:25<00:00, 805.48s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7498230934143066, 'maintain': 0.8442760825157165}
+MC {'forget': 0.40504664182662964, 'maintain': 0.7645767688751222}
+eval_name='Side Effects'
+General {'MMLU': 0.48}
+  0%|          | 0/1 [00:00<?, ?it/s]ct athlete 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071778059006, 'maintain': 0.6365822315216065}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8745703935623168}
+eval_name='Side Effects'
+General {'MMLU': 0.55}
+ct athlete 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9936447739601135, 'maintain': 0.9824583768844606}
+MC {'forget': 0.8937007188796997, 'maintain': 0.9209803700447082}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+ct athlete 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.72it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9804396629333496, 'maintain': 0.9751431465148925}
+MC {'forget': 0.8738358020782471, 'maintain': 0.9126182436943053}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+ct athlete 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.9273578524589539, 'maintain': 0.9598325729370116}
+MC {'forget': 0.6860522031784058, 'maintain': 0.9219465255737305}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}
+ct athlete 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.7513412237167358, 'maintain': 0.9420919299125671}
+MC {'forget': 0.6557581424713135, 'maintain': 0.903204882144928}
+eval_name='Side Effects'
+General {'MMLU': 0.6}
+ct athlete 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.692588210105896, 'maintain': 0.9106853723526}
+MC {'forget': 0.6549845933914185, 'maintain': 0.9009352087974548}
+eval_name='Side Effects'
+General {'MMLU': 0.5700000000000001}
+ct athlete 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.46it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.5184515714645386, 'maintain': 0.7911782145500184}
+MC {'forget': 0.6143868565559387, 'maintain': 0.8960929036140441}
+eval_name='Side Effects'
+General {'MMLU': 0.5700000000000001}
+ct athlete 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.34396085143089294, 'maintain': 0.6868892908096313}
+MC {'forget': 0.5906218528747559, 'maintain': 0.8825430154800415}
+eval_name='Side Effects'
+General {'MMLU': 0.54}
+ct athlete 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.37it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071480035782, 'maintain': 0.6167954683303833}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8750423789024352}
+eval_name='Side Effects'
+General {'MMLU': 0.55}
+ct athlete 1265719
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.35it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.29it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.27it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.33it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.31it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071629047393, 'maintain': 0.6245293140411377}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8643527865409851}
+eval_name='Side Effects'
+General {'MMLU': 0.55}
+ct athlete 1265719
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.41it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.54it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071629047395, 'maintain': 0.6163222432136536}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8714028358459472}
+eval_name='Side Effects'
+General {'MMLU': 0.55}
+ct athlete 1265719
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.53it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071927070617, 'maintain': 0.6140840172767639}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8764948964118956}
+eval_name='Side Effects'
+General {'MMLU': 0.55}
+ct athlete 1265719
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.26s/it][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.06s/it][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:00,  1.01it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.30it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.14it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [13:47<00:00, 827.91s/it]100%|██████████| 1/1 [13:47<00:00, 827.91s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'forget': 0.07779071778059006, 'maintain': 0.6331415414810181}
+MC {'forget': 0.5597295165061951, 'maintain': 0.8760416388511657}
+eval_name='Side Effects'
+General {'MMLU': 0.55}

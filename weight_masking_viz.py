@@ -7,10 +7,11 @@ from matplotlib import colors, pyplot as plt
 localization_types = ['ap', 'ct', 'random', 'manual', 'none']
 eval_names = ['Adversarial: System Prompt']
 forget_sports = ['basketball']#, 'athlete']
+forget_sport = 'basketball'
 
 results = {}
 for localization_type in localization_types:
-    with open(f"results/google_gemma-7b-{localization_type}-results.json", "r") as f:
+    with open(f"results/google_gemma-7b-{localization_type}-results-{forget_sport}.json", "r") as f:
         res = json.load(f)
         results[localization_type] = res
 #%%
@@ -30,11 +31,12 @@ from matplotlib import pyplot as plt
 color_idx = 0
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 all_sports = set(['football', 'baseball', 'basketball'])
+# all_sports = set(["forget", "maintain"])
 for forget_sport in forget_sports:
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
     for eval_name in eval_names:
         for localization_type in localization_types:
-            subeval_name = 'Normal'
+            subeval_name = 'MC'
             subeval_sport = forget_sport
             # for subeval_sport in ['baseball', 'basketball', 'football']:
             subeval_metric = []
@@ -44,37 +46,42 @@ for forget_sport in forget_sports:
                     results[localization_type][forget_sport][i][eval_name][subeval_name][subeval_sport]
                 )
 
-            m_acc = 0
-            for other_sport in all_sports - set([forget_sport]):
-                m_acc += results[localization_type][forget_sport][i]['Adversarial: System Prompt']['Normal'][other_sport]
-            maintain_acc.append(m_acc / 2)
+            for i in results[localization_type][forget_sport].keys():
+                m_acc = 0
+                for other_sport in all_sports - set([forget_sport]):
+                    m_acc += results[localization_type][forget_sport][i]['Adversarial: System Prompt']['MC'][other_sport]
+                maintain_acc.append(m_acc / 2)
 
             xvals = [int(x) for x in results[localization_type][forget_sport].keys()]
             xlabels = [format_func(x) for x in results[localization_type][forget_sport].keys()]
             plt.plot(
                 xvals,
                 subeval_metric, 
-                label=f'{localization_type}-{subeval_name}-{subeval_sport}-forget',
+                label=f'{localization_type} forget accuracy',
                 color=colors[color_idx]
             )
-            plt.plot(
-                xvals,
-                maintain_acc, 
-                'm--',
-                label=f'{localization_type}-{subeval_name}-{subeval_sport}-maintain',
-                color=colors[color_idx]
-            )
+            # plt.plot(
+            #     xvals,
+            #     maintain_acc, 
+            #     # 'm--',
+            #     label=f'{localization_type} maintain accuracy',
+            #     color=colors[color_idx]
+            # )
             color_idx += 1
             plt.xticks(ticks=xvals, labels=xlabels, rotation=-45, fontsize=16)
             plt.yticks(fontsize=16)
-    plt.legend(fontsize=12)
-    plt.ylabel(f'{subeval_sport.title()} Accuracy', fontsize=16)
+    ax = plt.gca()
+    ax.set_ylim([0, 1])
+    plt.legend(fontsize=12, loc='lower right')
+    # plt.ylabel(f'{subeval_sport.title()} Accuracy', fontsize=16)
+    plt.ylabel(f'Maintain Accuracy', fontsize=16)
     plt.xlabel('Number of Masked Weights', fontsize=16)
     plt.grid()
     plt.title(f'{forget_sport.title()} Accuracy vs Num. Masked Weights', fontsize=16)
     plt.show()
     # Save as PDF
-    plt.savefig(f"results/{forget_sport}-{eval_name}-{subeval_name}.pdf")
+    # plt.savefig(f"results/{forget_sport}-{eval_name}-{subeval_name}.pdf")
+    # fig.savefig("basketball-maintain-acc.pdf", bbox_inches='tight')
             
 
 # %%

@@ -1,5 +1,5 @@
 {
-    "train_batch_size": 1,
+    "train_batch_size": 10,
     "eval_batch_size": 50,
     "device": "cuda",
     "train_loss_type": "sports",
@@ -17,7 +17,7 @@
     "n_eval_iters": 5,
     "do_adversarial_evals": true,
     "do_side_effects_evals": false,
-    "localization_type": "none",
+    "localization_type": "manual",
     "localization_top_p": 0.05,
     "n_devices": 2
 }

@@ -1,6 +1,6 @@
 # %%
-# %load_ext autoreload
-# %autoreload 2
+%load_ext autoreload
+%autoreload 2
 from transformer_lens import HookedTransformer, ActivationCache
 import os
 import torch
@@ -30,7 +30,7 @@ train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', strea
 # %%
 os.environ['HF_TOKEN'] = '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'
 model_type = "gemma"
-model_name = 'google/gemma-7b'
+model_name = 'google/gemma-2b'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 def load_model(model_name=model_name):
     model = HookedTransformer.from_pretrained(
@@ -84,6 +84,75 @@ def count_thresholdable(mask):
             total += param[param < 1].numel()
     return total
 
+#%%
+forget_sport = "basketball"
+ds = SportsTask(batch_size=32, tokenizer=tokenizer, device="cuda", prep_acdcpp=False, criterion="log_1_minus_p")
+model = load_model()
+
+#%%
+batch = ds.get_batch()
+prompts = batch["prompt"]
+targets = batch["sport"]
+prompt_toks = tokenizer(prompts, return_tensors="pt", padding=True).input_ids
+target_toks = tokenizer(targets, return_tensors="pt", padding=True).input_ids[:, -1]
+
+_, cache = model.run_with_cache(
+    prompt_toks,
+    names_filter = lambda name: 'resid_post' in name
+)
+
+#%%
+cache = torch.stack([cache[key][:, -1, :] for key in cache.keys()], dim=0) # layer batch d_model
+
+
+#%%
+# Train logistic regressions
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+for layer in range(model.cfg.n_layers):
+    X = cache[layer].cpu().float().numpy().reshape(-1, cache[layer].shape[-1])
+    target_classes = []
+    for target in targets:
+        if target == "basketball":
+            target_classes.append(0)
+        elif target == "baseball":
+            target_classes.append(1) 
+        elif target == "football":
+            target_classes.append(2)
+    y = np.array(target_classes)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    clf_preds = []
+    # for sport in ["basketball", "baseball", "football"]:
+        # Train logistic regression specifically for the sport
+        # y_train_sport = np.array([1 if sport == y else 0 for y in y_train])
+        # y_test_sport = np.array([1 if sport == y else 0 for y in y_test])
+
+    # train logistic regression
+    clf = LogisticRegression(random_state=0, max_iter=1000).fit(X_train, y_train)
+
+    # get predictions for test set
+    y_pred = clf.predict(X_test)
+    # clf_preds.append(y_pred)
+
+    print(f"Layer {layer} Accuracy: {clf.score(X_test, y_test)}")
+
+    # evaluate final accuracy
+    # the regressions are accurate if the correct regression predicted the sport, and the other two did not
+    # correct = 0
+    # for i in range(len(y_test)):
+    #     if targets[i] == "basketball" and clf_preds[0][i] == 1:#clf_preds[0][i] == 1 and clf_preds[1][i] == 0 and clf_preds[2][i] == 0:
+    #         correct += 1
+    #     elif targets[i] == "baseball" and clf_preds[1][i] == 1:#clf_preds[0][i] == 0 and clf_preds[1][i] == 1 and clf_preds[2][i] == 0:
+    #         correct += 1
+    #     elif targets[i] == "football" and clf_preds[2][i] == 1:#clf_preds[0][i] == 0 and clf_preds[1][i] == 0 and clf_preds[2][i] == 1:
+    #         correct += 1
+    # print(f"Layer {layer} Accuracy: {correct / len(y_test)}")
+
+#%%
+
+
 # %%
 from functools import partial
 import gc
@@ -94,12 +163,12 @@ from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 # Final evals
 evals = {
     # "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
-    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),#, test_each_sport=False),
+    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),
     "Side Effects": partial(run_side_effects_evals, evals_to_run=["General"], verbose=False), #  "Sports Familiarity",
 }
 eval_batch_size=50
 results = {}
-localization_types = ["random", "manual", "none", "ap", "ct"]
+localization_types = ["manual"] #["random", "manual", "none"] # ["ap", "ct"]
 forget_sports = ["basketball"] #["baseball", "basketball", "football"]
 # localization_types = ["ap"]
 # forget_sports = ["baseball"]
@@ -123,7 +192,7 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
             sorted_nonzero = sort_mask_weights(mask)
             del mask
 
-            for num_weights in [0, 100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000, 2_400_000]:
+            for num_weights in [100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000]:
                 if num_weights > len(sorted_nonzero):
                     num_weights = len(sorted_nonzero)
                 threshold = sorted_nonzero[num_weights - 1]
@@ -159,7 +228,7 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
 
         # with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update-nondisc.json", "w") as f:
         #     json.dump(results[localization_type], f, indent=2)
-        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-{forget_sport}.json", "w") as f:
+        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update.json", "w") as f:
             json.dump(results[localization_type], f, indent=2)
 
 with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
