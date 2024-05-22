@@ -389,7 +389,6 @@ def run():
     model.W_E.requires_grad = False
     model.W_U.requires_grad = False
     for block in model.blocks:
-        print(block.mlp.W_in.requires_grad)
         block.ln1.w.requires_grad = False
         block.ln2.w.requires_grad = False
     model.ln_final.w.requires_grad = False
@@ -403,24 +402,7 @@ def run():
             device=device, 
             prep_acdcpp=False, 
             criterion="log_1_minus_p", 
-            forget_player_subset={
-                "Lance Stephenson",
-                "Nnamdi Asomugha",
-                "Philip Rivers",
-                "Andre Iguodala",
-                "Tyus Jones",
-                "Jonathan Papelbon",
-                "Brandon Roy",
-                "Nick Markakis",
-                "Deion Jones",
-                "Thon Maker",
-                "Tony Gonzalez",
-                "David Robertson",
-                "Tom Izzo",
-                "Billy Hamilton",
-                "Brendan Haywood",
-                "Brett Hundley"
-            },
+            forget_player_subset=16,
             is_forget_dataset=True,
             train_test_split=False
         )
@@ -435,24 +417,7 @@ def run():
                 device=device, 
                 prep_acdcpp=False, 
                 criterion="cross_entropy", 
-                forget_player_subset={
-                    "Lance Stephenson",
-                    "Nnamdi Asomugha",
-                    "Philip Rivers",
-                    "Andre Iguodala",
-                    "Tyus Jones",
-                    "Jonathan Papelbon",
-                    "Brandon Roy",
-                    "Nick Markakis",
-                    "Deion Jones",
-                    "Thon Maker",
-                    "Tony Gonzalez",
-                    "David Robertson",
-                    "Tom Izzo",
-                    "Billy Hamilton",
-                    "Brendan Haywood",
-                    "Brett Hundley"
-                },
+                forget_player_subset=16,
                 is_forget_dataset=False,
                 train_test_split=True
             )
@@ -473,24 +438,7 @@ def run():
             device=device, 
             prep_acdcpp=False, 
             criterion="cross_entropy", 
-            forget_player_subset={
-                "Lance Stephenson",
-                "Nnamdi Asomugha",
-                "Philip Rivers",
-                "Andre Iguodala",
-                "Tyus Jones",
-                "Jonathan Papelbon",
-                "Brandon Roy",
-                "Nick Markakis",
-                "Deion Jones",
-                "Thon Maker",
-                "Tony Gonzalez",
-                "David Robertson",
-                "Tom Izzo",
-                "Billy Hamilton",
-                "Brendan Haywood",
-                "Brett Hundley"
-            },
+            forget_player_subset=16,
             is_forget_dataset=True,
             train_test_split=False
         )
@@ -507,24 +455,7 @@ def run():
                 device=device, 
                 prep_acdcpp=False, 
                 criterion="cross_entropy", 
-                forget_player_subset={
-                    "Lance Stephenson",
-                    "Nnamdi Asomugha",
-                    "Philip Rivers",
-                    "Andre Iguodala",
-                    "Tyus Jones",
-                    "Jonathan Papelbon",
-                    "Brandon Roy",
-                    "Nick Markakis",
-                    "Deion Jones",
-                    "Thon Maker",
-                    "Tony Gonzalez",
-                    "David Robertson",
-                    "Tom Izzo",
-                    "Billy Hamilton",
-                    "Brendan Haywood",
-                    "Brett Hundley"
-                },
+                forget_player_subset=16,
                 is_forget_dataset=False,
                 train_test_split=True
             )
@@ -662,10 +593,10 @@ def run():
                     all_test_losses[task_name].append(task_loss / n_eval_iters)
                 if do_adversarial_evals:
                     print("Running adversarial evals")
-                    adversarial_evals.append(adversarial_sports_eval(model, model_type=model_type, batch_size=eval_batch_size, use_system_prompt=True, include_evals=["MC"]))
+                    adversarial_evals.append(adversarial_sports_eval(model, model_type=model_type, batch_size=eval_batch_size, use_system_prompt=True, include_evals=["Normal", "MC"]))
                 if do_side_effects_evals:
                     print("Running side effects evals")
-                    side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["Sports Answers"]))
+                    side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"]))
             gc.collect()
             torch.cuda.empty_cache()
             

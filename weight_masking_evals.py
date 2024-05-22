@@ -95,12 +95,12 @@ from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 evals = {
     # "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
     "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),
-    "Side Effects": partial(run_side_effects_evals, evals_to_run=["Cross Entropy", "Sports Answers"], verbose=False), #  "Sports Familiarity",
+    "Side Effects": partial(run_side_effects_evals, evals_to_run=["General"], verbose=False), #  "Sports Familiarity",
 }
 eval_batch_size=50
 results = {}
 localization_types = ["manual"] #["random", "manual", "none"] # ["ap", "ct"]
-forget_sports = ["baseball"] #["baseball", "basketball", "football"]
+forget_sports = ["basketball"] #["baseball", "basketball", "football"]
 # localization_types = ["ap"]
 # forget_sports = ["baseball"]
 

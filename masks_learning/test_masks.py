@@ -121,39 +121,217 @@ def get_mean_cache(model):
         mean_cache = ActivationCache(mean_cache_dict, model)
     return mean_cache
 
+### Localization helper funcs
+def create_random_weight_mask_dicts(model, top_p):
+    # Creates random weight masks for testing
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+        # Want bool of length n_head, randomly set to True
+        weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) > top_p
+
+        # Randomly set to true or false
+        weight_mask_mlp_dict[layer]['W_in'] = random.random() > top_p
+        weight_mask_mlp_dict[layer]['W_out'] = random.random() > top_p
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
+
+def create_mlp_only_mask_dicts(model):
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        # Set to false: we train a mask over these
+        weight_mask_mlp_dict[layer]['W_in'] = not (1 <= layer <= 7)
+        weight_mask_mlp_dict[layer]['W_out'] = not (1 <= layer <= 7)
+        print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
+
+def get_mask_from_ap_graph(model, ap_graph, top_p):
+    # Attention masks are of form:
+    # {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}}
+    # TRUE for the heads we want to FREEZE, FALSE for heads we want to MASK over
+    # MLP masks are of form:
+    # {layer: bool}
+
+    # Localizations are of form:
+    # {alayer.head_{q,k,v,result}:int, mlayer_{in,out}: int}
+
+    # Get threshold such that top_p% of weights are ABOVE threshold: We are masking over the top_p% of weights
+    top_p *= 100
+    all_weights = []
+    for key, value in ap_graph.items():
+        all_weights.append(value)
+
+    all_weights = np.array(all_weights)
+    threshold = np.percentile(all_weights, 100 - top_p)
+
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        if 'a0.0_q' in ap_graph:
+            weight_mask_attn_dict[layer]['W_Q'] = torch.tensor(
+                [
+                    abs(ap_graph[f"a{layer}.{head}_q"]) < threshold 
+                    for head in range(model.cfg.n_heads)
+                ]
+            )
+        else:
+            weight_mask_attn_dict[layer]['W_Q'] = None
+
+        if 'a0.0_k' in ap_graph:
+            weight_mask_attn_dict[layer]['W_K'] = torch.tensor(
+                [
+                    abs(ap_graph[f"a{layer}.{head}_k"]) < threshold 
+                    for head in range(model.cfg.n_heads)
+                ]
+            )
+        else:
+            weight_mask_attn_dict[layer]['W_K'] = None
+        
+        if 'a0.0_v' in ap_graph:
+            weight_mask_attn_dict[layer]['W_V'] = torch.tensor(
+                [
+                    abs(ap_graph[f"a{layer}.{head}_v"]) < threshold 
+                    for head in range(model.cfg.n_heads)
+                ]
+            )
+        else:
+            weight_mask_attn_dict[layer]['W_V'] = None
+        
+        if 'a0.0_result' in ap_graph:
+            weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
+                [
+                    abs(ap_graph[f"a{layer}.{head}_result"]) < threshold 
+                    for head in range(model.cfg.n_heads)
+                ]
+            )
+        else:
+            weight_mask_attn_dict[layer]['W_O'] = None
+            
+        if 'm0_in' in ap_graph:
+            weight_mask_mlp_dict[layer]['W_in'] = abs(ap_graph[f"m{layer}_in"]) < threshold
+        else:
+            weight_mask_mlp_dict[layer]['W_in'] = None
+        
+        if 'm0_out' in ap_graph:
+            weight_mask_mlp_dict[layer]['W_out'] = abs(ap_graph[f"m{layer}_out"]) < threshold
+        else:
+            weight_mask_mlp_dict[layer]['W_out'] = None
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
+
+def get_mask_from_ct_graph(model, ct_graph, top_p):
+    # Attention masks are of form:
+    # {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}}
+    # TRUE for the heads we want to FREEZE, FALSE for heads we want to MASK over
+    # MLP masks are of form:
+    # {layer: bool}
+
+    # Localizations are of form:
+    # {alayer.head:int, mlayer: int}
+
+    top_p *= 100
+    all_weights = []
+    for key, value in ct_graph.items():
+        all_weights.append(value)
+
+    all_weights = np.array(all_weights)
+    threshold = np.percentile(all_weights, 100 - top_p)
+
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
+            [
+                abs(ct_graph[f"a{layer}.{head}"]) < threshold 
+                for head in range(model.cfg.n_heads)
+            ]
+        )
+
+        weight_mask_mlp_dict[layer]['W_out'] = torch.tensor(
+            [
+                abs(ct_graph[f"m{layer}"]) < threshold
+            ]
+        )
+    
+    return weight_mask_attn_dict, weight_mask_mlp_dict
 #%%
 mean_cache = get_mean_cache(model)
 #%%
 import random
 model.reset_hooks()
 results = {}
-for forget_sport in ['all']:
+for forget_sport in ['basketball', "athlete"]:
     torch.cuda.empty_cache()
     gc.collect()
-    sports_task = SportsTask(
-        # model=model, 
-        # N=50, 
-        batch_size=2, 
-        tokenizer=tokenizer,
-        device=device
-    )
+    if forget_sport == 'athlete':
+        sports_task = SportsTask(
+            # model=model, 
+            # N=50, 
+            batch_size=10, 
+            forget_player_subset=16,
+            is_forget_dataset=True,
+            tokenizer=tokenizer,
+            device=device
+        )
+    else:
+        sports_task = SportsTask(
+            # model=model, 
+            # N=50, 
+            batch_size=10, 
+            forget_sport_subset={forget_sport},
+            is_forget_dataset=True,
+            tokenizer=tokenizer,
+            device=device
+        )
 
     results[forget_sport] = {}
-    for localization_method in ["ap", "random"]:
+    for localization_method in ["manual", "random", "ap", "ct"]:
         results[forget_sport][localization_method] = {}
 
-        if localization_method == "random":
-            # Hijack the AP localizations
-            with open(f"models/{save_model_name}_sports_{forget_sport}_ap_graph.pkl", "rb") as f:
-                # Load pickle
-                localization = pickle.load(f)
-            for key, value in localization.items():
-                # Set to random value between 1e-6 and 5
-                localization[key] = (5 * random.random()) + 1e-6
-        else:
-            with open(f"models/{save_model_name}_sports_{forget_sport}_{localization_method}_graph.pkl", "rb") as f:
-                # Load pickle
-                localization = pickle.load(f)
+        localization_top_p = 0.05
+        if localization_method == "ap":
+            with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_method}_graph.pkl", "rb") as f:
+                localization_graph = pickle.load(f)
+        elif localization_method == "ct":
+            with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_method}_graph.pkl", "rb") as f:
+                localization_graph = pickle.load(f)
+        elif localization_method == "random":
+            with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_ap_graph.pkl", "rb") as f:
+                localization_graph = pickle.load(f)
+            # Set every value to random between 1e-5 and 5
+            for k in localization_graph.keys():
+                localization_graph[k] = random.uniform(1e-5, 5)
+        elif localization_method == "manual":
+            with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_ap_graph.pkl", "rb") as f:
+                localization_graph = pickle.load(f)
+            # Set MLPs between 1 and 7 to inf, rest to 0
+            for k in localization_graph.keys():
+                if "m" in k:
+                    layer = k[1:].split('_')
+                    if 1 <= layer <= 7:
+                        localization_graph[k] = float('inf')
+                    else:
+                        localization_graph[k] = 0
 
         thresholds = []
         losses = []
@@ -166,7 +344,7 @@ for forget_sport in ['all']:
 
         for THRESHOLD in tqdm(sequence):
             # print(f"{forget_sport};{localization_method}: {THRESHOLD}")
-            components_to_ablate = {k for k, v in localization.items() if abs(v) > THRESHOLD}
+            components_to_ablate = {k for k, v in localization_graph.items() if abs(v) > THRESHOLD}
             hook_fn = functools.partial(
                 mean_ablate_hook,
                 mean_cache=mean_cache,
@@ -200,27 +378,33 @@ for forget_sport in ['all']:
             with torch.set_grad_enabled(False):
                 losses.append(sports_task.get_test_loss(model, n_iters=15).item())
             model.reset_hooks()
-            percent_ablated.append(len(components_to_ablate) / len(localization.keys()))
+            percent_ablated.append(len(components_to_ablate) / len(localization_graph.keys()))
         results[forget_sport][localization_method] = (thresholds, losses, percent_ablated)
 
 # %% PLOT
 import matplotlib.pyplot as plt
 
-for forget_sport in ['all']:
+for forget_sport in ['basketball', 'athlete']:
+    fig = plt.figure()
+
     thresholds, losses, percent_ablated = results[forget_sport]["ap"]
+    plt.plot(percent_ablated, losses, label="Attribution Patching Ablation")
+    thresholds, losses, percent_ablated = results[forget_sport]["ct"]
+    plt.plot(percent_ablated, losses, label="Causal Tracing Ablation")
+    thresholds, losses, percent_ablated = results[forget_sport]["manual"]
+    plt.plot(percent_ablated, losses, label="Manual Ablation")
+
     random_thresholds, random_losses, random_percent_ablated = results[forget_sport]["random"]
+    plt.plot(random_percent_ablated, random_losses, label="Random Ablation")
 
     # Plot 
-    fig = plt.figure()
-    plt.plot(percent_ablated, losses, label="Attribution Patching Ablation")
-    plt.plot(random_percent_ablated, random_losses, label="Random Ablation")
     plt.xlabel("Percent Top Components Ablated")
     plt.ylabel("Test Loss (Log Scale)")
     # plt.yscale('log')
     plt.legend()
     plt.grid()
 
-    plt.title(f"Sports: Test Loss vs Percent of Top Components Ablated")
+    plt.title(f"Basketball Loss vs Percent of Top Components Ablated")
     plt.show()
 
 # %%
