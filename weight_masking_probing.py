@@ -30,7 +30,7 @@ train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', strea
 # %%
 os.environ['HF_TOKEN'] = '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'
 model_type = "gemma"
-model_name = 'google/gemma-2b'
+model_name = 'google/gemma-7b'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 def load_model(model_name=model_name):
     model = HookedTransformer.from_pretrained(
@@ -85,9 +85,22 @@ def count_thresholdable(mask):
     return total
 
 #%%
+import gc
 forget_sport = "basketball"
-ds = SportsTask(batch_size=32, tokenizer=tokenizer, device="cuda", prep_acdcpp=False, criterion="log_1_minus_p")
+localization_type = "ap"
+num_weights = 900_000
+ds = SportsTask(batch_size=1024, tokenizer=tokenizer, device="cuda", prep_acdcpp=False, criterion="log_1_minus_p")
 model = load_model()
+mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
+
+sorted_nonzero = sort_mask_weights(mask)
+threshold = sorted_nonzero[num_weights - 1]
+threshold_mask(mask, threshold)
+apply_mask(model, mask)
+
+del mask
+gc.collect()
+torch.cuda.empty_cache()
 
 #%%
 batch = ds.get_batch()
@@ -100,10 +113,7 @@ _, cache = model.run_with_cache(
     prompt_toks,
     names_filter = lambda name: 'resid_post' in name
 )
-
-#%%
 cache = torch.stack([cache[key][:, -1, :] for key in cache.keys()], dim=0) # layer batch d_model
-
 
 #%%
 # Train logistic regressions
@@ -189,7 +199,6 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
         for forget_sport in tqdm(forget_sports):
             results[localization_type][forget_sport] = {}
             mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-            sorted_nonzero = sort_mask_weights(mask)
             del mask
 
             for num_weights in [100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000]:
