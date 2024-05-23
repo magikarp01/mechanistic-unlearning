@@ -85,10 +85,13 @@ def count_thresholdable(mask):
     return total
 
 #%%
+results = {}
+#%%
 import gc
 forget_sport = "basketball"
-localization_type = "ap"
-num_weights = 900_000
+localization_type = "manual"
+results[localization_type] = []
+num_weights = 1_800_000
 ds = SportsTask(batch_size=1024, tokenizer=tokenizer, device="cuda", prep_acdcpp=False, criterion="log_1_minus_p")
 model = load_model()
 mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
@@ -146,7 +149,9 @@ for layer in range(model.cfg.n_layers):
     y_pred = clf.predict(X_test)
     # clf_preds.append(y_pred)
 
-    print(f"Layer {layer} Accuracy: {clf.score(X_test, y_test)}")
+    test_acc = clf.score(X_test, y_test)
+    print(f"Layer {layer} Accuracy: {test_acc}")
+    results[localization_type].append(test_acc)
 
     # evaluate final accuracy
     # the regressions are accurate if the correct regression predicted the sport, and the other two did not
@@ -161,84 +166,42 @@ for layer in range(model.cfg.n_layers):
     # print(f"Layer {layer} Accuracy: {correct / len(y_test)}")
 
 #%%
-
+# Save to json
+import json
+with open(f"results/{model_name.replace('/', '_')}-{forget_sport}-probe-results.json", "w") as f:
+    json.dump(results, f, indent=4)
 
 # %%
-from functools import partial
-import gc
-import json
-from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
-from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
-
-# Final evals
-evals = {
-    # "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
-    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),
-    "Side Effects": partial(run_side_effects_evals, evals_to_run=["General"], verbose=False), #  "Sports Familiarity",
+from matplotlib import pyplot as plt
+# Plot results
+type_to_name = {
+    'ap': 'Localized AP',
+    'ct': 'Localized CT',
+    'random': 'Random',
+    'manual': 'Manual Interp',
+    'none': 'Nonlocalized'
 }
-eval_batch_size=50
-results = {}
-localization_types = ["manual"] #["random", "manual", "none"] # ["ap", "ct"]
-forget_sports = ["basketball"] #["baseball", "basketball", "football"]
-# localization_types = ["ap"]
-# forget_sports = ["baseball"]
+fig = plt.figure()
 
-# min_thresholdable = float('inf')
-# for localization_type in localization_types:
-#     for forget_sport in forget_sports:
-#         mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-#         min_thresholdable = min(min_thresholdable, count_thresholdable(mask))
-#         del mask
-#         gc.collect()
-#         torch.cuda.empty_cache()
+colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+markers = ['o', 'v', '^', '*', 'p', 's', 'P']
 
-with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
-    for localization_type in localization_types:
-        results[localization_type] = {}
+ax = plt.gca()
+ax.set_ylim([0, 1])
+ax.set_xlim([0, 27])
 
-        for forget_sport in tqdm(forget_sports):
-            results[localization_type][forget_sport] = {}
-            mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-            del mask
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 
-            for num_weights in [100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000]:
-                if num_weights > len(sorted_nonzero):
-                    num_weights = len(sorted_nonzero)
-                threshold = sorted_nonzero[num_weights - 1]
-                str_num_weights = str(num_weights)
-                print(localization_type, forget_sport, num_weights)
-                results[localization_type][forget_sport][str_num_weights] = {}
+for i, (k, v) in enumerate(results.items()):
+    plt.plot(range(28), v, label=f'{type_to_name[k]}', color=colors[i], marker=markers[i])
 
-                # Load Model
-                model = load_model()
-                mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-                threshold_mask(mask, threshold)
-                apply_mask(model, mask)
-
-                del mask
-                gc.collect()
-                torch.cuda.empty_cache()
-
-                for eval_name, eval_func in evals.items():
-                    results[localization_type][forget_sport][str_num_weights][eval_name] = {}
-                    print(f'{eval_name=}')
-                    eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
-
-                    for k, v in eval_result.items():
-                        results[localization_type][forget_sport][str_num_weights][eval_name][k] = v
-                        print(k, v)
-
-                    gc.collect()
-                    torch.cuda.empty_cache()
-
-                del model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-        # with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update-nondisc.json", "w") as f:
-        #     json.dump(results[localization_type], f, indent=2)
-        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update.json", "w") as f:
-            json.dump(results[localization_type], f, indent=2)
-
-with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
-    json.dump(results, f, indent=2)
+plt.xlabel(f"Layer", fontsize=14)
+plt.ylabel(f"Probe Accuracy", fontsize=14)
+plt.title(f"Weight Masking: Probe Accuracy on Forgotten Sport", fontsize=14)
+plt.legend(fontsize=12)
+plt.grid()
+plt.plot()
+plt.show()
+fig.savefig(f"results/{model_name.replace('/', '_')}-{forget_sport}-probe-acc.pdf")
+# %%

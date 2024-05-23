@@ -5,9 +5,16 @@ import json
 from matplotlib import colors, pyplot as plt
 #%%
 localization_types = ['ap', 'ct', 'random', 'manual', 'none']
+type_to_name = {
+    'ap': 'Localized AP',
+    'ct': 'Localized CT',
+    'random': 'Random',
+    'manual': 'Manual Interp',
+    'none': 'Nonlocalized'
+}
 eval_names = ['Adversarial: System Prompt']
-forget_sports = ['basketball']#, 'athlete']
-forget_sport = 'basketball'
+forget_sports = ['athlete']#, 'athlete']
+forget_sport = 'athlete'
 
 results = {}
 for localization_type in localization_types:
@@ -30,14 +37,15 @@ def format_func(x):
 from matplotlib import pyplot as plt
 color_idx = 0
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
-all_sports = set(['football', 'baseball', 'basketball'])
-# all_sports = set(["forget", "maintain"])
+markers = ['o', 'v', '^', 's', 'p', '*', 'P']
+# all_sports = set(['football', 'baseball', 'basketball'])
+all_sports = set(["forget", "maintain"])
 for forget_sport in forget_sports:
     fig = plt.figure(figsize=(10, 6))
     for eval_name in eval_names:
         for localization_type in localization_types:
             subeval_name = 'MC'
-            subeval_sport = forget_sport
+            subeval_sport = 'forget' #forget_sport
             # for subeval_sport in ['baseball', 'basketball', 'football']:
             subeval_metric = []
             maintain_acc = []
@@ -57,35 +65,39 @@ for forget_sport in forget_sports:
             plt.plot(
                 xvals,
                 subeval_metric, 
-                label=f'{localization_type} forget accuracy',
-                color=colors[color_idx]
+                label=f'{type_to_name[localization_type]} forget accuracy',
+                color=colors[color_idx],
+                marker=markers[color_idx]
             )
             # plt.plot(
             #     xvals,
             #     maintain_acc, 
             #     # 'm--',
-            #     label=f'{localization_type} maintain accuracy',
-            #     color=colors[color_idx]
+            #     label=f'{type_to_name[localization_type]} maintain accuracy',
+            #     color=colors[color_idx],
+            #     marker=markers[color_idx]
             # )
             color_idx += 1
-            plt.xticks(ticks=xvals, labels=xlabels, rotation=-45, fontsize=16)
+            plt.xticks(ticks=xvals, labels=xlabels, rotation=-50, fontsize=16)
             plt.yticks(fontsize=16)
     ax = plt.gca()
     ax.set_ylim([0, 1])
-    plt.legend(fontsize=12, loc='lower right')
+    ax.set_xlim([0, 2_400_000])
+    plt.legend(fontsize=12, loc='lower left')
     # plt.ylabel(f'{subeval_sport.title()} Accuracy', fontsize=16)
-    plt.ylabel(f'Maintain Accuracy', fontsize=16)
+    plt.ylabel(f'Forget Accuracy', fontsize=16)
     plt.xlabel('Number of Masked Weights', fontsize=16)
     plt.grid()
     plt.title(f'{forget_sport.title()} Accuracy vs Num. Masked Weights', fontsize=16)
     plt.show()
     # Save as PDF
     # plt.savefig(f"results/{forget_sport}-{eval_name}-{subeval_name}.pdf")
-    # fig.savefig("basketball-maintain-acc.pdf", bbox_inches='tight')
+    fig.savefig("athlete-forget-acc.pdf", bbox_inches='tight')
             
 
 # %%
 all_sports = set(['football', 'baseball', 'basketball'])
+markers = ['o', 'v', '^', '*', 'p', 's', 'P']
 # Pareto plots
 for forget_sport in forget_sports:
     # Need to plot 'Normal' {forget_sport} eval against:
@@ -103,29 +115,38 @@ for forget_sport in forget_sports:
     #             results[localization_type][forget_sport]['Normal'][eval_name][forget_sport]
     #         )
 
-
+    fig = plt.figure()
     # Tennis Side Effects
+    color_idx = 0
     for localization_type in localization_types:
         forget_acc = []
         maintain_acc = []
         for i in results[localization_type][forget_sport].keys():
             forget_acc.append(
-                results[localization_type][forget_sport][i]['Adversarial: System Prompt']['Normal'][forget_sport]
+                results[localization_type][forget_sport][i]['Adversarial: System Prompt']['MC']['forget'] # forget_sport
             )
 
         tennis_eval = []
         for i in results[localization_type][forget_sport].keys():
             tennis_eval.append(
-                results[localization_type][forget_sport][i]['Side Effects']['Sports Answers']['tennis']
+                results[localization_type][forget_sport][i]['Side Effects']['General']['MMLU']
             )
-        plt.scatter(forget_acc, tennis_eval, label=f'{localization_type}-Tennis')
-        plt.xlabel(f"Accuracy: MC Eval")
-        plt.ylabel(f"Side Effect: Tennis Accuracy")
-        plt.title(f"{forget_sport} MC vs Tennis Side Effect")
-        plt.legend()
+
+        ax = plt.gca()
+        ax.set_ylim([0.3, .7])
+        ax.set_xlim([0, 1])
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        plt.scatter(forget_acc, tennis_eval, label=f'{type_to_name[localization_type]}', marker=markers[color_idx])
+        plt.xlabel(f"Accuracy: Athlete MC", fontsize=16)
+        plt.ylabel(f"MMLU Accuracy", fontsize=16)
+        plt.title(f"Athlete MC vs MMLU Accuracy", fontsize=16)
+        plt.legend(fontsize=12)
         plt.grid()
         plt.plot()
+        color_idx += 1
     plt.show()
+    fig.savefig("athlete-mc-mmlu.pdf", bbox_inches='tight')
         
 
 # %%
