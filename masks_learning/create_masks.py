@@ -13,7 +13,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #%%
 ### LOAD MODELS
-model_name = 'google/gemma-7b'
+model_name = 'EleutherAI/pythia-2.8b'
+    #  'google/gemma-7b' 
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
     # 'EleutherAI/pythia-2.8b',
@@ -22,10 +23,10 @@ model_name = 'google/gemma-7b'
 from transformer_lens import HookedTransformer
 from transformers import AutoTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = HookedTransformer.from_pretrained(
     model_name,
-    tokenizer=tokenizer,
+    # tokenizer=tokenizer,
     device='cuda',
     default_padding_side="left",
     fold_ln=False,
@@ -33,6 +34,7 @@ model = HookedTransformer.from_pretrained(
     center_writing_weights=False,
     dtype=torch.bfloat16
 )
+tokenizer = model.tokenizer
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
 model.set_use_hook_mlp_in(True)
@@ -73,18 +75,29 @@ import pickle
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
 gc.collect()
-for forget_sport in ['basketball', 'baseball']: # ['all']:#
+for forget_sport in ['basketball', 'athlete']: # ['all']:#
     torch.cuda.empty_cache()
     gc.collect()
-    sports_task = SportsFactsTask(
-        model=model, 
-        N=26, 
-        batch_size=2, 
-        tokenizer=tokenizer,
-        forget_sport_subset={forget_sport},
-        is_forget_dataset=True,
-        device=device
-    )
+    if forget_sport == 'athlete':
+        sports_task = SportsFactsTask(
+            model=model, 
+            N=26, 
+            batch_size=2, 
+            tokenizer=tokenizer,
+            forget_player_subset=16,
+            is_forget_dataset=True,
+            device=device
+        )
+    else:
+        sports_task = SportsFactsTask(
+            model=model, 
+            N=26, 
+            batch_size=2, 
+            tokenizer=tokenizer,
+            forget_sport_subset={forget_sport},
+            is_forget_dataset=True,
+            device=device
+        )
 
     for name, task in zip(["sports"], [sports_task]):
         eap_localizer = EAPLocalizer(model, task)
@@ -109,7 +122,7 @@ for forget_sport in ['basketball', 'baseball']: # ['all']:#
         #     pickle.dump(dict(ap_graph), f)
 
         model.eval() # Don't need gradients when doing ct task
-        ct_graph = ct_localizer.get_ct_mask(batch_size=15)
+        ct_graph = ct_localizer.get_ct_mask(batch_size=6)
         model.train()
         with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
             pickle.dump(dict(ct_graph), f)
