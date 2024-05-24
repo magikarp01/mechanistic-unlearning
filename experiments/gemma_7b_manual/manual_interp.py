@@ -30,7 +30,7 @@ with open('tasks/facts/sports_data.json', 'r') as f:
 corr_sub_map = data['corr_sub_map']
 clean_sub_map = data['clean_sub_map']
 
-def tokenize_instructions(self, tokenizer, instructions):
+def tokenize_instructions(tokenizer, instructions):
     # Use this to put the text into INST tokens or add a system prompt
     return tokenizer(
         instructions,
@@ -51,3 +51,9 @@ dataset = PairedInstructionDataset(
 )
 
 # %%
+
+# Need to 
+# 1. Probe for correct sport with no changes
+# 2. Probe for correct sport with just <bos>name
+# 3. Probe after meal ablating attention heads after layer 2
+# 4. Probe after meal ablating attention heads after layer 2 and just <bos>name
