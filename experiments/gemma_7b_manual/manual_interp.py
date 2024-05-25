@@ -2,6 +2,7 @@
 %cd ~/mechanistic-unlearning
 %load_ext autoreload
 %autoreload 2
+import functools
 import os
 import gc
 import json
@@ -43,7 +44,7 @@ def tokenize_instructions(tokenizer, instructions):
 
 # %%
 import numpy as np
-from transformers import load_dataset
+from datasets import load_dataset
 import einops
 from transformer_lens import ActivationCache
 
@@ -53,7 +54,15 @@ from transformer_lens import ActivationCache
 # 3. Probe after meal ablating attention heads after layer 2
 # 4. Probe after meal ablating attention heads after layer 2 and just <bos>name
 
-def probe_across_layers(model, cache, targets):
+def probe_across_layers(model, prompt_toks, targets):
+
+    with torch.set_grad_enabled(False):
+        _, cache = model.run_with_cache(
+            prompt_toks,
+            names_filter = lambda name: 'resid_pre' in name
+        )
+        cache = torch.stack([cache[key][:, -1, :] for key in cache.keys()], dim=0) # layer batch d_model
+
     results = []
     for layer in range(model.cfg.n_layers):
         X = cache[layer].cpu().float().numpy().reshape(-1, cache[layer].shape[-1])
@@ -95,15 +104,102 @@ def get_mean_cache(model):
     return mean_cache
 
 def mean_ablate_hook(act, hook, mean_cache):
+    if hook.layer() <= 4:
+        return act
+    print(f'Hooked {hook.name}')
     act = mean_cache[hook.name]
     return act
 
-_, cache = model.run_with_cache(
-    prompt_toks,
-    names_filter = lambda name: 'resid_post' in name
+#%% Getting Cache
+m_cache = get_mean_cache(model)
+mean_cache = {}
+for k in m_cache.keys():
+    mean_cache[k] = einops.reduce(
+        m_cache[k],
+        'batch seq d_model -> 1 1 d_model',
+        'mean'
+    )
+
+#%% Probing
+full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
+athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
+
+results = {}
+
+results['full_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['athl_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+
+model.reset_hooks()
+
+# Add mean ablate hooks
+model.add_hook(
+    lambda name: 'attn_out' in name,
+    functools.partial(mean_ablate_hook, mean_cache=mean_cache),
+    "fwd"
 )
-cache = torch.stack([cache[key][:, -1, :] for key in cache.keys()], dim=0) # layer batch d_model
+
+results['mean_ablate_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['mean_ablate_athl_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+model.reset_hooks()
+
+# %% Investigating the attention heads
+
+
+with open('tasks/facts/sports_data.json', 'r') as f:
+    data = json.load(f)
+
+corr_sub_map = data['corr_sub_map']
+clean_sub_map = data['clean_sub_map']
+
+dataset = PairedInstructionDataset(
+    N=1500,
+    instruction_templates=data['instruction_templates'],
+    harmful_substitution_map=corr_sub_map,
+    harmless_substitution_map=clean_sub_map,
+    tokenizer=tokenizer,
+    tokenize_instructions=tokenize_instructions, 
+    device=device
+)
 
 #%%
-# Train logistic regressions
+
+def act_patch_hook_z(act, hook, patch_cache, head):
+    # heads_to_patch is [(layer, head)]
+    # heads = [head for layer, head in heads_to_patch if layer == hook.layer()]
+
+    # act is batch head seq d_model
+    act[:, head, ...] = patch_cache[hook.name][:, head, ...]
+
+    return act
+
+layer_range = range(0, 9)
+head_range = range(0, model.cfg.n_heads)
+
+heads_to_patch = [
+    (layer, head)
+    for layer in layer_range
+    for head in head_range
+]
+
+# Get patch cache
+model.reset_hooks()
+_, patch_cache = model.run_with_cache(
+    dataset.harmful_dataset.toks,
+    names_filter = lambda name: 'hook_z' in name
+)
+
+results_mat = torch.zeros((len(list(layer_range)), len(list(head_range))))
+
+for (layer, head) in heads_to_patch:
+    print(f'Layer {layer} Head {head}')
+
+    model.reset_hooks()
+    model.add_hook(
+        lambda name: 'attn_out' in name,
+        functools.partial(act_patch_hook_z, patch_cache=patch_cache, head=head),
+        "fwd"
+    )
+
+    results_mat[layer, head] = # TODO
+    model.reset_hooks()
 
