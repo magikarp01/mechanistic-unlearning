@@ -15,6 +15,12 @@ from transformer_lens import HookedTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
+import numpy as np
+from tqdm.auto import tqdm
+from datasets import load_dataset
+import einops
+from transformer_lens import ActivationCache
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #%%
 model = HookedTransformer.from_pretrained(
@@ -42,11 +48,7 @@ def tokenize_instructions(tokenizer, instructions):
     ).input_ids
 
 
-# %%
-import numpy as np
-from datasets import load_dataset
-import einops
-from transformer_lens import ActivationCache
+# %% Probing Functions
 
 # Need to 
 # 1. Probe for correct sport with no changes
@@ -144,35 +146,31 @@ model.reset_hooks()
 
 # %% Investigating the attention heads
 
+from tasks.facts.SportsTask import SportsFactsTask
 
-with open('tasks/facts/sports_data.json', 'r') as f:
-    data = json.load(f)
-
-corr_sub_map = data['corr_sub_map']
-clean_sub_map = data['clean_sub_map']
-
-dataset = PairedInstructionDataset(
-    N=1500,
-    instruction_templates=data['instruction_templates'],
-    harmful_substitution_map=corr_sub_map,
-    harmless_substitution_map=clean_sub_map,
+N = 1000
+batch_size = 100
+sports_task = SportsFactsTask(
+    model=model, 
+    batch_size=batch_size, 
     tokenizer=tokenizer,
-    tokenize_instructions=tokenize_instructions, 
+    N=N, 
+    prep_acdcpp=True,
     device=device
 )
-
-#%%
 
 def act_patch_hook_z(act, hook, patch_cache, head):
     # heads_to_patch is [(layer, head)]
     # heads = [head for layer, head in heads_to_patch if layer == hook.layer()]
 
     # act is batch head seq d_model
+    # print(f"Patched L{hook.layer()}H{head}")
     act[:, head, ...] = patch_cache[hook.name][:, head, ...]
 
     return act
 
-layer_range = range(0, 9)
+
+layer_range = range(0, 8)
 head_range = range(0, model.cfg.n_heads)
 
 heads_to_patch = [
@@ -182,24 +180,51 @@ heads_to_patch = [
 ]
 
 # Get patch cache
-model.reset_hooks()
-_, patch_cache = model.run_with_cache(
-    dataset.harmful_dataset.toks,
-    names_filter = lambda name: 'hook_z' in name
-)
-
-results_mat = torch.zeros((len(list(layer_range)), len(list(head_range))))
-
-for (layer, head) in heads_to_patch:
-    print(f'Layer {layer} Head {head}')
+results_mat = torch.zeros((len(list(layer_range)), len(list(head_range))), device=device)
+for (layer, head) in tqdm(heads_to_patch):
+    # print(f'Patching L{layer}H{head}')
 
     model.reset_hooks()
-    model.add_hook(
-        lambda name: 'attn_out' in name,
-        functools.partial(act_patch_hook_z, patch_cache=patch_cache, head=head),
-        "fwd"
-    )
 
-    results_mat[layer, head] = # TODO
+    for num_examples in range(0, N, batch_size):
+        clean_data_slice = sports_task.clean_data.toks[num_examples:num_examples+batch_size]
+        corr_data_slice = sports_task.corr_data.toks[num_examples:num_examples+batch_size]
+        correct_ans_slice = sports_task.clean_answer_toks[num_examples:num_examples+batch_size]
+        wrong_ans_slice = sports_task.clean_wrong_toks[num_examples:num_examples+batch_size]
+
+        _, patch_cache = model.run_with_cache(
+            corr_data_slice,
+            names_filter = lambda name: name == f'blocks.{layer}.attn.hook_z'
+        )
+
+        model.reset_hooks()
+        model.add_hook(
+            lambda name: name == f'blocks.{layer}.attn.hook_z',
+            functools.partial(act_patch_hook_z, patch_cache=patch_cache, head=head),
+            "fwd"
+        )
+
+        results_mat[layer, head] += sports_task.eap_metric(
+            model(clean_data_slice), 
+            correct_ans_slice, 
+            wrong_ans_slice,
+            denoising=False
+        ).item()
+
+        model.reset_hooks()
+    
+    results_mat[layer, head] /= (N / batch_size)
     model.reset_hooks()
 
+
+# %% 
+import matplotlib.pyplot as plt
+
+plt.imshow(results_mat.cpu().numpy(), cmap='RdBu')
+plt.colorbar()
+plt.xlabel('Head')
+plt.ylabel('Layer')
+plt.title('Patching Scores per Layer and Head')
+plt.show()
+
+# %%
