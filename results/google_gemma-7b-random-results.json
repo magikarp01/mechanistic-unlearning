@@ -1,0 +1,924 @@
+{
+  "baseball": {
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9904614210128785,
+          "baseball": 0.9940285325050355,
+          "basketball": 0.9563604116439821
+        },
+        "MC": {
+          "football": 0.9759920239448547,
+          "baseball": 0.9343221783637999,
+          "basketball": 0.8379715442657472
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2661064147949217,
+          "OWT": 2.4816524505615236
+        }
+      }
+    },
+    "200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9919390916824341,
+          "baseball": 0.9922167181968689,
+          "basketball": 0.9617189049720765
+        },
+        "MC": {
+          "football": 0.9775115013122558,
+          "baseball": 0.9375391840934753,
+          "basketball": 0.8379315137863159
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2659724235534666,
+          "OWT": 2.4817331790924073
+        }
+      }
+    },
+    "300000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9928184866905213,
+          "baseball": 0.9904509067535401,
+          "basketball": 0.9542034029960633
+        },
+        "MC": {
+          "football": 0.9767667531967162,
+          "baseball": 0.9373574972152711,
+          "basketball": 0.8382188558578492
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.98,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.264997863769531,
+          "OWT": 2.481165361404419
+        }
+      }
+    },
+    "400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9933226943016051,
+          "baseball": 0.9843634366989136,
+          "basketball": 0.9684554576873778
+        },
+        "MC": {
+          "football": 0.9779839634895324,
+          "baseball": 0.9393198728561402,
+          "basketball": 0.8460656404495239
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.98,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.264099597930908,
+          "OWT": 2.4814483165740966
+        }
+      }
+    },
+    "500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9941695451736449,
+          "baseball": 0.9661431193351746,
+          "basketball": 0.9730689406394958
+        },
+        "MC": {
+          "football": 0.9777352571487428,
+          "baseball": 0.9391527533531189,
+          "basketball": 0.8452308893203737
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.98,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.255232906341553,
+          "OWT": 2.4730576992034914
+        }
+      }
+    },
+    "700000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9946879506111144,
+          "baseball": 0.9418197393417358,
+          "basketball": 0.9745656371116639
+        },
+        "MC": {
+          "football": 0.9791595816612243,
+          "baseball": 0.9396216511726381,
+          "basketball": 0.8372646570205688
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.96,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.262203502655029,
+          "OWT": 2.481780004501343
+        }
+      }
+    },
+    "900000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9957045555114747,
+          "baseball": 0.8982919812202455,
+          "basketball": 0.9836862325668335
+        },
+        "MC": {
+          "football": 0.9792059302330017,
+          "baseball": 0.9415831923484802,
+          "basketball": 0.8442912936210634
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.94,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.260325002670288,
+          "OWT": 2.4812990188598634
+        }
+      }
+    },
+    "1200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9962042808532715,
+          "baseball": 0.817167091369629,
+          "basketball": 0.9935690999031067
+        },
+        "MC": {
+          "football": 0.9803440809249877,
+          "baseball": 0.9420857429504393,
+          "basketball": 0.856338346004486
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.94,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2592239379882812,
+          "OWT": 2.481545400619507
+        }
+      }
+    },
+    "1500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9965352058410646,
+          "baseball": 0.6943033695220947,
+          "basketball": 0.984873604774475
+        },
+        "MC": {
+          "football": 0.9803894281387329,
+          "baseball": 0.9420992732048035,
+          "basketball": 0.8512816071510315
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.92,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2495063304901124,
+          "OWT": 2.473281717300415
+        }
+      }
+    },
+    "1800000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9971595883369446,
+          "baseball": 0.5159636557102203,
+          "basketball": 0.9895012259483338
+        },
+        "MC": {
+          "football": 0.9809527754783629,
+          "baseball": 0.9442049622535705,
+          "basketball": 0.8390750288963318
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.92,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2573523044586183,
+          "OWT": 2.4825934886932375
+        }
+      }
+    },
+    "2100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.997757875919342,
+          "baseball": 0.3699160754680633,
+          "basketball": 0.9904842615127564
+        },
+        "MC": {
+          "football": 0.9825523018836975,
+          "baseball": 0.9445240616798403,
+          "basketball": 0.8715275764465331
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 0.88,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.250133514404297,
+          "OWT": 2.4767340183258058
+        }
+      }
+    }
+  },
+  "basketball": {
+    "0": {
+      "Adversarial: No System Prompt": {
+        "Normal": {
+          "football": 0.9910156965255738,
+          "baseball": 0.9971865057945253,
+          "basketball": 0.9507227420806885
+        },
+        "MC": {
+          "football": 0.975691306591034,
+          "baseball": 0.9354609608650208,
+          "basketball": 0.8482524752616882
+        },
+        "Capitalized": {
+          "football": 0.9878933548927307,
+          "baseball": 0.9982918977737426,
+          "basketball": 0.9491047501564025
+        },
+        "Dashed": {
+          "football": 0.44425083398818965,
+          "baseball": 0.9703513860702515,
+          "basketball": 0.9665499091148375
+        }
+      },
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.991642189025879,
+          "baseball": 0.9972210884094238,
+          "basketball": 0.9628623127937317
+        },
+        "MC": {
+          "football": 0.9759855151176452,
+          "baseball": 0.9340523958206177,
+          "basketball": 0.8416166424751281
+        },
+        "Capitalized": {
+          "football": 0.9886035203933716,
+          "baseball": 0.9982556581497193,
+          "basketball": 0.9454528570175171
+        },
+        "Dashed": {
+          "football": 0.442301869392395,
+          "baseball": 0.9701622128486633,
+          "basketball": 0.9741936326026917
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2581938743591308,
+          "OWT": 2.473426914215088
+        }
+      }
+    },
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9918268203735353,
+          "baseball": 0.9975331664085387,
+          "basketball": 0.9564589381217956
+        },
+        "MC": {
+          "football": 0.9770851016044617,
+          "baseball": 0.9375750184059143,
+          "basketball": 0.8509578347206116
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.265018844604492,
+          "OWT": 2.4815344333648683
+        }
+      }
+    },
+    "200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9921903729438781,
+          "baseball": 0.998060441017151,
+          "basketball": 0.9592019200325012
+        },
+        "MC": {
+          "football": 0.9791499257087708,
+          "baseball": 0.9406879782676696,
+          "basketball": 0.854504632949829
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.263181972503662,
+          "OWT": 2.481872320175171
+        }
+      }
+    },
+    "300000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9937045574188232,
+          "baseball": 0.998018515110016,
+          "basketball": 0.9518260240554809
+        },
+        "MC": {
+          "football": 0.9813732385635375,
+          "baseball": 0.9447741985321045,
+          "basketball": 0.8602415442466735
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.261102533340454,
+          "OWT": 2.4816815853118896
+        }
+      }
+    },
+    "400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.993858277797699,
+          "baseball": 0.9983064889907836,
+          "basketball": 0.9559116363525391
+        },
+        "MC": {
+          "football": 0.9821995377540589,
+          "baseball": 0.9477604269981383,
+          "basketball": 0.8545570373535156
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.259333276748657,
+          "OWT": 2.4815130710601805
+        }
+      }
+    },
+    "500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9940470576286315,
+          "baseball": 0.9986276984214781,
+          "basketball": 0.9698750376701355
+        },
+        "MC": {
+          "football": 0.9836007475852965,
+          "baseball": 0.9488126277923584,
+          "basketball": 0.8552325606346131
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.25002703666687,
+          "OWT": 2.4732481956481935
+        }
+      }
+    },
+    "700000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9938884258270264,
+          "baseball": 0.9987998008728027,
+          "basketball": 0.9444871068000794
+        },
+        "MC": {
+          "football": 0.984478485584259,
+          "baseball": 0.9510012388229371,
+          "basketball": 0.8602505326271057
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.248656892776489,
+          "OWT": 2.4742123603820803
+        }
+      }
+    },
+    "900000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9938899874687195,
+          "baseball": 0.9990737676620483,
+          "basketball": 0.9515468358993531
+        },
+        "MC": {
+          "football": 0.9852539420127868,
+          "baseball": 0.9528295159339906,
+          "basketball": 0.8528968334197997
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2476362228393554,
+          "OWT": 2.4750332832336426
+        }
+      }
+    },
+    "1200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.995297908782959,
+          "baseball": 0.9991887331008911,
+          "basketball": 0.9513100504875183
+        },
+        "MC": {
+          "football": 0.9875426769256593,
+          "baseball": 0.9551602959632873,
+          "basketball": 0.852607011795044
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2470431327819824,
+          "OWT": 2.477150821685791
+        }
+      }
+    },
+    "1500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9958512663841247,
+          "baseball": 0.9991746544837952,
+          "basketball": 0.9381994366645813
+        },
+        "MC": {
+          "football": 0.9878509759902954,
+          "baseball": 0.9575356960296632,
+          "basketball": 0.8540883302688598
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.247141647338867,
+          "OWT": 2.478736066818237
+        }
+      }
+    },
+    "1800000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9955000638961791,
+          "baseball": 0.9991694211959838,
+          "basketball": 0.924577260017395
+        },
+        "MC": {
+          "football": 0.9885871410369873,
+          "baseball": 0.9607949495315551,
+          "basketball": 0.8672650575637817
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.2507668018341063,
+          "OWT": 2.4823699951171876
+        }
+      }
+    },
+    "2072472": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9958513021469118,
+          "baseball": 0.9990942001342774,
+          "basketball": 0.9351622462272645
+        },
+        "MC": {
+          "football": 0.9881330132484436,
+          "baseball": 0.9608699083328247,
+          "basketball": 0.8536724686622619
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 0.98
+        },
+        "Cross Entropy": {
+          "Pile": 2.250766944885254,
+          "OWT": 2.4823699474334715
+        }
+      }
+    }
+  },
+  "football": {
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9910600662231445,
+          "baseball": 0.9974392533302306,
+          "basketball": 0.9530595541000366
+        },
+        "MC": {
+          "football": 0.9759929776191711,
+          "baseball": 0.9357733607292176,
+          "basketball": 0.8339132308959961
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2649586677551268,
+          "OWT": 2.4809733390808106
+        }
+      }
+    },
+    "200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9920044422149658,
+          "baseball": 0.9975790619850159,
+          "basketball": 0.9501332163810731
+        },
+        "MC": {
+          "football": 0.9762169718742371,
+          "baseball": 0.9360059261322022,
+          "basketball": 0.8439197897911073
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2644856929779054,
+          "OWT": 2.4807440757751467
+        }
+      }
+    },
+    "300000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9908708691596986,
+          "baseball": 0.9976797103881836,
+          "basketball": 0.9702331185340881
+        },
+        "MC": {
+          "football": 0.9761715412139893,
+          "baseball": 0.936258852481842,
+          "basketball": 0.8527698159217834
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.261880302429199,
+          "OWT": 2.4794116973876954
+        }
+      }
+    },
+    "400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9909044265747071,
+          "baseball": 0.9973173141479491,
+          "basketball": 0.9654935836791992
+        },
+        "MC": {
+          "football": 0.9758623361587525,
+          "baseball": 0.9345639705657959,
+          "basketball": 0.8515594124794007
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2618682384490967,
+          "OWT": 2.4798644542694093
+        }
+      }
+    },
+    "500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9925519704818725,
+          "baseball": 0.9975094795227051,
+          "basketball": 0.9593361735343933
+        },
+        "MC": {
+          "football": 0.9763573050498963,
+          "baseball": 0.9350030183792114,
+          "basketball": 0.8384020566940307
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2614798069000246,
+          "OWT": 2.4805562496185303
+        }
+      }
+    },
+    "700000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9917239546775818,
+          "baseball": 0.9976353764533996,
+          "basketball": 0.9555548310279847
+        },
+        "MC": {
+          "football": 0.9779733896255492,
+          "baseball": 0.9373250722885131,
+          "basketball": 0.8450732946395875
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2602158069610594,
+          "OWT": 2.481181240081787
+        }
+      }
+    },
+    "900000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9922949552536011,
+          "baseball": 0.9973618030548095,
+          "basketball": 0.9618494510650635
+        },
+        "MC": {
+          "football": 0.9768863558769227,
+          "baseball": 0.9367291331291199,
+          "basketball": 0.8386193156242371
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2519062042236326,
+          "OWT": 2.473648023605347
+        }
+      }
+    },
+    "1200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9920368432998657,
+          "baseball": 0.997850739955902,
+          "basketball": 0.9547479152679443
+        },
+        "MC": {
+          "football": 0.9775567889213562,
+          "baseball": 0.941708254814148,
+          "basketball": 0.8487790584564209
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2509679317474367,
+          "OWT": 2.4743123054504395
+        }
+      }
+    },
+    "1500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9923138618469239,
+          "baseball": 0.9979687809944152,
+          "basketball": 0.9569275617599488
+        },
+        "MC": {
+          "football": 0.9775758981704712,
+          "baseball": 0.9400665402412415,
+          "basketball": 0.8446808218955993
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.248919677734375,
+          "OWT": 2.4742455005645754
+        }
+      }
+    },
+    "1800000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9916847229003907,
+          "baseball": 0.998006772994995,
+          "basketball": 0.9477492094039917
+        },
+        "MC": {
+          "football": 0.9777398705482483,
+          "baseball": 0.9377765417099,
+          "basketball": 0.8345481276512146
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.2561699867248537,
+          "OWT": 2.484176826477051
+        }
+      }
+    },
+    "2100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9928698420524598,
+          "baseball": 0.997575306892395,
+          "basketball": 0.9523984432220459
+        },
+        "MC": {
+          "football": 0.9780344843864441,
+          "baseball": 0.936217713356018,
+          "basketball": 0.8463296413421632
+        }
+      },
+      "Side Effects": {
+        "Sports Answers": {
+          "football": 1.0,
+          "baseball": 1.0,
+          "basketball": 1.0,
+          "tennis": 1.0
+        },
+        "Cross Entropy": {
+          "Pile": 2.255643033981323,
+          "OWT": 2.4852959632873537
+        }
+      }
+    }
+  }
+}

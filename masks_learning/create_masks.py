@@ -17,8 +17,6 @@ model_name = 'EleutherAI/pythia-2.8b'
     #  'google/gemma-7b' 
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
-    # 'EleutherAI/pythia-2.8b',
-    # "gpt2-small",
 
 from transformer_lens import HookedTransformer
 from transformers import AutoTokenizer
@@ -138,72 +136,5 @@ for forget_sport in ['all']: # ['all']:#
         torch.cuda.empty_cache()
         gc.collect()
 
-        # for THRESHOLD in np.logspace(-8, 1, num=10):
 
-            ### EAP
-            # (
-            #     acdcpp_nodes,
-            #     acdcpp_edges,
-            #     acdcpp_mask_dict,
-            #     acdcpp_weight_mask_attn_dict,
-            #     acdcpp_weight_mask_mlp_dict,
-            # ) = get_masks_from_eap_exp(
-            #     eap_graph, threshold=THRESHOLD, num_layers=model.cfg.n_layers, num_heads=model.cfg.n_heads, filter_neox=True
-            # )
-
-            # eap_mask = CausalGraphMask(
-            #     nodes_set=acdcpp_nodes,
-            #     edges_set=acdcpp_edges,
-            #     ct_mask_dict=acdcpp_mask_dict,
-            #     ct_weight_mask_attn_dict=acdcpp_weight_mask_attn_dict,
-            #     ct_weight_mask_mlp_dict=acdcpp_weight_mask_mlp_dict,
-            # )
-            # eap_mask.save(f"models/{save_model_name}_{name}_eap_mask_{round(THRESHOLD, 10)}_{forget_sport}.pkl")
-
-            ## ATTRIBUTION PATCHING
-
-            # ap_keys = list(ap_graph.keys())
-            # ap_keys_above_threshold = [k for k in ap_keys if ap_graph[k] > THRESHOLD]
-            # (
-            #     nodes_set,
-            #     edges_set,
-            #     ap_mask_dict,
-            #     ap_weight_mask_attn_dict,
-            #     ap_weight_mask_mlp_dict,
-            # ) = get_masks_from_ct_nodes(ap_keys_above_threshold)
-            # ap_mask = CausalGraphMask(
-            #     nodes_set=nodes_set,
-            #     edges_set=edges_set,
-            #     ct_mask_dict=ap_mask_dict,
-            #     ct_weight_mask_attn_dict=ap_weight_mask_attn_dict,
-            #     ct_weight_mask_mlp_dict=ap_weight_mask_mlp_dict,
-            # )
-
-            # ap_mask.save(f"models/{save_model_name}_{name}_ap_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
-            
-            ### CAUSAL TRACING
-            # ct_keys = list(ct_graph.keys())
-            # ct_keys_above_threshold = [k for k in ct_keys if ct_graph[k] > THRESHOLD]
-
-            # (
-            #     nodes_set,
-            #     edges_set,
-            #     ct_mask_dict,
-            #     ct_weight_mask_attn_dict,
-            #     ct_weight_mask_mlp_dict,
-            # ) = get_masks_from_ct_nodes(ct_keys_above_threshold)
-            # ct_mask = CausalGraphMask(
-            #     nodes_set=nodes_set,
-            #     edges_set=edges_set,
-            #     ct_mask_dict=ct_mask_dict,
-            #     ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
-            #     ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
-            # )
-
-            # ct_mask.save(f"models/{save_model_name}_{name}_ct_mask_{round(THRESHOLD, 5)}_{forget_sport}.pkl") 
-            # torch.cuda.empty_cache()
-            # gc.collect()
-
-            # torch.cuda.empty_cache()
-            # gc.collect()
-# %%
+#%%

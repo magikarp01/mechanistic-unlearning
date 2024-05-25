@@ -1,0 +1,919 @@
+nohup: ignoring input
+OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
+  0%|          | 0/1 [00:00<?, ?it/s]Gemma's activation function should be approximate GeLU and not exact GeLU.
+Changing the activation function to `gelu_pytorch_tanh`.if you want to use the legacy `gelu`, edit the `model.config` to set `hidden_activation=gelu`   instead of `hidden_act`. See https://github.com/huggingface/transformers/pull/29402 for more details.
+random basketball 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.28it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.26it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.26it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.57it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.44it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9956725597381592, 'baseball': 0.9991907477378845, 'basketball': 0.9288441419601441}
+MC {'football': 0.9882199764251709, 'baseball': 0.9606986880302429, 'basketball': 0.8530647873878479}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random basketball 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.43it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.32it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.56it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9906898975372315, 'baseball': 0.9974325180053711, 'basketball': 0.9543935418128966}
+MC {'football': 0.976698124408722, 'baseball': 0.9360891819000244, 'basketball': 0.8492220878601073}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.73it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.58it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9924958109855652, 'baseball': 0.9978572845458985, 'basketball': 0.9517284154891967}
+MC {'football': 0.9801373362541199, 'baseball': 0.9405067563056946, 'basketball': 0.8476188659667969}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9930320143699646, 'baseball': 0.9981645703315736, 'basketball': 0.9574897050857544}
+MC {'football': 0.9811209559440615, 'baseball': 0.9463637351989747, 'basketball': 0.8503122568130492}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.50it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.44it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9941196084022522, 'baseball': 0.9984927415847777, 'basketball': 0.9624095201492309}
+MC {'football': 0.9831960201263428, 'baseball': 0.9460801362991333, 'basketball': 0.872419559955597}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9938462376594542, 'baseball': 0.9986415982246399, 'basketball': 0.9500827550888062}
+MC {'football': 0.9826079249382018, 'baseball': 0.947805142402649, 'basketball': 0.8586488842964173}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.53it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9937378764152528, 'baseball': 0.9988651752471924, 'basketball': 0.9565100789070129}
+MC {'football': 0.9848111629486085, 'baseball': 0.9511513233184814, 'basketball': 0.8537091493606568}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.49it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.42it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.36it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.55it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9947088479995728, 'baseball': 0.9990960597991945, 'basketball': 0.958958113193512}
+MC {'football': 0.9850157260894775, 'baseball': 0.952806305885315, 'basketball': 0.848634696006775}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+random basketball 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.72it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9950864076614381, 'baseball': 0.999262809753418, 'basketball': 0.9481124162673951}
+MC {'football': 0.9868062734603882, 'baseball': 0.9549930214881897, 'basketball': 0.8434982419013978}
+eval_name='Side Effects'
+General {'MMLU': 0.6699999999999999}
+random basketball 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9954146504402162, 'baseball': 0.9992744445800781, 'basketball': 0.9344970345497131}
+MC {'football': 0.9880247354507445, 'baseball': 0.9568662285804749, 'basketball': 0.854309618473053}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random basketball 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9953957080841065, 'baseball': 0.9990493535995483, 'basketball': 0.9475525498390198}
+MC {'football': 0.98809175491333, 'baseball': 0.9606814742088318, 'basketball': 0.8642621040344238}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random basketball 2072472
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.47it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.42it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.72it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.59it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9956739544868469, 'baseball': 0.9990336179733276, 'basketball': 0.9453354477882385}
+MC {'football': 0.9885104656219481, 'baseball': 0.9606340765953065, 'basketball': 0.8558867335319518}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+random basketball 2072472
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [15:00<00:00, 900.93s/it]100%|██████████| 1/1 [15:00<00:00, 900.93s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9956180334091186, 'baseball': 0.9990729808807374, 'basketball': 0.9354521989822387}
+MC {'football': 0.9883643388748169, 'baseball': 0.9604950904846191, 'basketball': 0.8567836880683899}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+  0%|          | 0/1 [00:00<?, ?it/s]manual basketball 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.54it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.46it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9941999435424805, 'baseball': 0.982734715938568, 'basketball': 0.017865695431828497}
+MC {'football': 0.985249149799347, 'baseball': 0.9513140678405761, 'basketball': 0.01958055999130011}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual basketball 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.41it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.59it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9922238230705261, 'baseball': 0.9978543281555176, 'basketball': 0.897356152534485}
+MC {'football': 0.9788824915885925, 'baseball': 0.9399827599525452, 'basketball': 0.7986281514167786}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual basketball 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9937288403511046, 'baseball': 0.9976865410804748, 'basketball': 0.6956917762756347}
+MC {'football': 0.9808082580566405, 'baseball': 0.940503716468811, 'basketball': 0.6036012887954711}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+manual basketball 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.71it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9944550514221191, 'baseball': 0.9980859518051147, 'basketball': 0.41902412176132203}
+MC {'football': 0.9820289611816406, 'baseball': 0.9432709574699403, 'basketball': 0.42609270811080935}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+manual basketball 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9931918263435364, 'baseball': 0.9977775335311889, 'basketball': 0.30484190583229065}
+MC {'football': 0.9819677352905274, 'baseball': 0.9454781651496887, 'basketball': 0.3227178037166596}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+manual basketball 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.58it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9931943058967589, 'baseball': 0.998019826412201, 'basketball': 0.23537967205047605}
+MC {'football': 0.9830775260925293, 'baseball': 0.9475091934204101, 'basketball': 0.21977097690105438}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+manual basketball 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9949245333671569, 'baseball': 0.9979326844215393, 'basketball': 0.12511258125305175}
+MC {'football': 0.9835050702095032, 'baseball': 0.9510846257209777, 'basketball': 0.16115674972534177}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual basketball 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.73it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.48it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9950897693634033, 'baseball': 0.9975085616111756, 'basketball': 0.048960798233747486}
+MC {'football': 0.9859274268150331, 'baseball': 0.9522124767303466, 'basketball': 0.09882115721702575}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual basketball 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.74it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9896693348884582, 'baseball': 0.997185456752777, 'basketball': 0.014085059706121682}
+MC {'football': 0.9867428779602051, 'baseball': 0.9534119248390198, 'basketball': 0.03625374659895897}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual basketball 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.45it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9963690996170044, 'baseball': 0.996374762058258, 'basketball': 0.008393618883565069}
+MC {'football': 0.9867291808128357, 'baseball': 0.9553905844688416, 'basketball': 0.02383863050490618}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+manual basketball 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9939797401428223, 'baseball': 0.9896666169166565, 'basketball': 0.008885129098780455}
+MC {'football': 0.9848757386207581, 'baseball': 0.951821768283844, 'basketball': 0.022513232566416266}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual basketball 2021505
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9936085820198061, 'baseball': 0.9808114051818848, 'basketball': 0.014506807504221796}
+MC {'football': 0.9851189255714417, 'baseball': 0.9523373484611511, 'basketball': 0.011780523974448441}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+manual basketball 2021505
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.53it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [14:57<00:00, 897.31s/it]100%|██████████| 1/1 [14:57<00:00, 897.31s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9917440295219422, 'baseball': 0.9847869277000427, 'basketball': 0.007881948025897144}
+MC {'football': 0.9850428223609924, 'baseball': 0.9518568277359009, 'basketball': 0.022381472401320934}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+  0%|          | 0/1 [00:00<?, ?it/s]none basketball 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.43it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.30382276177406314, 'baseball': 0.6932993173599243, 'basketball': 0.0013131254119798544}
+MC {'football': 0.6397958040237428, 'baseball': 0.025076958164572716, 'basketball': 0.3371131420135498}
+eval_name='Side Effects'
+General {'MMLU': 0.2}
+none basketball 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.58it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.74it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9911458134651184, 'baseball': 0.9970426559448242, 'basketball': 0.9708611726760865}
+MC {'football': 0.9772519350051879, 'baseball': 0.9356264114379883, 'basketball': 0.8422833800315858}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+none basketball 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9934551596641541, 'baseball': 0.9989893794059753, 'basketball': 0.9336597084999084}
+MC {'football': 0.9782063961029054, 'baseball': 0.9356479406356812, 'basketball': 0.8710637331008912}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+none basketball 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.55it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9964562654495238, 'baseball': 0.9992129564285278, 'basketball': 0.9104561567306517}
+MC {'football': 0.9781626224517823, 'baseball': 0.9404054164886474, 'basketball': 0.8497698903083802}
+eval_name='Side Effects'
+General {'MMLU': 0.67}
+none basketball 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9973135590553284, 'baseball': 0.9989641308784485, 'basketball': 0.768821656703949}
+MC {'football': 0.9777178525924682, 'baseball': 0.9490193963050841, 'basketball': 0.8736754298210143}
+eval_name='Side Effects'
+General {'MMLU': 0.62}
+none basketball 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.38it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.59it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9966583132743836, 'baseball': 0.9987210631370546, 'basketball': 0.42784122824668885}
+MC {'football': 0.9786171793937684, 'baseball': 0.9354164361953736, 'basketball': 0.8586653351783753}
+eval_name='Side Effects'
+General {'MMLU': 0.6499999999999999}
+none basketball 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.45it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.55it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9967267751693727, 'baseball': 0.9984817147254945, 'basketball': 0.11491634845733642}
+MC {'football': 0.9782360672950744, 'baseball': 0.9368311882019044, 'basketball': 0.8694796681404113}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+none basketball 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9977434039115907, 'baseball': 0.9973181605339051, 'basketball': 0.019279350340366364}
+MC {'football': 0.9707600831985473, 'baseball': 0.929184877872467, 'basketball': 0.863611102104187}
+eval_name='Side Effects'
+General {'MMLU': 0.64}
+none basketball 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9974108338356018, 'baseball': 0.9959242582321167, 'basketball': 0.004132476984523237}
+MC {'football': 0.9553468227386475, 'baseball': 0.9228978037834168, 'basketball': 0.8611164808273315}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+none basketball 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9968696355819702, 'baseball': 0.9919443249702453, 'basketball': 0.0019242986978497357}
+MC {'football': 0.9424996137619018, 'baseball': 0.937834095954895, 'basketball': 0.8067331433296204}
+eval_name='Side Effects'
+General {'MMLU': 0.6}
+none basketball 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.62it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9987011790275573, 'baseball': 0.9886592984199524, 'basketball': 4.597624065354466e-05}
+MC {'football': 0.9234574675559998, 'baseball': 0.9337069392204285, 'basketball': 0.7748534560203553}
+eval_name='Side Effects'
+General {'MMLU': 0.5899999999999999}
+none basketball 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.69it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.48it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9977194905281066, 'baseball': 0.989620840549469, 'basketball': 2.304384815943195e-05}
+MC {'football': 0.9136072278022767, 'baseball': 0.907030487060547, 'basketball': 0.7390833377838135}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}
+none basketball 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.79it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [15:46<00:00, 946.94s/it]100%|██████████| 1/1 [15:46<00:00, 946.94s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9965078473091125, 'baseball': 0.9917990803718566, 'basketball': 1.5831100427021738e-05}
+MC {'football': 0.9007503628730773, 'baseball': 0.9014660596847534, 'basketball': 0.6994791626930237}
+eval_name='Side Effects'
+General {'MMLU': 0.58}
+  0%|          | 0/1 [00:00<?, ?it/s]ap basketball 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.36it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.39it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.59it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9912997245788575, 'baseball': 0.9930902361869813, 'basketball': 2.873596215147156e-09}
+MC {'football': 0.7697839140892029, 'baseball': 0.9817240715026856, 'basketball': 0.4242832899093628}
+eval_name='Side Effects'
+General {'MMLU': 0.45}
+ap basketball 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.59it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9966506123542787, 'baseball': 0.9991055011749268, 'basketball': 0.9220134973526}
+MC {'football': 0.9775022506713866, 'baseball': 0.9418072342872619, 'basketball': 0.8569679141044617}
+eval_name='Side Effects'
+General {'MMLU': 0.6699999999999999}
+ap basketball 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.36it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.31it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.51it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9969752192497252, 'baseball': 0.9989259481430054, 'basketball': 0.6911136865615846}
+MC {'football': 0.9750430703163148, 'baseball': 0.9409832239151, 'basketball': 0.8518735885620118}
+eval_name='Side Effects'
+General {'MMLU': 0.6499999999999999}
+ap basketball 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9970371961593627, 'baseball': 0.998623788356781, 'basketball': 0.21916498839855195}
+MC {'football': 0.9742011904716492, 'baseball': 0.9251541137695313, 'basketball': 0.8201067924499512}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+ap basketball 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.69it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9972710013389587, 'baseball': 0.998465096950531, 'basketball': 0.07299363240599632}
+MC {'football': 0.9682088971138, 'baseball': 0.9277276754379273, 'basketball': 0.7911536812782287}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+ap basketball 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9971336603164672, 'baseball': 0.9976755142211915, 'basketball': 0.027075201645493506}
+MC {'football': 0.9657009601593017, 'baseball': 0.9155545234680176, 'basketball': 0.7859837293624877}
+eval_name='Side Effects'
+General {'MMLU': 0.6100000000000001}
+ap basketball 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.42it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9972455978393555, 'baseball': 0.9990282893180847, 'basketball': 0.006010267697274685}
+MC {'football': 0.9567630648612976, 'baseball': 0.9334207773208618, 'basketball': 0.7972514271736146}
+eval_name='Side Effects'
+General {'MMLU': 0.6100000000000001}
+ap basketball 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.74it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.55it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.63it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9971034526824951, 'baseball': 0.9977733969688416, 'basketball': 0.0002487708261469379}
+MC {'football': 0.9447535634040832, 'baseball': 0.9514680862426758, 'basketball': 0.8023174166679382}
+eval_name='Side Effects'
+General {'MMLU': 0.5399999999999999}
+ap basketball 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.63it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.47it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9975718379020692, 'baseball': 0.9927939772605896, 'basketball': 1.8121855646313634e-05}
+MC {'football': 0.9260322451591492, 'baseball': 0.9604955315589905, 'basketball': 0.7253322362899781}
+eval_name='Side Effects'
+General {'MMLU': 0.57}
+ap basketball 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.43it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9969593405723571, 'baseball': 0.9969439148902892, 'basketball': 7.5562583063515374e-06}
+MC {'football': 0.8733489155769348, 'baseball': 0.981281864643097, 'basketball': 0.6183431863784791}
+eval_name='Side Effects'
+General {'MMLU': 0.5599999999999999}
+ap basketball 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.53it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.64it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9842472314834594, 'baseball': 0.9988291144371033, 'basketball': 4.8426963985548355e-06}
+MC {'football': 0.9153958082199097, 'baseball': 0.9795575261116027, 'basketball': 0.6968685746192932}
+eval_name='Side Effects'
+General {'MMLU': 0.49000000000000005}
+ap basketball 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.57it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.51it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.60it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9833626389503479, 'baseball': 0.9994581937789917, 'basketball': 2.676765504361356e-07}
+MC {'football': 0.8870948195457459, 'baseball': 0.9901790499687195, 'basketball': 0.5460639595985413}
+eval_name='Side Effects'
+General {'MMLU': 0.41999999999999993}
+ap basketball 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.55it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.48it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.59it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [15:17<00:00, 917.53s/it]100%|██████████| 1/1 [15:17<00:00, 917.53s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9890758275985718, 'baseball': 0.9927951931953429, 'basketball': 5.438441146310424e-08}
+MC {'football': 0.7031915783882141, 'baseball': 0.9827104210853578, 'basketball': 0.4843346118927002}
+eval_name='Side Effects'
+General {'MMLU': 0.43}
+  0%|          | 0/1 [00:00<?, ?it/s]ct basketball 0
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.48it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.39it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.35it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.57it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.999998927116394, 'baseball': 0.9999752163887025, 'basketball': 8.456759598152175e-12}
+MC {'football': 0.31955185532569885, 'baseball': 0.9696737647056579, 'basketball': 0.8809389114379882}
+eval_name='Side Effects'
+General {'MMLU': 0.5900000000000001}
+ct basketball 100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.46it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.41it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.36it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.55it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9972671866416931, 'baseball': 0.9965918421745301, 'basketball': 0.9276594281196594}
+MC {'football': 0.9730232357978821, 'baseball': 0.9407522320747376, 'basketball': 0.8284634947776796}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+ct basketball 200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.67it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9975027561187744, 'baseball': 0.9973062038421632, 'basketball': 0.2327528148889542}
+MC {'football': 0.9790894508361817, 'baseball': 0.9200430154800414, 'basketball': 0.8456294894218446}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+ct basketball 300000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.56it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.48it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.82it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9990119218826294, 'baseball': 0.9960716605186464, 'basketball': 0.04651662036776543}
+MC {'football': 0.9815994501113892, 'baseball': 0.9059295415878296, 'basketball': 0.8389051318168641}
+eval_name='Side Effects'
+General {'MMLU': 0.6599999999999999}
+ct basketball 400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.47it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.37it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.57it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9986062407493592, 'baseball': 0.9924867630004882, 'basketball': 0.010259027685970068}
+MC {'football': 0.9721299171447755, 'baseball': 0.927932059764862, 'basketball': 0.8288780331611634}
+eval_name='Side Effects'
+General {'MMLU': 0.6799999999999999}
+ct basketball 500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.52it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.50it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9985484123229982, 'baseball': 0.9913776159286498, 'basketball': 0.001919596060179174}
+MC {'football': 0.9713324904441833, 'baseball': 0.9332355380058289, 'basketball': 0.8337304353713989}
+eval_name='Side Effects'
+General {'MMLU': 0.63}
+ct basketball 700000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9993981719017029, 'baseball': 0.9927254319190979, 'basketball': 0.0002706013459828682}
+MC {'football': 0.9625230312347411, 'baseball': 0.9486155033111572, 'basketball': 0.8352816820144654}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}
+ct basketball 900000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.62it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.46it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9997525095939637, 'baseball': 0.9869724988937377, 'basketball': 4.7252124568331054e-05}
+MC {'football': 0.9566757559776307, 'baseball': 0.9653054237365721, 'basketball': 0.850386369228363}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+ct basketball 1200000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.61it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.41it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9996988773345947, 'baseball': 0.9833205342292786, 'basketball': 3.926140198018402e-06}
+MC {'football': 0.9352254033088685, 'baseball': 0.9701227188110352, 'basketball': 0.8529125690460204}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}
+ct basketball 1500000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.66it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.53it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.40it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.62it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9999116063117981, 'baseball': 0.9734623670578004, 'basketball': 6.965632337596617e-07}
+MC {'football': 0.9389901041984557, 'baseball': 0.9712581515312194, 'basketball': 0.8731321096420287}
+eval_name='Side Effects'
+General {'MMLU': 0.6499999999999999}
+ct basketball 1800000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.62it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.54it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.44it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9999348163604735, 'baseball': 0.9649355053901671, 'basketball': 3.508492314452383e-08}
+MC {'football': 0.9140345335006714, 'baseball': 0.9804484009742738, 'basketball': 0.8307746291160584}
+eval_name='Side Effects'
+General {'MMLU': 0.65}
+ct basketball 2100000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.56it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.49it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.45it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.77it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.999968981742859, 'baseball': 0.9684289455413819, 'basketball': 6.9595427643065476e-09}
+MC {'football': 0.893054711818695, 'baseball': 0.9780156254768371, 'basketball': 0.8614675283432006}
+eval_name='Side Effects'
+General {'MMLU': 0.6299999999999999}
+ct basketball 2400000
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.71it/s][A
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.57it/s][A
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.48it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.80it/s][ALoading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.70it/s]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 1/1 [15:05<00:00, 905.83s/it]100%|██████████| 1/1 [15:05<00:00, 905.83s/it]
+Loaded pretrained model google/gemma-7b into HookedTransformer
+eval_name='Adversarial: System Prompt'
+Normal {'football': 0.9999634504318237, 'baseball': 0.9720448017120361, 'basketball': 1.3988018077171204e-09}
+MC {'football': 0.8668573379516601, 'baseball': 0.9841192960739136, 'basketball': 0.8302290439605713}
+eval_name='Side Effects'
+General {'MMLU': 0.6199999999999999}

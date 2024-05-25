@@ -1,0 +1,251 @@
+{
+  "basketball": {
+    "0": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9912997245788575,
+          "baseball": 0.9930902361869813,
+          "basketball": 0.9940321432555211
+        },
+        "MC": {
+          "football": 0.9897839140892029,
+          "baseball": 0.9817240715026856,
+          "basketball": 0.9842832899093628
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.68
+        }
+      }
+    },
+    "100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9966506123542787,
+          "baseball": 0.9991055011749268,
+          "basketball": 0.9220134973526
+        },
+        "MC": {
+          "football": 0.9775022506713866,
+          "baseball": 0.9418072342872619,
+          "basketball": 0.8569679141044617
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6699999999999999
+        }
+      }
+    },
+    "200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9969752192497252,
+          "baseball": 0.9989259481430054,
+          "basketball": 0.6911136865615846
+        },
+        "MC": {
+          "football": 0.9750430703163148,
+          "baseball": 0.9409832239151,
+          "basketball": 0.8518735885620118
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6499999999999999
+        }
+      }
+    },
+    "300000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9970371961593627,
+          "baseball": 0.998623788356781,
+          "basketball": 0.21916498839855195
+        },
+        "MC": {
+          "football": 0.9742011904716492,
+          "baseball": 0.9251541137695313,
+          "basketball": 0.8201067924499512
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.65
+        }
+      }
+    },
+    "400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9972710013389587,
+          "baseball": 0.998465096950531,
+          "basketball": 0.07299363240599632
+        },
+        "MC": {
+          "football": 0.9682088971138,
+          "baseball": 0.9277276754379273,
+          "basketball": 0.7911536812782287
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.63
+        }
+      }
+    },
+    "500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9971336603164672,
+          "baseball": 0.9976755142211915,
+          "basketball": 0.027075201645493506
+        },
+        "MC": {
+          "football": 0.9657009601593017,
+          "baseball": 0.9155545234680176,
+          "basketball": 0.7859837293624877
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6100000000000001
+        }
+      }
+    },
+    "700000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9972455978393555,
+          "baseball": 0.9990282893180847,
+          "basketball": 0.006010267697274685
+        },
+        "MC": {
+          "football": 0.9567630648612976,
+          "baseball": 0.9334207773208618,
+          "basketball": 0.7972514271736146
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.6100000000000001
+        }
+      }
+    },
+    "900000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9971034526824951,
+          "baseball": 0.9977733969688416,
+          "basketball": 0.0002487708261469379
+        },
+        "MC": {
+          "football": 0.9447535634040832,
+          "baseball": 0.9514680862426758,
+          "basketball": 0.8023174166679382
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.5399999999999999
+        }
+      }
+    },
+    "1200000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9975718379020692,
+          "baseball": 0.9927939772605896,
+          "basketball": 1.8121855646313634e-05
+        },
+        "MC": {
+          "football": 0.9260322451591492,
+          "baseball": 0.9604955315589905,
+          "basketball": 0.7253322362899781
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.57
+        }
+      }
+    },
+    "1500000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9969593405723571,
+          "baseball": 0.9969439148902892,
+          "basketball": 7.5562583063515374e-06
+        },
+        "MC": {
+          "football": 0.8733489155769348,
+          "baseball": 0.981281864643097,
+          "basketball": 0.6183431863784791
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.5599999999999999
+        }
+      }
+    },
+    "1800000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9842472314834594,
+          "baseball": 0.9988291144371033,
+          "basketball": 4.8426963985548355e-06
+        },
+        "MC": {
+          "football": 0.9153958082199097,
+          "baseball": 0.9795575261116027,
+          "basketball": 0.6968685746192932
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.49000000000000005
+        }
+      }
+    },
+    "2100000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9833626389503479,
+          "baseball": 0.9994581937789917,
+          "basketball": 2.676765504361356e-07
+        },
+        "MC": {
+          "football": 0.8870948195457459,
+          "baseball": 0.9901790499687195,
+          "basketball": 0.5460639595985413
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.41999999999999993
+        }
+      }
+    },
+    "2400000": {
+      "Adversarial: System Prompt": {
+        "Normal": {
+          "football": 0.9890758275985718,
+          "baseball": 0.9927951931953429,
+          "basketball": 5.438441146310424e-08
+        },
+        "MC": {
+          "football": 0.7031915783882141,
+          "baseball": 0.9827104210853578,
+          "basketball": 0.4843346118927002
+        }
+      },
+      "Side Effects": {
+        "General": {
+          "MMLU": 0.43
+        }
+      }
+    }
+  }
+}
