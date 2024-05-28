@@ -6,6 +6,7 @@ import functools
 import os
 import gc
 import json
+from tkinter import font
 
 from dataset.custom_dataset import PairedInstructionDataset
 import torch
@@ -56,12 +57,41 @@ def tokenize_instructions(tokenizer, instructions):
 # 3. Probe after meal ablating attention heads after layer 2
 # 4. Probe after meal ablating attention heads after layer 2 and just <bos>name
 
+def probe_last_layer(model, prompt_toks, targets):
+    with torch.set_grad_enabled(False):
+        _, cache = model.run_with_cache(
+            prompt_toks,
+            names_filter = lambda name: name == f"blocks.{model.cfg.n_layers-1}.hook_resid_post"
+        )
+        cache = cache[f"blocks.{model.cfg.n_layers-1}.hook_resid_post"][:, -1, :]
+
+    X = cache.cpu().float().numpy()
+    print(X.shape, len(targets))
+    target_classes = []
+    for target in targets:
+        if target == "basketball":
+            target_classes.append(0)
+        elif target == "baseball":
+            target_classes.append(1) 
+        elif target == "football":
+            target_classes.append(2)
+    y = np.array(target_classes)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # train logistic regression
+    clf = LogisticRegression(random_state=0, max_iter=1000).fit(X_train, y_train)
+
+    test_acc = clf.score(X_test, y_test)
+    print(f"Accuracy: {test_acc}")
+
+    return test_acc
+
 def probe_across_layers(model, prompt_toks, targets):
 
     with torch.set_grad_enabled(False):
         _, cache = model.run_with_cache(
             prompt_toks,
-            names_filter = lambda name: 'resid_pre' in name
+            names_filter = lambda name: 'resid_post' in name
         )
         cache = torch.stack([cache[key][:, -1, :] for key in cache.keys()], dim=0) # layer batch d_model
 
@@ -88,7 +118,7 @@ def probe_across_layers(model, prompt_toks, targets):
 
     return results
 
-def get_mean_cache(model):
+def get_mean_cache(model, hook_name="attn_out"):
     pile = iter(load_dataset('monology/pile-uncopyrighted', split='train', streaming=True))
     text = [next(pile)['text'] for i in range(25)]
     toks = torch.stack(
@@ -101,15 +131,14 @@ def get_mean_cache(model):
     with torch.set_grad_enabled(False):
         _, mean_cache = model.run_with_cache(
             toks,
-            names_filter = lambda name: any([hook_name in name for hook_name in ["attn_out"]])
+            names_filter = lambda name: any([h_name in name for h_name in [hook_name]])
         )
     return mean_cache
 
 def mean_ablate_hook(act, hook, mean_cache):
-    if hook.layer() <= 4:
-        return act
-    print(f'Hooked {hook.name}')
-    act = mean_cache[hook.name]
+    if hook.layer() >= 0:
+        print(f'Hooked {hook.name}')
+        act = mean_cache[hook.name]
     return act
 
 #%% Getting Cache
@@ -128,9 +157,10 @@ athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <b
 
 results = {}
 
-results['full_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
-results['athl_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['Prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['Athlete'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
 
+#%%
 model.reset_hooks()
 
 # Add mean ablate hooks
@@ -140,37 +170,52 @@ model.add_hook(
     "fwd"
 )
 
-results['mean_ablate_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
-results['mean_ablate_athl_prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['Prompt + Mean Ablate'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
+results['Athlete + Mean Ablate'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
 model.reset_hooks()
 
-# %% Investigating the attention heads
+#%% Plot results
+import matplotlib.pyplot as plt
+for k, v in results.items():
+    plt.plot(v, label=k)
 
-from tasks.facts.SportsTask import SportsFactsTask
+plt.legend()
+plt.xlabel('Layer')
+plt.ylabel('Probe Accuracy')
+plt.title('Probe Accuracy Across Layers')
+plt.grid()
+plt.show()
 
-N = 1000
-batch_size = 100
-sports_task = SportsFactsTask(
-    model=model, 
-    batch_size=batch_size, 
-    tokenizer=tokenizer,
-    N=N, 
-    prep_acdcpp=True,
-    device=device
-)
+# %% Investigating the attention heads in layers [0, 6]
 
-def act_patch_hook_z(act, hook, patch_cache, head):
+full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
+athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
+m_cache = get_mean_cache(model, hook_name="hook_z")
+mean_cache = {}
+for k in m_cache.keys():
+    mean_cache[k] = einops.reduce(
+        m_cache[k],
+        'batch seq head d_model -> 1 1 head d_model',
+        'mean'
+    )
+
+#%%
+def act_patch_hook_z(act, hook, patch_cache, patch_layer, patch_head):
     # heads_to_patch is [(layer, head)]
     # heads = [head for layer, head in heads_to_patch if layer == hook.layer()]
 
     # act is batch head seq d_model
-    # print(f"Patched L{hook.layer()}H{head}")
-    act[:, head, ...] = patch_cache[hook.name][:, head, ...]
+
+    # want to patch head and every head after layer 7
+    if hook.layer() == patch_layer:
+        act[:, :, patch_head, :] = patch_cache[hook.name][:, :, patch_head, :]
+    elif hook.layer() >= 7:
+        act = patch_cache[hook.name]
 
     return act
 
 
-layer_range = range(0, 8)
+layer_range = range(0, 7)
 head_range = range(0, model.cfg.n_heads)
 
 heads_to_patch = [
@@ -186,45 +231,188 @@ for (layer, head) in tqdm(heads_to_patch):
 
     model.reset_hooks()
 
-    for num_examples in range(0, N, batch_size):
-        clean_data_slice = sports_task.clean_data.toks[num_examples:num_examples+batch_size]
-        corr_data_slice = sports_task.corr_data.toks[num_examples:num_examples+batch_size]
-        correct_ans_slice = sports_task.clean_answer_toks[num_examples:num_examples+batch_size]
-        wrong_ans_slice = sports_task.clean_wrong_toks[num_examples:num_examples+batch_size]
+    model.add_hook(
+        lambda name: 'hook_z' in name,
+        functools.partial(act_patch_hook_z, patch_cache=mean_cache, patch_layer=layer, patch_head=head),
+        "fwd"
+    )
 
-        _, patch_cache = model.run_with_cache(
-            corr_data_slice,
-            names_filter = lambda name: name == f'blocks.{layer}.attn.hook_z'
-        )
+    results_mat[layer, head] += probe_last_layer(model, full_prompt_toks, df['sport'].tolist()) 
 
-        model.reset_hooks()
-        model.add_hook(
-            lambda name: name == f'blocks.{layer}.attn.hook_z',
-            functools.partial(act_patch_hook_z, patch_cache=patch_cache, head=head),
-            "fwd"
-        )
-
-        results_mat[layer, head] += sports_task.eap_metric(
-            model(clean_data_slice), 
-            correct_ans_slice, 
-            wrong_ans_slice,
-            denoising=False
-        ).item()
-
-        model.reset_hooks()
-    
-    results_mat[layer, head] /= (N / batch_size)
     model.reset_hooks()
+    
+#%%
+# Get baseline accuracy
+model.reset_hooks()
+model.add_hook(
+    lambda name: 'hook_z' in name,
+    functools.partial(act_patch_hook_z, patch_cache=mean_cache, patch_layer=-1, patch_head=-1),
+    "fwd"
+)
 
+baseline_acc = probe_last_layer(model, full_prompt_toks, df['sport'].tolist()) 
+
+model.reset_hooks()
+#%% Just load it
+results_mat = torch.load('results/7b_patch_results.pt')
 
 # %% 
 import matplotlib.pyplot as plt
 
-plt.imshow(results_mat.cpu().numpy(), cmap='RdBu')
-plt.colorbar()
-plt.xlabel('Head')
-plt.ylabel('Layer')
-plt.title('Patching Scores per Layer and Head')
+fig = plt.figure()
+plt.imshow(results_mat.cpu().numpy() - baseline_acc, cmap='RdBu', vmax=.4, vmin=-.4)
+plt.xlabel('Head', fontsize=16)
+plt.ylabel('Layer', fontsize=16)
+plt.title('Change in Probe Accuracy \nwhen Patching Heads', fontsize=16)
+# increase font size of ticks
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+# increase font size of colorbar
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=12)
 plt.show()
+fig.savefig('results/7b_patch_heatmap.pdf')
+
+# %%
+
+layer_range = range(0, 7)
+head_range = range(0, model.cfg.n_heads)
+sorted_heads = sorted(
+    [(layer, head) for layer in layer_range for head in head_range],
+    key=lambda x: results_mat[x[0], x[1]],
+    reverse=False
+)
+
+heads_below = [(layer, head) for layer, head in sorted_heads if results_mat[layer, head] < 0.9]
+# sort heads below by layer, then head
+heads_below = sorted(heads_below, key=lambda x: (x[0], x[1]), reverse=True)
+
+# %% VW attn
+
+from circuitsvis import attention
+
+full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
+athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
+
+# Count number of leading 0s in the tensor
+def count_leading_zeros(t):
+    return (t != 0).nonzero(as_tuple=True)[0][0]
+
+# Only pick full_prompt_toks with 4 leading zeros
+leading_zeros = torch.stack(
+    [
+        count_leading_zeros(prompt_tok)
+        for prompt_tok in full_prompt_toks
+    ]
+)
+same_length_full_prompt_toks = full_prompt_toks[leading_zeros == 5] # name toks into 2 tokens 
+
+def get_attention(heads, cache, model, value_weighted=False):
+    pattern_all = torch.stack([
+        cache["pattern", layer][:, head] if cache.has_batch_dim else cache["pattern", layer][head]
+        for layer, head in heads
+    ], dim=-3)
+
+    if value_weighted:
+        v_all = torch.stack([
+            cache["v", layer][:, :, head] if cache.has_batch_dim else cache["v", layer][:, head]
+            for layer, head in heads
+        ], dim=-3)
+        pattern_all = attention.get_weighted_attention(pattern_all, model, "value-weighted", heads, v_all)
+    return pattern_all
+
+model.reset_hooks()
+_, cache = model.run_with_cache(
+    same_length_full_prompt_toks[:100],
+    names_filter = lambda name: 'pattern' in name or 'v' in name
+)
+
+vw_attn = get_attention(heads_below, cache, model, value_weighted=False)
+
+text = ['sport‎', 'of‎', 'golf', '\\n', 'Fact', ':', '{first_name}', '{last_name}', 'plays', 'the', 'sport', 'of']
+# %%
+
+from plotly import graph_objects as go
+fig = go.Figure(
+        data=go.Heatmap(
+            z=vw_attn[:, :, -1, -12:].cpu().numpy().mean(0), # (12, 10) for prompt i
+            x=text,
+            y=[f'L{layer}H{head}' for (layer, head) in heads_below],
+            colorscale='RdBu',
+            zmin=-1,
+            zmax=1,
+            # hovertemplate="Start %{x} Size %{y}<br>Mean: %{z}"
+        ),
+        layout=go.Layout(
+            title=f"Attention Weight from the 'of' Position",
+            xaxis_title="Sequence Position",
+            yaxis_title="Head",
+            # increase font sizes
+            font=dict(
+                size=16
+            ),
+            height=600,
+            width=700
+        )
+    )
+fig.show()
+# save as pdf
+fig.write_image("results/7b_last_pos_attn_more.png", scale=3)
+
+# %%
+
+fig = go.Figure(
+        data=go.Heatmap(
+            z=vw_attn[:, :, -5, -12:].cpu().numpy().mean(0), # (12, 10) for prompt i
+            x=text,
+            y=[f'L{layer}H{head}' for (layer, head) in heads_below],
+            colorscale='RdBu',
+            zmin=-1,
+            zmax=1,
+            # hovertemplate="Start %{x} Size %{y}<br>Mean: %{z}"
+        ),
+        layout=go.Layout(
+            title="Attention Weight <br>from the '{last_name}' Position",
+            xaxis_title="Sequence Position",
+            yaxis_title="Head",
+            # increase font sizes
+            font=dict(
+                size=16
+            ),
+            height=600,
+            width=700
+        )
+    )
+fig.show()
+# save as pdf, with high quality to prevent blurriness
+fig.write_image("results/7b_last_name_attn_more.png", scale=3)
+
+# %%
+
+fig = go.Figure(
+        data=go.Heatmap(
+            z=vw_attn[:, :, -6, -12:].cpu().numpy().mean(0), # (12, 10) for prompt i
+            x=text,
+            y=[f'L{layer}H{head}' for (layer, head) in heads_below],
+            colorscale='RdBu',
+            zmin=-1,
+            zmax=1,
+            # hovertemplate="Start %{x} Size %{y}<br>Mean: %{z}"
+        ),
+        layout=go.Layout(
+            title="Attention Score from the {first_name} Pos",
+            xaxis_title="Sequence Position",
+            yaxis_title="Head",
+            # increase font sizes
+            font=dict(
+                size=16
+            ),
+            height=600,
+            width=700
+        )
+    )
+fig.show()
+# save as pdf, with high quality to prevent blurriness
+fig.write_image("results/7b_first_name_attn_more.png", scale=3)
 
 # %%
