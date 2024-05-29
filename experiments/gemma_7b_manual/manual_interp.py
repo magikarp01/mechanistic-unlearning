@@ -136,7 +136,7 @@ def get_mean_cache(model, hook_name="attn_out"):
     return mean_cache
 
 def mean_ablate_hook(act, hook, mean_cache):
-    if hook.layer() >= 0:
+    if hook.layer() >= 7:
         print(f'Hooked {hook.name}')
         act = mean_cache[hook.name]
     return act
@@ -152,16 +152,12 @@ for k in m_cache.keys():
     )
 
 #%% Probing
+results = {}
 full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
 athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
 
-results = {}
-
-results['Prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
-results['Athlete'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
-
-#%%
 model.reset_hooks()
+results['Prompt'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
 
 # Add mean ablate hooks
 model.add_hook(
@@ -169,22 +165,43 @@ model.add_hook(
     functools.partial(mean_ablate_hook, mean_cache=mean_cache),
     "fwd"
 )
+results['+ Ablate Heads at Layers >= 7'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
 
-results['Prompt + Mean Ablate'] = probe_across_layers(model, full_prompt_toks, df['sport'].tolist())
-results['Athlete + Mean Ablate'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
+model.reset_hooks()
+results['Athlete'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
+
+# Add mean ablate hooks
+model.add_hook(
+    lambda name: 'attn_out' in name,
+    functools.partial(mean_ablate_hook, mean_cache=mean_cache),
+    "fwd"
+)
+results['+Ablate Heads at Layers >= 7'] = probe_across_layers(model, athl_prompt_toks, df['sport'].tolist())
 model.reset_hooks()
 
 #%% Plot results
 import matplotlib.pyplot as plt
-for k, v in results.items():
-    plt.plot(v, label=k)
+fig = plt.figure()
+markers = ['o', 's', '^', 'v', '*', 'p', 'P', 'X', 'd']
+for i, (k, v) in enumerate(results.items()):
+    plt.plot(v, label=k, marker=markers[i])
+
+# Add vertical dotted lines at x = 2, x = 7
+plt.axvline(x=2, color='k', linestyle='--')
+plt.axvline(x=7, color='k', linestyle='--')
+# Label these vertical lines
+plt.text(2.3, 0.45, 'Layer 2', fontsize=12)
+plt.text(7.3, 0.45, 'Layer 7', fontsize=12)
 
 plt.legend()
-plt.xlabel('Layer')
-plt.ylabel('Probe Accuracy')
-plt.title('Probe Accuracy Across Layers')
+plt.xlabel('Layer', fontsize=16)
+plt.ylabel('Probe Accuracy', fontsize=16)
+plt.title('Probe Accuracy Across Layers', fontsize=16)
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
 plt.grid()
 plt.show()
+fig.savefig('results/7b_probe_across_layers.pdf')
 
 # %% Investigating the attention heads in layers [0, 6]
 
@@ -415,4 +432,41 @@ fig.show()
 # save as pdf, with high quality to prevent blurriness
 fig.write_image("results/7b_first_name_attn_more.png", scale=3)
 
-# %%
+# %% Patching Experiment
+full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
+athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
+
+# Count number of leading 0s in the tensor
+def count_leading_zeros(t):
+    return (t != 0).nonzero(as_tuple=True)[0][0]
+
+# Only pick full_prompt_toks with 4 leading zeros
+leading_zeros = torch.stack(
+    [
+        count_leading_zeros(prompt_tok)
+        for prompt_tok in full_prompt_toks
+    ]
+)
+same_length_full_prompt_toks = full_prompt_toks[leading_zeros == 5] # name toks into 2 tokens 
+
+with open('tasks/facts/sports_data.json', 'r') as f:
+    corr_names = json.load(f)['corr_sub_map']["{player}"]
+
+tok_corr_names = [
+    tokenizer.encode(name)
+    for name in corr_names
+]
+same_length_corr_toks = torch.stack(
+    [
+        torch.tensor(name)[1:]
+        for name in tok_corr_names
+        if len(name) == 3 # [2, first_name, last_name]
+    ],
+    dim=0
+)
+
+# First name is at -6, last name at -5
+
+### Let's try patching just the first name
+
+### Now lets try patching both first and last name
