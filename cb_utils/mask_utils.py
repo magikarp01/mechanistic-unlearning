@@ -699,46 +699,68 @@ def load_mask_from_state_dict(mask_path, n_heads):
             final_attn_heads[component_name] = list(range(n_heads))
 
 
-def get_parameter(hf_model, component_name):
+def get_parameter(hf_model, component_name, model_type):
+    if model_type == "gemma":
+        layers_module = hf_model.model
+    elif model_type == "pythia":
+        layers_module = hf_model.gpt_neox
+
     layer_str, component_type, hook_type = component_name.split(".")[1:]
     layer = int(layer_str)
 
-    param = None
-    if component_type == "attn":
-        if hook_type == "hook_q":
-            param = hf_model.model.layers[layer].self_attn.q_proj.weight
-        elif hook_type == "hook_k":
-            param = hf_model.model.layers[layer].self_attn.k_proj.weight
-        elif hook_type == "hook_v":
-            param = hf_model.model.layers[layer].self_attn.v_proj.weight
-        elif hook_type == "hook_result":
-            # for now ignore, not sure if result maps to o_proj
-            print(f"Ignoring {component_name}")
-            # param = hf_model.model.layers[layer].self_attn.o_proj.weight
-        else:
-            print(f"Unknown component type {component_type}")
-    elif component_type == "mlp":
-        if hook_type == "hook_pre":
-            param = hf_model.model.layers[layer].mlp.up_proj.weight
-        elif hook_type == "hook_post":
-            param = hf_model.model.layers[layer].mlp.down_proj.weight
-        else:
-            print(f"Unknown component type {component_type}")
+    if model_type == "gemma":
+        if component_type == "attn":
+            if hook_type == "hook_q":
+                weight_param = layers_module.layers[layer].self_attn.q_proj.weight
+            elif hook_type == "hook_k":
+                weight_param = layers_module.layers[layer].self_attn.k_proj.weight
+            elif hook_type == "hook_v":
+                weight_param = layers_module.layers[layer].self_attn.v_proj.weight
+            elif hook_type == "hook_result":
+                # for now ignore, not sure if result maps to o_proj
+                print(f"Ignoring {component_name}")
+                # weight_param = layers_module.layers[layer].self_attn.o_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        elif component_type == "mlp":
+            if hook_type == "hook_pre":
+                weight_param = layers_module.layers[layer].mlp.up_proj.weight
+            elif hook_type == "hook_post":
+                weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        bias_param = None
 
+    elif model_type == "pythia":
+        if component_type == "attn":            
+            weight_param = layers_module.layers[layer].attention.query_key_value.weight
+            bias_param = layers_module.layers[layer].attention.query_key_value.bias
+        elif component_type == "mlp":
+            if hook_type == "hook_pre":
+                weight_param = layers_module.layers[layer].mlp.dense_h_to_4h.weight
+                bias_param = layers_module.layers[layer].mlp.dense_h_to_4h.bias
+            elif hook_type == "hook_post":
+                weight_param = layers_module.layers[layer].mlp.dense_4h_to_h.weight
+                bias_param = layers_module.layers[layer].mlp.dense_4h_to_h.bias
+            else:
+                print(f"Unknown component type {component_type}")
     else:
         print(f"Unknown component type {component_type}")
     
-    return param
+    return (weight_param, bias_param)
     
-def apply_localized_gradients(hf_model, components):
+def apply_localized_gradients(hf_model, components, model_type, verbose=False):
     # set everything else False
     for parameter in hf_model.parameters():
         parameter.requires_grad = False
     
     for component in components:
-        param = get_parameter(hf_model, component)
-        if param is None:
-            print(f"Could not find parameter for {component}")
-            continue
-        param.requires_grad = True
-        print(f"Setting {component} to True")
+        if verbose:
+            print(f"Setting {component} to True")
+        params = get_parameter(hf_model, component, model_type)
+        for i, param in enumerate(params):
+            if param is None:
+                if verbose:
+                    print(f"Could not find {i}th parameter for {component}")
+                continue
+            param.requires_grad = True
