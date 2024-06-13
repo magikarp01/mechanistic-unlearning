@@ -718,8 +718,9 @@ def get_parameter(hf_model, component_name, model_type):
                 weight_param = layers_module.layers[layer].self_attn.v_proj.weight
             elif hook_type == "hook_result":
                 # for now ignore, not sure if result maps to o_proj
-                print(f"Ignoring {component_name}")
+                # print(f"Ignoring {component_name}")
                 # weight_param = layers_module.layers[layer].self_attn.o_proj.weight
+                weight_param = layers_module.layers[layer].self_attn.o_proj.weight
             else:
                 print(f"Unknown component type {component_type}")
         elif component_type == "mlp":
