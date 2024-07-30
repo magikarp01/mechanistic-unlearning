@@ -43,10 +43,21 @@ from tasks.induction.InductionTask import InductionTask
 from tasks.ioi.IOITask import IOITask
 from tasks.facts.SportsTask import SportsFactsTask
 
+from localizations.eap.localizer import EAPLocalizer
+from localizations.causal_tracing.localizer import CausalTracingLocalizer
+from localizations.ap.localizer import APLocalizer
+
+from cb_utils.mask_utils import get_masks_from_ct_nodes
+from cb_utils.mask_utils import get_masks_from_eap_exp
+import pickle
+
+model.reset_hooks()
 # ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
 # ind_task.set_logit_diffs(model)
 ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
 ioi_task.set_logit_diffs(model)
+torch.cuda.empty_cache()
+gc.collect()
 # sports_task = SportsFactsTask(
 #     model=model, 
 #     batch_size=5, 
@@ -65,24 +76,24 @@ for name, task in zip(["ioi"], [ioi_task]):
     ct_localizer = CausalTracingLocalizer(model, task)
 
 
-    ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
-    torch.cuda.empty_cache()
-    gc.collect()
-    eap_graph = eap_localizer.get_exp_graph(batch=1, threshold=-1)
-    top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
-    with open(f"models/{save_model_name}_{name}_eap_graph.pkl", "wb") as f:
-        pickle.dump(top_edges, f)
+    # ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # eap_graph = eap_localizer.get_exp_graph(batch=25, threshold=-1)
+    # top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
+    # with open(f"models/{save_model_name}_{name}_eap_graph.pkl", "wb") as f:
+    #     pickle.dump(top_edges, f)
 
-    torch.cuda.empty_cache()
-    gc.collect()
-    ap_graph = ap_localizer.get_ap_graph(batch_size=1)
-    torch.cuda.empty_cache()
-    gc.collect()
-    with open(f"models/{save_model_name}_{name}_ap_graph.pkl", "wb") as f:
-        pickle.dump(dict(ap_graph), f)
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # ap_graph = ap_localizer.get_ap_graph(batch_size=5)
+    # torch.cuda.empty_cache()
+    # gc.collect()
+    # with open(f"models/{save_model_name}_{name}_ap_graph.pkl", "wb") as f:
+    #     pickle.dump(dict(ap_graph), f)
 
     model.eval() # Don't need gradients when doing ct task
-    ct_graph = ct_localizer.get_ct_mask(batch_size=2)
+    ct_graph = ct_localizer.get_ct_mask(batch_size=1)
     model.train()
     with open(f"models/{save_model_name}_{name}_ct_graph.pkl", "wb") as f:
         pickle.dump(dict(ct_graph), f)
