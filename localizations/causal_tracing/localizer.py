@@ -16,7 +16,7 @@ class CausalTracingLocalizer(AbstractLocalizer):
         self.model = model
         self.task = task
 
-    def get_ct_mask(self, batch_size=5):
+    def get_ct_mask(self, batch_size=5, gemma2=False):
         '''
             Almost like get_mask, but returns the keys of the causal tracing dictionary
             You can get the mask by calling get_masks_from_ct_nodes(keys)
@@ -29,7 +29,7 @@ class CausalTracingLocalizer(AbstractLocalizer):
         elif type(self.task).__name__ == "IOITask":
             mask = causal_tracing_ioi(self.model, self.task)
         elif type(self.task).__name__ == "SportsFactsTask":
-            mask = causal_tracing_sports(self.model, self.task, batch_size)
+            mask = causal_tracing_sports(self.model, self.task, batch_size, gemma2=gemma2)
 
         return mask
 

@@ -67,9 +67,9 @@ def causal_tracing_denoising_hook(act, hook, embedding_std, noise_inds, save_cac
             act[:, noise_inds, :] = act[:, noise_inds, :] + torch.randn_like(act[:, noise_inds, :]) * 3 * embedding_std
     elif hook.layer() == save_layer:
         # Save head/mlp
-        if 'z' in hook.name:
+        if len(act.shape) == 4:
             act[:, :, save_head, :] = save_cache[hook.name][:, :, save_head, :]
-        elif 'post' in hook.name:
+        else:
             act = save_cache[hook.name]
     return act
 
@@ -330,7 +330,8 @@ def causal_tracing_sports(
     model, 
     sports_task, 
     batch_size=5, 
-    verbose=True
+    verbose=True,
+    gemma2=False
 ):
     embedding_std = sample_embedding_std(model)
 
@@ -342,6 +343,7 @@ def causal_tracing_sports(
 
     model.reset_hooks()
     for i in tqdm(range(0, len(toks), batch_size), position=0, leave=True):
+        print("Looping, ", i, " out of ", len(toks), " batch size ", batch_size)
         model.reset_hooks()
         toks_slice = toks[i:i+batch_size]
         deltas_slice = deltas[i:i+batch_size]
@@ -354,12 +356,16 @@ def causal_tracing_sports(
             )
             for s in deltas_slice
         ]
+        print(toks_slice.shape)
+        print(noise_inds)
         print(f"Noising{model.tokenizer.decode(toks_slice[0, noise_inds[0]])}")
 
+        wanted_hooks = ['hook_result', 'mlp_in', 'mlp_out', 'hook_q', 'hook_k', 'hook_v']
+        names_filter = lambda name: any([hook in name for hook in wanted_hooks]) and not 'input' in name
         model.reset_hooks()
         clean_logits, save_cache = model.run_with_cache(
             toks_slice,
-            names_filter=lambda name: "hook_z" in name or "hook_q" in name or "mlp_out" in name
+            names_filter=names_filter
         )
         model.reset_hooks()
         # Get corrupt logits by noising embeddings but not saving anything
@@ -405,25 +411,67 @@ def causal_tracing_sports(
             wrong_ans=wrong_ans_slice
         )
 
-        for layer in tqdm(list(range(model.cfg.n_layers)), position=0, leave=True):
-            for head in tqdm(list(range(model.cfg.n_heads)), position=0, leave=True):
-                hook_fn = functools.partial(
-                    causal_tracing_denoising_hook,
-                    embedding_std=embedding_std,
-                    noise_inds=noise_inds,
-                    save_cache=save_cache,
-                    save_layer=layer,
-                    save_head=head
-                )
-                model.reset_hooks()
-                patched_logits = model.run_with_hooks(
-                    toks_slice,
-                    fwd_hooks=[
-                        (utils.get_act_name('embed'), hook_fn),
-                        (utils.get_act_name('z', layer), hook_fn)
-                    ]
-                )
-                results[f'a{layer}.{head}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+        if gemma2:
+            for layer in tqdm(list(range(model.cfg.n_layers)), position=0, leave=True):
+                for hook_name in ['result', 'q']:
+                    for head in tqdm(list(range(model.cfg.n_heads)), position=0, leave=True):
+                        hook_fn = functools.partial(
+                            causal_tracing_denoising_hook,
+                            embedding_std=embedding_std,
+                            noise_inds=noise_inds,
+                            save_cache=save_cache,
+                            save_layer=layer,
+                            save_head=head
+                        )
+                        model.reset_hooks()
+                        patched_logits = model.run_with_hooks(
+                            toks_slice,
+                            fwd_hooks=[
+                                (utils.get_act_name('embed'), hook_fn),
+                                (utils.get_act_name(hook_name, layer), hook_fn)
+                            ]
+                        )
+                        results[f'a{layer}.{head}_{hook_name}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+                for hook_name in ['k', 'v']:
+                    for head in tqdm(list(range(model.cfg.n_key_value_heads)), position=0, leave=True):
+                        hook_fn = functools.partial(
+                            causal_tracing_denoising_hook,
+                            embedding_std=embedding_std,
+                            noise_inds=noise_inds,
+                            save_cache=save_cache,
+                            save_layer=layer,
+                            save_head=head
+                        )
+                        model.reset_hooks()
+                        patched_logits = model.run_with_hooks(
+                            toks_slice,
+                            fwd_hooks=[
+                                (utils.get_act_name('embed'), hook_fn),
+                                (utils.get_act_name(hook_name, layer), hook_fn)
+                            ]
+                        )
+                        results[f'a{layer}.{head}_{hook_name}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+        else:
+            for layer in tqdm(list(range(model.cfg.n_layers)), position=0, leave=True):
+                for head in tqdm(list(range(model.cfg.n_heads)), position=0, leave=True):
+                    hook_fn = functools.partial(
+                        causal_tracing_denoising_hook,
+                        embedding_std=embedding_std,
+                        noise_inds=noise_inds,
+                        save_cache=save_cache,
+                        save_layer=layer,
+                        save_head=head
+                    )
+                    for hook_name in ['result', 'q', 'k', 'v']:
+                        model.reset_hooks()
+                        patched_logits = model.run_with_hooks(
+                            toks_slice,
+                            fwd_hooks=[
+                                (utils.get_act_name('embed'), hook_fn),
+                                (utils.get_act_name(hook_name, layer), hook_fn)
+                            ]
+                        )
+                        results[f'a{layer}.{head}_{hook_name}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
             # Do MLP
             hook_fn = functools.partial(
                 causal_tracing_denoising_hook,
@@ -441,6 +489,16 @@ def causal_tracing_sports(
                     (utils.get_act_name('mlp_out', layer), hook_fn)
                 ]
             )
-            results[f'm{layer}'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+            results[f'm{layer}_out'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
+
+            model.reset_hooks()
+            patched_logits = model.run_with_hooks(
+                toks_slice,
+                fwd_hooks=[
+                    (utils.get_act_name('embed'), hook_fn),
+                    (utils.get_act_name('mlp_in', layer), hook_fn)
+                ]
+            )
+            results[f'm{layer}_in'] += logit_diff_metric(patched_logits).item() / len(toks_slice)
 
     return results
