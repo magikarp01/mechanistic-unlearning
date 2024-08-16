@@ -29,3 +29,4 @@ results/qwen_forget_sport='basketball'_maintain_sport=None_Log_1MP
 results/neuron_cb_unlearn_athletes
 results/localized_finetuning_basketball/*.pt
 results/localized_finetuning_basketball_old/*.pt
+results2/

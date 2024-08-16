@@ -41,9 +41,9 @@ parser.add_argument("--combine_heads", type=bool, default=True)
 # save_model = False
 parser.add_argument("--train_batch_size", type=int, default=4)
 parser.add_argument("--eval_batch_size", type=int, default=32)
-parser.add_argument("--learning_rate", type=float, default=2.5e-5)
-parser.add_argument("--n_epochs", type=int, default=50)
+parser.add_argument("--learning_rate", type=float, default=1e-5)
 parser.add_argument("--grad_accum_steps", type=int, default=None)
+parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
 parser.add_argument("--clip_grad", type=float, default=1)
 parser.add_argument("--evaluate_every", type=int, default=1)
@@ -127,10 +127,16 @@ inject_sport = args.inject_sport
 forget_sport = args.forget_sport
 forget_athletes = args.forget_athletes
 
-if inject_sport is not None:
-    save_dir = f"results2/localized_finetuning_injection_{forget_athletes}_athletes/{args.localization_type}"
+if forget_sport is not None:
+    if inject_sport is not None:
+        save_dir = f"results2/localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
+    else:
+        save_dir = f"results2/localized_finetuning_{forget_sport=}/{args.localization_type}"
 else:
-    save_dir = f"results2/localized_finetuning_{forget_athletes}_athletes/{args.localization_type}"
+    if inject_sport is not None:
+        save_dir = f"results2/localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
+    else:
+        save_dir = f"results2/localized_finetuning_{forget_athletes=}/{args.localization_type}"
 
 if args.run_id is not None:
     save_dir = f"{save_dir}_{args.run_id}"
@@ -159,11 +165,7 @@ elif forget_sport is not None:
 os.makedirs(save_dir, exist_ok=True)
 
 
-
-if maintain_sport is None:
-    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
-else:
-    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
+maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
 
 train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
@@ -260,7 +262,7 @@ import wandb
 print(f"Memory at start for {localization_type}: {torch.cuda.memory_allocated() / 1024**3}")
 if use_wandb:
     wandb.init(project="circuit_breaking", name=f"finetuning_{localization_type}_{forget_sport=}_{forget_athletes=}")
-    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "beta": beta, "forget_sport": forget_sport, "forget_athletes": forget_athletes, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id})
+    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "beta": beta, "forget_sport": forget_sport, "forget_athletes": forget_athletes, "inject_sport": inject_sport, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id})
 
 model.cuda()
 
@@ -302,6 +304,8 @@ for epoch in pbar:
     # zero_nan_grads(mask)
     optimizer.step()
     scheduler.step()
+    optimizer.zero_grad()
+    print("After epoch, mem is ", torch.cuda.memory_allocated() / 1024**3)
 
     # print(f"After backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
@@ -335,6 +339,7 @@ for epoch in pbar:
                 wandb.log({f"adversarial_mc_{eval_type}": adv_evals["MC"][eval_type] for eval_type in adv_evals["MC"]}, step=epoch)
         # print(f"After evaluating adversarial evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
         if do_side_effects_evals:
+            print("Before side effect eval, mem is ", torch.cuda.memory_allocated() / 1024**3)
             print("Running side effects evals")
             side_effect_evals[epoch] = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=5)
             if use_wandb:
@@ -638,6 +643,11 @@ if args.do_probing_evals:
     with open(f"{save_dir}/results/probes_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}.pkl", "wb") as f:
         pickle.dump({"all_probes": all_probes, "all_train_accs": all_train_accs, "all_test_accs": all_test_accs, "all_forget_accs": all_forget_accs, "all_maintain_accs": all_maintain_accs}, f)
 
+import gc
+torch.cuda.empty_cache()
+gc.collect()
+# print memory usage
+print(torch.cuda.memory_allocated() / 1024**3)
 
 if args.do_relearning_evals:
     print("Running relearning evals")
@@ -698,12 +708,6 @@ if args.do_relearning_evals:
     else:
         relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_sport_subset={forget_sport}, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
 
-
-    if forget_sport is None:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
-    else:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_sport_subset={forget_sport}, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
-
     pile = PileTask(batch_size=8, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
     train_tasks = {"relearn_athletes": (relearn_sport, .2), "maintain_athletes": (maintain_sports, 1), "pile": (train_pile, 1)}
 
@@ -711,7 +715,7 @@ if args.do_relearning_evals:
     from tasks.general_capabilities.MCTask_redo import run_general_evals
 
     def eval_callback(model):
-        mmlu_score = run_general_evals(model, model_type="gemma")["MMLU"]
+        mmlu_score = run_general_evals(model, model_type="gemma", batch_size=5)["MMLU"]
         adversarial_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
                         forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
                         maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 

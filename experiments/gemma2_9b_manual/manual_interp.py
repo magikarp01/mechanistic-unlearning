@@ -67,6 +67,13 @@ def tokenize_instructions(tokenizer, instructions):
 # 3. Probe after meal ablating attention heads after layer 2
 # 4. Probe after meal ablating attention heads after layer 2 and just <bos>name
 
+def train_test_probe(X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  
+    clf = LogisticRegression(random_state=0, max_iter=500, solver='sag').fit(X_train, y_train)
+    # clf = LogisticRegression(random_state=0, max_iter=10000).fit(X_train, y_train)
+    # results[layer] = clf.score(X_test, y_test)
+    return clf.score(X_test, y_test)
+
 def probe_last_layer(model, prompt_toks, targets, batch_size=None):
     if batch_size is None:
         with torch.set_grad_enabled(False):
@@ -98,23 +105,16 @@ def probe_last_layer(model, prompt_toks, targets, batch_size=None):
         elif target == "football":
             target_classes.append(2)
     y = np.array(target_classes)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # train logistic regression
-    clf = LogisticRegression(random_state=0, max_iter=500, solver='sag').fit(X_train, y_train)
+    # clf = LogisticRegression(random_state=0, max_iter=500, solver='sag').fit(X_train, y_train)
 
-    test_acc = clf.score(X_test, y_test)
+    # test_acc = clf.score(X_test, y_test)
+    test_acc = train_test_probe(X, y)
     print(f"Accuracy: {test_acc}")
 
     return test_acc
-
-def train_test_probe(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  
-    clf = LogisticRegression(random_state=0, max_iter=500, solver='sag').fit(X_train, y_train)
-    # clf = LogisticRegression(random_state=0, max_iter=10000).fit(X_train, y_train)
-    # results[layer] = clf.score(X_test, y_test)
-    return clf.score(X_test, y_test)
-
 
 def probe_across_layers(model, prompt_toks, targets, batch_size=None, cpu_multiprocessing=True):
     print(prompt_toks.shape)
@@ -297,7 +297,7 @@ plt.yticks(fontsize=12)
 plt.grid()
 plt.show()
 fig.savefig('results/9b_probe_across_layers.pdf')
-
+print(torch.cuda.mem_get_info())
 # %% Investigating the attention heads in layers [0, 6]
 
 full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
@@ -310,6 +310,7 @@ for k in m_cache.keys():
         'batch seq head d_model -> 1 1 head d_model',
         'mean'
     )
+print(torch.cuda.mem_get_info())
 
 #%%
 def act_patch_hook_z(act, hook, patch_cache, patch_layer, patch_head):
@@ -353,6 +354,7 @@ for (layer, head) in tqdm(heads_to_patch):
 
     model.reset_hooks()
     
+torch.save(results_mat, 'results/9b_patch_results.pt')
 #%%
 # Get baseline accuracy
 model.reset_hooks()
@@ -387,7 +389,7 @@ fig.savefig('results/9b_patch_heatmap.pdf')
 
 # %%
 
-layer_range = range(0, 7)
+layer_range = range(0, 5)
 head_range = range(0, model.cfg.n_heads)
 sorted_heads = sorted(
     [(layer, head) for layer in layer_range for head in head_range],
