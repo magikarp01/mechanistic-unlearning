@@ -9,4 +9,4 @@
 # cd ..
 source /data/phillip_guo/miniconda3/etc/profile.d/conda.sh
 conda activate unlrn
-python localized_finetuning_script.py --model_type "gemma-7b" --forget_sport "basketball" --inject_sport "golf" --localization_type "localized_ct" --run_id "1" --n_epochs 50 --do_full_mmlu_evals True --do_relearning_evals True --do_probing_evals True
+python localized_finetuning_script.py --model_type "gemma-2-9b" --forget_sport "basketball" --inject_sport "golf" --localization_type "nonlocalized" --run_id "1" --n_epochs 5 --do_full_mmlu_evals True --do_relearning_evals True --do_probing_evals True --push_to_hub True

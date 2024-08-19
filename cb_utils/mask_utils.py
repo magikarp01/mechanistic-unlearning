@@ -911,6 +911,8 @@ def load_mask_from_state_dict(mask_path, n_heads):
 def get_parameter(hf_model, component_name, model_type):
     if model_type == "gemma":
         layers_module = hf_model.model
+    elif model_type == "gemma-2":
+        layers_module = hf_model.model
     elif model_type == "pythia":
         layers_module = hf_model.gpt_neox
 
@@ -940,6 +942,31 @@ def get_parameter(hf_model, component_name, model_type):
             else:
                 print(f"Unknown component type {component_type}")
         bias_param = None
+
+    elif model_type == "gemma-2":
+        if component_type == "attn":
+            if hook_type == "hook_q":
+                weight_param = layers_module.layers[layer].self_attn.q_proj.weight
+            elif hook_type == "hook_k":
+                weight_param = layers_module.layers[layer].self_attn.k_proj.weight
+            elif hook_type == "hook_v":
+                weight_param = layers_module.layers[layer].self_attn.v_proj.weight
+            elif hook_type == "hook_result":
+                # for now ignore, not sure if result maps to o_proj
+                # print(f"Ignoring {component_name}")
+                # weight_param = layers_module.layers[layer].self_attn.o_proj.weight
+                weight_param = layers_module.layers[layer].self_attn.o_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        elif component_type == "mlp":
+            if hook_type == "hook_pre":
+                weight_param = layers_module.layers[layer].mlp.up_proj.weight
+            elif hook_type == "hook_post":
+                weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        bias_param = None
+
 
     elif model_type == "pythia":
         if component_type == "attn":            

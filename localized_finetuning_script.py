@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 import argparse
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b"])
+parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
 parser.add_argument("--forget_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
 parser.add_argument("--forget_athletes", type=int, default=None)
 parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
@@ -100,8 +100,28 @@ if args.model_type == "gemma-7b":
 
     n_layers = 28
     n_heads = 16
+    n_kv_heads = None
     param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072}
     manual_param_count = 9e8
+
+    mmlu_batch_size = 5
+
+elif args.model_type == "gemma-2-9b":
+    model_name_or_path = "google/gemma-2-9b"
+    model_type = "gemma-2"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer.padding_side = "right"
+
+    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
+    n_layers = 42
+    n_heads = 16
+    n_kv_heads = 8
+    param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584}
+    manual_param_count = 308281344
+
+    mmlu_batch_size = 2
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
 
@@ -129,14 +149,14 @@ forget_athletes = args.forget_athletes
 
 if forget_sport is not None:
     if inject_sport is not None:
-        save_dir = f"results2/localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
+        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
     else:
-        save_dir = f"results2/localized_finetuning_{forget_sport=}/{args.localization_type}"
+        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_sport=}/{args.localization_type}"
 else:
     if inject_sport is not None:
-        save_dir = f"results2/localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
+        save_dir = f"results2/{model_name_or_path}_localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
     else:
-        save_dir = f"results2/localized_finetuning_{forget_athletes=}/{args.localization_type}"
+        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_athletes=}/{args.localization_type}"
 
 if args.run_id is not None:
     save_dir = f"{save_dir}_{args.run_id}"
@@ -196,26 +216,36 @@ else:
 from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params
 
 import pickle
-with open("models/google_gemma-7b_sports_all_ap_graph.pkl", "rb") as f:
-    ap_graph = pickle.load(f)
-print(ap_graph.keys())
+if model_type == "gemma":
+    with open("models/google_gemma-7b_sports_all_ap_graph.pkl", "rb") as f:
+        ap_graph = pickle.load(f)
+    print(ap_graph.keys())
 
-# ct components
-with open("models/google_gemma-7b_sports_all_ct_graph.pkl", "rb") as f:
-    ct_graph = pickle.load(f)
-print(ct_graph)
+    # ct components
+    with open("models/google_gemma-7b_sports_all_ct_graph.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    print(ct_graph)
+elif model_type == "gemma-2":
+    with open("models/google_gemma-2-9b_sports_all_ap_graph.pkl", "rb") as f:
+        ap_graph = pickle.load(f)
+    print(ap_graph.keys())
+
+    # ct components
+    with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    print(ct_graph)
 
 localization_type = args.localization_type
 combine_heads = args.combine_heads
 
 if localization_type == 'localized_ap':
-    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
 
     # print(final_components)
     # print(final_attn_heads)
 
 elif localization_type == 'localized_ct':
-    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
 
 elif localization_type == 'manual_interp':
     final_components = []
@@ -237,7 +267,7 @@ elif localization_type == "all_mlps":
 
 
 elif localization_type == 'nonlocalized':
-    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads), n_heads=n_heads, top_p=100)
+    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, top_p=100)
     assert (torch.tensor([len(x) for x in final_attn_heads.values()]) == n_heads).all()
 
 # get number of params
@@ -247,7 +277,7 @@ for component in final_components:
 print(f"Number of parameters in {localization_type} localization: {num_params}")
 
 
-model = AutoModelForCausalLM.from_pretrained("google/gemma-7b", torch_dtype=torch.bfloat16)
+model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
 apply_localized_gradients(model, final_components, model_type=model_type)
 
 
@@ -341,7 +371,7 @@ for epoch in pbar:
         if do_side_effects_evals:
             print("Before side effect eval, mem is ", torch.cuda.memory_allocated() / 1024**3)
             print("Running side effects evals")
-            side_effect_evals[epoch] = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=5)
+            side_effect_evals[epoch] = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=mmlu_batch_size)
             if use_wandb:
                 wandb.log(side_effect_evals[epoch]["General"], step=epoch)
         # print(f"After evaluating side effects evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
@@ -355,6 +385,12 @@ else:
 os.makedirs(f"{save_dir}/models", exist_ok=True)
 with open(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}_metrics.pkl", "wb") as f:
     pickle.dump({"train_losses": all_train_losses, "test_losses": all_test_losses, "adversarial_evals": adversarial_evals, "side_effect_evals": side_effect_evals}, f)
+
+## SAVE TO HF
+if args.push_to_hub:
+    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}")
+    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}"
+    model.push_to_hub(hf_save_path)
 
 ## MMLU Evals
 print(args.do_full_mmlu_evals)
@@ -715,7 +751,7 @@ if args.do_relearning_evals:
     from tasks.general_capabilities.MCTask_redo import run_general_evals
 
     def eval_callback(model):
-        mmlu_score = run_general_evals(model, model_type="gemma", batch_size=5)["MMLU"]
+        mmlu_score = run_general_evals(model, model_type=model_type, batch_size=mmlu_batch_size)["MMLU"]
         adversarial_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
                         forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
                         maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
@@ -757,7 +793,7 @@ if args.do_relearning_evals:
                     continuous=True, include_evals=["Normal", "MC"])
     relearning_adversarial_results[localization_type] = adversarial_eval_results
 
-    side_effect_eval_results = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=5)
+    side_effect_eval_results = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=mmlu_batch_size)
     relearning_side_effect_results[localization_type] = side_effect_eval_results
 
     # model.cpu()
