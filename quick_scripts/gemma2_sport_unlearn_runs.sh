@@ -16,7 +16,7 @@ for localization_type in "${localization_types[@]}"
 do
     sbatch --export=ALL,LOCALIZATION_TYPE=$localization_type <<EOT
 #!/bin/bash
-#SBATCH --job-name=bb,$localization_type
+#SBATCH --job-name=16,$localization_type
 #SBATCH --output=jupyter_logs/log-%J.txt
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
@@ -25,7 +25,7 @@ do
 
 source /data/phillip_guo/miniconda3/etc/profile.d/conda.sh
 conda activate unlrn
-python localized_finetuning_script.py --model_type "gemma-2-9b" --forget_sport "basketball" --localization_type \$LOCALIZATION_TYPE --run_id "2" --n_epochs 50 --do_full_mmlu_evals True --do_relearning_evals True --do_probing_evals True --train_batch_size 2 --push_to_hub True
+python localized_finetuning_script.py --model_type "gemma-2-9b" --forget_athletes 16 --localization_type \$LOCALIZATION_TYPE --run_id "3" --n_epochs 50 --do_full_mmlu_evals True --do_relearning_evals True --do_probing_evals True --train_batch_size 2
 EOT
 done
 
@@ -41,3 +41,7 @@ done
 
 # #SBATCH --job-name=16,$localization_type
 # python localized_finetuning_script.py --model_type "gemma-2-9b" --forget_athletes 16 --localization_type \$LOCALIZATION_TYPE --run_id "3" --n_epochs 50 --do_full_mmlu_evals True --do_relearning_evals True --do_probing_evals True --train_batch_size 2
+
+
+
+# python localized_finetuning_script.py --model_type "gemma-2-9b" --forget_sport "basketball" --localization_type "nonlocalized" --run_id "3" --n_epochs 5 --do_relearning_evals True --do_probing_evals True --train_batch_size 2

@@ -375,7 +375,10 @@ for epoch in pbar:
             if use_wandb:
                 wandb.log(side_effect_evals[epoch]["General"], step=epoch)
         # print(f"After evaluating side effects evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
-
+del optimizer
+del scheduler
+torch.cuda.empty_cache()
+print("After empty cache and del optimizer and scheduler: ", torch.cuda.memory_allocated() / 1024**3)
 
 if save_model:
     os.makedirs(f"{save_dir}/models", exist_ok=True)
@@ -428,57 +431,53 @@ if args.do_full_mmlu_evals:
 if args.do_probing_evals:
     print("Running probing evals")
 
-    left_tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-    left_tokenizer.pad_token_id = left_tokenizer.eos_token_id
-    left_tokenizer.padding_side = "left"
+    model.cpu()
+    tl_model = HookedTransformer.from_pretrained(
+        model_name_or_path,
+        device='cuda',
+        default_padding_side="left",
+        fold_ln=False,
+        fold_value_biases=False,
+        center_writing_weights=False,
+        dtype=torch.bfloat16,
+        hf_model=model
+    )
+    tl_tokenizer = tl_model.tokenizer
+    torch.cuda.memory_allocated() // 1024**3
 
-    from collections import defaultdict
-    def layer_hook_function(layer, outputs, last_token_only=True, store_cpu=False):
-        def hook_fn(module, input, output):
-            if isinstance(output, tuple):
-                save_output = output[0].clone().detach()
-            else:
-                save_output = output.clone().detach()
-            if last_token_only:
-                save_output = save_output[:, -1]
-            if store_cpu:
-                save_output = save_output.cpu()
-            outputs[layer].append(save_output)
-            # return output
-        return hook_fn
-
-    def get_hf_residuals(texts, model, batch_size, last_token_only=True, layers_module=None, store_cpu=True, text_col="prompt"):
-        # needs left_
-        outputs = defaultdict(list)
-        hooks = []
-        if layers_module is None:
-            layers_module = model.model.layers
-        for layer, block in enumerate(layers_module):
-            hook_fn = layer_hook_function(layer, outputs=outputs, last_token_only=last_token_only, store_cpu=store_cpu)
-            hook_applied = block.register_forward_hook(hook_fn)
-            hooks.append(hook_applied)
-
-        for idx in tqdm(range(0, len(texts), batch_size)):
-            batch_texts = texts[idx:idx+batch_size]
-            tokenized = left_tokenizer(batch_texts, return_tensors="pt", padding=True)
-            tokenized = {k: v.cuda() for k, v in tokenized.items()}
+    def get_tl_residuals(texts, model, batch_size, store_cpu=True, return_outputs=False):
+        caches = defaultdict(list)
+        for i in tqdm(range(0, len(texts), batch_size)):
+            batch_texts = texts[i:i+batch_size]
+            tokenized = tl_tokenizer(batch_texts, return_tensors="pt", padding=True)
+            outputs = []
             with torch.no_grad():
-                model(**tokenized)
-        
-        for layer in outputs:
-            outputs[layer] = torch.cat(outputs[layer], dim=0)
-            if store_cpu:
-                outputs[layer] = outputs[layer].cpu()
-
-        for hook in hooks:
-            hook.remove()
-        
-        return outputs
+                _, cache = model.run_with_cache(
+                    tokenized.input_ids.cuda(),
+                    attention_mask=tokenized.attention_mask.cuda(),
+                    names_filter = (lambda name: f"hook_resid_post" in name)
+                )
+                if return_outputs:
+                    outputs.append(cache)
+            for k, v in cache.items():
+                key_layer = int(k.split(".")[1])
+                if store_cpu:
+                    caches[key_layer].append(v[:, -1, :].cpu())
+                else:
+                    caches[key_layer].append(v[:, -1, :])
+        for k, v in caches.items():
+            caches[k] = torch.cat(v, dim=0)
+        if return_outputs:
+            return caches, outputs
+        else:
+            return caches
 
     batch_size = args.probing_batch_size
     def get_resids(sports_task, model):
-        train_outputs = get_hf_residuals(sports_task.train_df["prompt"].tolist(), model, batch_size, last_token_only=True) # needs to not be last token only because of layernorm
-        test_outputs = get_hf_residuals(sports_task.test_df["prompt"].tolist(), model, batch_size, last_token_only=True)
+        # train_outputs = get_hf_residuals(sports_task.train_df["prompt"].tolist(), model, batch_size, last_token_only=True) # needs to not be last token only because of layernorm
+        # test_outputs = get_hf_residuals(sports_task.test_df["prompt"].tolist(), model, batch_size, last_token_only=True)
+        train_outputs = get_tl_residuals(sports_task.train_df["prompt"].tolist(), tl_model, batch_size)
+        test_outputs = get_tl_residuals(sports_task.test_df["prompt"].tolist(), tl_model, batch_size)
 
         train_labels = sports_task.train_df['sport'].tolist()
         test_labels = sports_task.test_df['sport'].tolist()
