@@ -31,3 +31,4 @@ results/localized_finetuning_basketball/*.pt
 results/localized_finetuning_basketball_old/*.pt
 results2/
 experiments/gemma2_9b_manual/addition_activations.pkl
+experiments/gemma_7b_manual/*.pkl
