@@ -32,3 +32,4 @@ results/localized_finetuning_basketball_old/*.pt
 results2/
 experiments/gemma2_9b_manual/addition_activations.pkl
 experiments/gemma_7b_manual/*.pkl
+!experiments/gemma_7b_manual/counterfact_ablation_results_correct_prob_threshold=0.5.pkl
