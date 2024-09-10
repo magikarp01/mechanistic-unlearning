@@ -621,10 +621,10 @@ def get_component_name_from_ct(component, combine_heads, n_heads=None):
 
     return final_components, final_attn_heads
 
-def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, n_kv_heads=None):
+def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, n_kv_heads=None, input_heads=True):
     combined_attrs = {}
     # if combine heads, then we will combine all heads into one component per layer
-    if combine_heads:
+    if combine_heads and input_heads:
         for layer in range(n_layers):
             combined_attrs[f"a{layer}"] = 0
             for head in range(n_heads):
