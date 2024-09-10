@@ -16,7 +16,7 @@ cmapy==0.6.6
 comm==0.2.2
 contourpy==1.2.1
 cycler==0.12.1
-datasets==2.18.0
+datasets==2.21.0
 debugpy==1.8.1
 decorator==5.1.1
 detoxify==0.5.2
@@ -79,6 +79,7 @@ opencv-python==4.9.0.80
 packaging==24.0
 pandas==2.2.2
 parso==0.8.4
+peft==0.12.0
 pexpect==4.9.0
 pillow==10.3.0
 platformdirs==4.2.0
@@ -103,7 +104,7 @@ PyYAML==6.0.1
 pyzmq==25.1.2
 rapidfuzz==3.8.1
 regex==2023.12.25
-requests==2.31.0
+requests==2.32.3
 rich==13.7.1
 safetensors==0.4.2
 scikit-learn==1.4.2
@@ -123,7 +124,7 @@ tokenizers==0.19.1
 tomli==2.0.1
 torch==2.2.2
 tornado==6.4
-tqdm==4.66.2
+tqdm==4.66.5
 traitlets==5.14.2
 transformer-lens==2.5.0
 transformers==4.44.2
