@@ -4,6 +4,7 @@ MODEL_NAME = "google/gemma-2-2b"
 DEVICE = "cuda"
 model = HookedTransformer.from_pretrained(
     MODEL_NAME,
+    default_padding_side="left",
     device=DEVICE
 )
 #%%
@@ -63,14 +64,20 @@ class CausalTracingLocalizer():
         self.p_patch = self.patch_model_components(run_type=RunType.PATCH)
 
 
+    def get_total_effect(self):
+        return self.p_clean - self.p_corr
+    
+    def get_indirect_effect(self):
+        return self.p_patch - self.p_corr
+
     def get_embedding_std(self):
         # Get embedding std of import tokens, i.e the tokens we will be noising
         noise_tokens = self.toks[self.noise_indices]
         return model.W_E[noise_tokens].std()
     
     def get_correct_prob(self, logits):
-        # Return probability of correct token(s) at last token position
-        return torch.nn.functional.softmax(logits, dim=-1)[:, -1, self.correct_toks].mean(0)
+        # Return sum probability of correct token(s) at last token position, avg over batch
+        return torch.nn.functional.softmax(logits[:, -1, self.correct_toks], dim=-1).mean(0).sum()
     
     def ct_embedding_noise_hook(self, act, hook):
         '''
@@ -175,3 +182,10 @@ class CausalTracingLocalizer():
         elif run_type == RunType.PATCH:
             self.p_patch = results_mat
 
+#%%
+localizer = CausalTracingLocalizer(model, )
+prompt_toks = model.tokenizer.
+# 'prompt' is list of string prompts
+# 'subject' is the string main subject of the prompt
+# 'first_token' is int correct answer first tokens
+model.tokenizer()
