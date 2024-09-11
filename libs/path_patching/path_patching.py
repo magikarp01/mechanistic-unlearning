@@ -1,4 +1,5 @@
 # %% All below code from Callum's path patching library
+# %%
 
 import torch as t
 from torch import Tensor
@@ -24,7 +25,7 @@ IterSeqPos = Union[SeqPos, Literal["each"]]
 def relevant_names_filter(name: str):
     '''Defining this so I don't have to use such a big cache. It contains all the names I'll need for any path patching.'''
     return any([name.endswith(s) for s in [
-        "z", "result", "resid_pre", "resid_mid", "resid_post", "pre", "post", "_input", "q", "k", "v", "pattern", "attn_out", "mlp_out", "mlp_in",
+        "z", "resid_pre", "resid_mid", "resid_post", "pre", "post", "_input", "q", "k", "v", "attn_out", "mlp_out"
     ]])
 
 def hook_fn_generic_patching(activation: Float[Tensor, "..."], hook: HookPoint, cache: ActivationCache) -> Float[Tensor, "..."]:
@@ -218,7 +219,7 @@ class Node:
         assert self.activation_name in model.hook_dict.keys(), f"Error: node '{self.activation_name}' is not in the hook dictionary."
 
         # Make specific substitution requests (i.e. "you tried X, instead you should do Y")
-        assert self.component_name != "mlp_in", "Error: 'mlp_in' is not a valid receiver node. Please use 'pre' for the output of attention heads (to select specific neurons, use the 'neuron' argument in the Node constructor)."
+        assert self.component_name != "mlp_in", "Error: 'mlp_in' is not a valid sender node. Please use 'pre' for the output of attention heads (to select specific neurons, use the 'neuron' argument in the Node constructor)."
 
         # Do main validity check
         valid_receiver_nodes = ["q", "k", "v", "pattern", "q_input", "k_input", "v_input", "resid_pre", "resid_mid", "resid_post", "pre"]
