@@ -631,6 +631,8 @@ def _path_patch_single(
                     # * TODO - why is this needed?
                     if diff.shape != model.hook_dict[receiver_node.activation_name].ctx["receiver_activations"][batch_indices, seq_pos_indices, head_slice].shape:
                         diff = diff.unsqueeze(-2)
+                    # print(f"DEBUG SHAPE", model.hook_dict[receiver_node.activation_name].ctx["receiver_activations"].shape, diff.shape)
+                    # print(batch_indices, seq_pos_indices, head_slice)
                     model.hook_dict[receiver_node.activation_name].ctx["receiver_activations"][batch_indices, seq_pos_indices, head_slice] += diff
                 
                 # The remaining case (given that we aren't handling "pre" here) is when receiver is resid_pre/mid/post
