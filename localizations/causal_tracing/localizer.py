@@ -62,12 +62,21 @@ class CausalTracingLocalizer():
         # Probability of outputting correct result, patched model
         self.p_patch = self.patch_model_components(verbose=verbose)
 
-
     def get_total_effect(self):
         return self.p_clean - self.p_corr
     
     def get_indirect_effect(self):
         return self.p_patch - self.p_corr
+
+    def get_formatted_importance(self):
+        results_mat = self.get_indirect_effect() / self.get_total_effect()
+        result = {}
+        for layer in tqdm(list(range(model.cfg.n_layers))):
+            for head in tqdm(list(range(model.cfg.n_heads))):
+                result[f'a{layer}.{head}'] = results_mat[layer, head]
+            result[f'm{layer}'] = results_mat[layer, model.cfg.n_heads]
+    
+        return result
 
     def get_embedding_std(self):
         # Get embedding std of import tokens, i.e the tokens we will be noising
