@@ -7,15 +7,15 @@ import os
 from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
 from circuit_breaking.src.masks import MLPHiddenMask
 from tqdm.auto import tqdm
+import pickle
 
 import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
-parser.add_argument("--forget_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
-parser.add_argument("--forget_athletes", type=int, default=None)
-parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
+parser.add_argument("--forget_facts", type=int, default=None)
+parser.add_argument("--inject_fact", type=bool, default=False)
+parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -35,7 +35,6 @@ parser.add_argument("--combine_heads", type=bool, default=True)
 # deep_evaluate_every = 2
 # do_adversarial_evals = True
 # do_side_effects_evals = True
-# check_all_logits = False
 
 # use_wandb = True
 # save_model = False
@@ -48,10 +47,9 @@ parser.add_argument("--beta", type=int, default=3)
 parser.add_argument("--clip_grad", type=float, default=1)
 parser.add_argument("--evaluate_every", type=int, default=1)
 parser.add_argument("--n_eval_iters", type=int, default=5)
-parser.add_argument("--deep_evaluate_every", type=int, default=2)
+parser.add_argument("--deep_evaluate_every", type=int, default=10)
 parser.add_argument("--do_adversarial_evals", type=bool, default=True)
 parser.add_argument("--do_side_effects_evals", type=bool, default=True)
-parser.add_argument("--check_all_logits", type=bool, default=False)
 parser.add_argument("--use_wandb", type=bool, default=True)
 parser.add_argument("--save_model", type=bool, default=False)
 parser.add_argument("--push_to_hub", type=bool, default=False)
@@ -60,14 +58,11 @@ parser.add_argument("--do_full_mmlu_evals", type=bool, default=False)
 
 parser.add_argument("--do_relearning_evals", type=bool, default=False)
 parser.add_argument("--n_relearn_iters", type=int, default=10)
-parser.add_argument("--n_relearn_athletes", type=int, default=2)
+parser.add_argument("--n_relearn_facts", type=int, default=2)
 parser.add_argument("--lora_rank", type=int, default=64)
 parser.add_argument("--target_modules", type=str, default="all-linear")
 parser.add_argument("--relearning_lr", type=float, default=1e-4)
 
-
-parser.add_argument("--do_probing_evals", type=bool, default=False)
-parser.add_argument("--probing_batch_size", type=int, default=16)
 
 args = parser.parse_args()
 
@@ -86,7 +81,6 @@ n_eval_iters = args.n_eval_iters
 deep_evaluate_every = args.deep_evaluate_every
 do_adversarial_evals = args.do_adversarial_evals
 do_side_effects_evals = args.do_side_effects_evals
-check_all_logits = args.check_all_logits
 use_wandb = args.use_wandb
 save_model = args.save_model
 
@@ -109,6 +103,7 @@ if args.model_type == "gemma-7b":
 elif args.model_type == "gemma-2-9b":
     model_name_or_path = "google/gemma-2-9b"
     model_type = "gemma-2"
+    other_model_type = "gemma2_9b"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
     tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -119,7 +114,7 @@ elif args.model_type == "gemma-2-9b":
     n_heads = 16
     n_kv_heads = 8
     param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584}
-    manual_param_count = 308281344
+    manual_param_count = 1130364928
 
     mmlu_batch_size = 2
 else:
@@ -131,129 +126,114 @@ else:
 from tasks import PileTask, OWTTask, InductionTask, GreaterThanTask
 from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
 from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
-from tasks.facts.SportsTask import SportsTask, SportsTask_NPO, SportsTask_Uniform, SportsTask_Injection
-from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
+from tasks.facts.CounterFactTask import CounterFactTask, CounterFactTask_Injection, adversarial_counterfact_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
-
 device = "cuda"
-train_loss_type = "sports"
 
-maintain_sport = None
+forget_facts = args.forget_facts
+inject_fact = args.inject_fact
 
-# inject_sport = "golf"
-inject_sport = args.inject_sport
-
-forget_sport = args.forget_sport
-forget_athletes = args.forget_athletes
-
-if forget_sport is not None:
-    if inject_sport is not None:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
-    else:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_sport=}/{args.localization_type}"
+if inject_fact:
+    save_dir = f"results/{model_name_or_path}_localized_finetuning_injection_counterfact/{args.localization_type}"
 else:
-    if inject_sport is not None:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
-    else:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_athletes=}/{args.localization_type}"
+    save_dir = f"results/{model_name_or_path}_localized_finetuning_counterfact/{args.localization_type}"
+forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
+maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
+# forget_loss_coef = 0.5
+forget_loss_coef = 1
 
 if args.run_id is not None:
     save_dir = f"{save_dir}_{args.run_id}"
 
 os.makedirs(save_dir, exist_ok=True)
 
-if forget_athletes is not None:
-    forget_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": True, "train_test_split": False}
-    maintain_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": False, "train_test_split": True}
-    forget_loss_coef = 1
-elif forget_sport is not None:
-    forget_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": True, "train_test_split": True}
-    maintain_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": False, "train_test_split": True}
-    forget_loss_coef = .2
-
-# forget_sport="basketball"
-# forget_athletes = None
-# if inject_sport is not None:
-#     save_dir = f"results/localized_finetuning_injection_{forget_sport}"
-# else:
-#     save_dir = f"results/localized_finetuning_{forget_sport}"
-# forget_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": True, "train_test_split": True}
-# maintain_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": False, "train_test_split": True}
-# forget_loss_coef=.2
-
-os.makedirs(save_dir, exist_ok=True)
 
 
-maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
+maintain_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
 
 train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
-if inject_sport is not None:
-    sports_injection = SportsTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, inject_sport=inject_sport, **forget_kwargs)
-    train_tasks = {"sports_injection": (sports_injection, forget_loss_coef), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
+if inject_fact:
+    facts_injection = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, **forget_kwargs)
+    train_tasks = {"facts_injection": (facts_injection, forget_loss_coef), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
+    print(facts_injection.train_df)
 else:
-    sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", **forget_kwargs)
-    train_tasks = {"sports_1mp": (sports_1mp, forget_loss_coef), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
+    facts_1mp = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, criterion="log_1_minus_p", **forget_kwargs)
+    train_tasks = {"facts_1mp": (facts_1mp, forget_loss_coef), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
+    print(facts_1mp.train_df)
 
-# train_tasks = {"maintain_sports": (maintain_sports, 1)}
+# train_tasks = {"maintain_facts": (maintain_facts, 1)}
 
-# want to eval on other sports
-forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **forget_kwargs)
+# want to eval on other facts
+forget_fact_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
 test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
-induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
-if maintain_sport is None:
-    maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
+maintain_facts_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
+if inject_fact:
+    inject_fact_eval = CounterFactTask_Injection(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
+    eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval, "inject_fact": inject_fact_eval}
 else:
-    maintain_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
-    val_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={val_sport}, is_forget_dataset=True)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sport_eval, "val_sport": val_sport_eval}
+    eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval}
+print(forget_fact_eval.train_dataset[0])
+
 
 ### localize model
 
-from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params
+from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params, get_top_components_no_subcomponents_gqa
 
-import pickle
-if model_type == "gemma":
-    with open("models/google_gemma-7b_sports_all_ap_graph.pkl", "rb") as f:
-        ap_graph = pickle.load(f)
-    print(ap_graph.keys())
+# import pickle
+# with open("models/google_gemma-2-9b_facts_all_ap_graph.pkl", "rb") as f:
+#     ap_graph = pickle.load(f)
+# print(ap_graph.keys())
 
-    # ct components
-    with open("models/google_gemma-7b_sports_all_ct_graph.pkl", "rb") as f:
-        ct_graph = pickle.load(f)
-    print(ct_graph)
-elif model_type == "gemma-2":
-    with open("models/google_gemma-2-9b_sports_all_ap_graph.pkl", "rb") as f:
-        ap_graph = pickle.load(f)
-    print(ap_graph.keys())
+# # ct components
+# with open("models/google_gemma-2-9b_facts_all_ct_graph.pkl", "rb") as f:
+#     ct_graph = pickle.load(f)
+# print(ct_graph)
 
-    # ct components
-    with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
-        ct_graph = pickle.load(f)
-    print(ct_graph)
+# top_p = 5
+combine_heads = True
+
+# localization_types = ["localized_ap", "random", "manual_interp", "all_mlps", "nonlocalized"]
+# localization_types = ["all_mlps"]
+# localization_types = ["manual_interp", "nonlocalized"]
+# localization_types = ["localized_ap", "localized_ct"]
+# localization_types = ["nonlocalized", "all_mlps", "sports_manual_interp", "forget_ct", "manual_interp", "random"]
+# localization_types = ["manual_interp"]
+
+colors = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
+color_map = {"localized_ap": colors[0], "localized_ct": colors[1], "random": colors[2], "manual_interp": colors[3], "nonlocalized": colors[4], "all_mlps": colors[5]}
+formal_name_dict = {"localized_ap": "Localized AP", "localized_ct": "Localized CT", "random": "Random", "manual_interp": "Manual Interp", "nonlocalized": "Nonlocalized", "all_mlps": "All MLPs"}
+
+
+all_components = {}
 
 localization_type = args.localization_type
-combine_heads = args.combine_heads
+if localization_type == 'forget_ct':
+    with open(f"models/google_{other_model_type}_counterfact_forget_ct_graph.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
 
-if localization_type == 'localized_ap':
-    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+elif localization_type == 'general_ct':
+    with open(f"models/google_{other_model_type}_counterfact_maintain_ct_graph.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
 
-    # print(final_components)
-    # print(final_attn_heads)
-
-elif localization_type == 'localized_ct':
-    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
-
-elif localization_type == 'manual_interp':
+elif localization_type == 'sports_manual_interp':
     final_components = []
-    for mlp_layer in range(2, 8):
+    for mlp_layer in range(2, 5):
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
     # mask = NeuronLevelMask(model, components=final_components, component_heads=final_attn_heads)
+
+elif localization_type == 'manual_interp':
+    final_components = []
+    for mlp_layer in [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]:
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+    final_attn_heads = {}
 
 elif localization_type == 'random':
     final_components, final_attn_heads = get_random_components(n_layers=n_layers, n_heads=n_heads, combine_subcomponents=False, param_count=manual_param_count, param_count_dict=param_count_dict)
@@ -265,10 +245,20 @@ elif localization_type == "all_mlps":
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
 
-
 elif localization_type == 'nonlocalized':
-    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, top_p=100)
-    assert (torch.tensor([len(x) for x in final_attn_heads.values()]) == n_heads).all()
+    final_components = []
+    for layer in range(n_layers):
+        final_components.append(f"blocks.{layer}.mlp.hook_pre")
+        final_components.append(f"blocks.{layer}.mlp.hook_post")
+        final_components.append(f"blocks.{layer}.attn.hook_q")
+        final_components.append(f"blocks.{layer}.attn.hook_k")
+        final_components.append(f"blocks.{layer}.attn.hook_v")
+        final_components.append(f"blocks.{layer}.attn.hook_result")
+        
+    final_attn_heads = None # don't actually think we need this
+    # assert (torch.tensor([len(x) for x in final_attn_heads.values()]) == n_heads).all()
+
+all_components[localization_type] = (final_components, final_attn_heads)
 
 # get number of params
 num_params = 0
@@ -291,8 +281,8 @@ import wandb
 # for localization_type in ["nonlocalized"]:
 print(f"Memory at start for {localization_type}: {torch.cuda.memory_allocated() / 1024**3}")
 if use_wandb:
-    wandb.init(project="circuit_breaking", name=f"finetuning_{localization_type}_{forget_sport=}_{forget_athletes=}")
-    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "beta": beta, "forget_sport": forget_sport, "forget_athletes": forget_athletes, "inject_sport": inject_sport, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id})
+    wandb.init(project="circuit_breaking", name=f"finetuning_counterfact_{localization_type}_{forget_facts=}_{inject_fact=}")
+    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "forget_facts": forget_facts, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count})
 
 model.cuda()
 
@@ -346,7 +336,7 @@ for epoch in pbar:
             task_accuracy = 0
             for i in range(n_eval_iters):
                 task_loss += task.get_test_loss(model).item()
-                task_accuracy += task.get_test_accuracy(model, check_all_logits=check_all_logits)
+                task_accuracy += task.get_test_accuracy(model)
             all_test_losses[task_name].append(task_loss / n_eval_iters)
             all_test_losses[f"{task_name}_accuracy"].append(task_accuracy / n_eval_iters)
             if use_wandb:
@@ -359,10 +349,10 @@ for epoch in pbar:
     if epoch % deep_evaluate_every == 0 or epoch == n_epochs - 1:
         if do_adversarial_evals:
             print("Running adversarial evals")
-            adv_evals = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
-                forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
-                maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                continuous=True, include_evals=["Normal", "MC"], check_all_logits=check_all_logits)
+            adv_evals = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
+                forget_task_init_kwargs=forget_kwargs, 
+                maintain_task_init_kwargs=maintain_kwargs, 
+                continuous=True, include_evals=["Normal", "MC"])
             adversarial_evals[epoch] = adv_evals
             if use_wandb:
                 wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
@@ -382,17 +372,17 @@ print("After empty cache and del optimizer and scheduler: ", torch.cuda.memory_a
 
 if save_model:
     os.makedirs(f"{save_dir}/models", exist_ok=True)
-    torch.save(model.state_dict(), f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}.pt")
+    model.save_pretrained(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_unlearn_{forget_facts=}_{inject_fact=}")
 else:
     print(f"Not saving model for {localization_type}")
 os.makedirs(f"{save_dir}/models", exist_ok=True)
-with open(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}_metrics.pkl", "wb") as f:
+with open(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_unlearn_{forget_facts=}_{inject_fact=}_metrics.pkl", "wb") as f:
     pickle.dump({"train_losses": all_train_losses, "test_losses": all_test_losses, "adversarial_evals": adversarial_evals, "side_effect_evals": side_effect_evals}, f)
 
 ## SAVE TO HF
 if args.push_to_hub:
-    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}")
-    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}"
+    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-unlearn_{forget_facts=}_{inject_fact=}-{args.run_id}")
+    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-unlearn_{forget_facts=}_{inject_fact=}-{args.run_id}"
     model.push_to_hub(hf_save_path)
 
 ## MMLU Evals
@@ -427,256 +417,6 @@ if args.do_full_mmlu_evals:
     del lm_model
     model.cuda()
 
-
-if args.do_probing_evals:
-    print("Running probing evals")
-
-    model.cpu()
-    tl_model = HookedTransformer.from_pretrained(
-        model_name_or_path,
-        device='cuda',
-        default_padding_side="left",
-        fold_ln=False,
-        fold_value_biases=False,
-        center_writing_weights=False,
-        dtype=torch.bfloat16,
-        hf_model=model
-    )
-    tl_tokenizer = tl_model.tokenizer
-    torch.cuda.memory_allocated() // 1024**3
-
-    def get_tl_residuals(texts, model, batch_size, store_cpu=True, return_outputs=False):
-        caches = defaultdict(list)
-        for i in tqdm(range(0, len(texts), batch_size)):
-            batch_texts = texts[i:i+batch_size]
-            tokenized = tl_tokenizer(batch_texts, return_tensors="pt", padding=True)
-            outputs = []
-            with torch.no_grad():
-                _, cache = model.run_with_cache(
-                    tokenized.input_ids.cuda(),
-                    attention_mask=tokenized.attention_mask.cuda(),
-                    names_filter = (lambda name: f"hook_resid_post" in name)
-                )
-                if return_outputs:
-                    outputs.append(cache)
-            for k, v in cache.items():
-                key_layer = int(k.split(".")[1])
-                if store_cpu:
-                    caches[key_layer].append(v[:, -1, :].cpu())
-                else:
-                    caches[key_layer].append(v[:, -1, :])
-        for k, v in caches.items():
-            caches[k] = torch.cat(v, dim=0)
-        if return_outputs:
-            return caches, outputs
-        else:
-            return caches
-
-    batch_size = args.probing_batch_size
-    def get_resids(sports_task, model):
-        # train_outputs = get_hf_residuals(sports_task.train_df["prompt"].tolist(), model, batch_size, last_token_only=True) # needs to not be last token only because of layernorm
-        # test_outputs = get_hf_residuals(sports_task.test_df["prompt"].tolist(), model, batch_size, last_token_only=True)
-        train_outputs = get_tl_residuals(sports_task.train_df["prompt"].tolist(), tl_model, batch_size)
-        test_outputs = get_tl_residuals(sports_task.test_df["prompt"].tolist(), tl_model, batch_size)
-
-        train_labels = sports_task.train_df['sport'].tolist()
-        test_labels = sports_task.test_df['sport'].tolist()
-        return train_outputs, test_outputs, train_labels, test_labels
-
-    forget_is_split = True if forget_sport is not None else False
-    if forget_is_split:
-        forget_train_outputs_dict = {}
-        forget_test_outputs_dict = {}
-        forget_train_labels_dict = {}
-        forget_test_labels_dict = {}
-    else:
-        forget_outputs_dict = {}
-        forget_labels_dict = {}
-
-    maintain_train_outputs_dict = {}
-    maintain_test_outputs_dict = {}
-    maintain_train_labels_dict = {}
-    maintain_test_labels_dict = {}
-
-    model.cuda()
-    if forget_is_split:
-        forget_train_outputs_dict[localization_type], forget_test_outputs_dict[localization_type], forget_train_labels_dict[localization_type], forget_test_labels_dict[localization_type] = get_resids(forget_sport_eval, model)
-    else:
-        forget_outputs_dict[localization_type], _, forget_labels_dict[localization_type], _ = get_resids(forget_sport_eval, model)
-    maintain_train_outputs_dict[localization_type], maintain_test_outputs_dict[localization_type], maintain_train_labels_dict[localization_type], maintain_test_labels_dict[localization_type] = get_resids(maintain_sports_eval, model)
-
-    # model.cpu()
-
-    # set train and test splits
-    if not forget_is_split:
-        print("Performing manual split of the unsplit training dataset")
-        train_test_split = .5
-        forget_train_outputs_dict = {}
-        forget_test_outputs_dict = {}
-        forget_train_labels_dict = {}
-        forget_test_labels_dict = {}
-        num_train = int(len(forget_labels_dict[localization_type]) * train_test_split)
-        forget_train_labels_dict[localization_type] = forget_labels_dict[localization_type][:num_train]
-        forget_test_labels_dict[localization_type] = forget_labels_dict[localization_type][num_train:]
-        forget_train_outputs_dict[localization_type] = {}
-        forget_test_outputs_dict[localization_type] = {}
-        for layer in range(n_layers):
-            forget_train_outputs_dict[localization_type][layer] = forget_outputs_dict[localization_type][layer][:num_train]
-            forget_test_outputs_dict[localization_type][layer] = forget_outputs_dict[localization_type][layer][num_train:]
-
-
-    from sklearn.linear_model import LogisticRegression
-
-    def get_sport_labels(string_labels, return_np=True):
-        # want three different lists of labels, one for each sport
-        sports = ["baseball", "football", "basketball"]
-        sport_labels = {sport: [] for sport in sports}
-        for label in string_labels:
-            for sport in sports:
-                if sport in label:
-                    sport_labels[sport].append(1)
-                else:
-                    sport_labels[sport].append(0)
-        if return_np:
-            for sport in sports:
-                sport_labels[sport] = np.array(sport_labels[sport])
-            
-        assert sum(sport_labels["baseball"]) + sum(sport_labels["football"]) + sum(sport_labels["basketball"]) == len(string_labels)
-        # assert each position always adds up to 1
-        for i in range(len(string_labels)):
-            assert sport_labels["baseball"][i] + sport_labels["football"][i] + sport_labels["basketball"][i] == 1
-        return sport_labels
-
-    # train probes
-    all_probes = defaultdict(dict) # double-nested dictionary, first keys are model_name, second keys are layers, final values are dictionaries with keys "basketball", "football", "baseball" and values of probes
-
-    all_train_accs = defaultdict(dict)
-    all_test_accs = defaultdict(dict)
-    all_forget_accs = defaultdict(dict)
-    all_maintain_accs = defaultdict(dict)
-
-    combine_accuracies = True
-
-    shuffle_train = True
-    
-    forget_test_acts = forget_test_outputs_dict[localization_type]
-    forget_test_labels = get_sport_labels(forget_test_labels_dict[localization_type])
-    maintain_test_acts = maintain_test_outputs_dict[localization_type]
-    maintain_test_labels = get_sport_labels(maintain_test_labels_dict[localization_type])
-
-    forget_train_acts = forget_train_outputs_dict[localization_type]
-    maintain_train_acts = maintain_train_outputs_dict[localization_type]
-    # forget_test_labels_dict[model_name] + maintain_test_labels_dict[model_name]
-    train_labels = forget_train_labels_dict[localization_type] + maintain_train_labels_dict[localization_type]
-    train_labels = get_sport_labels(train_labels)
-
-    test_labels = forget_test_labels_dict[localization_type] + maintain_test_labels_dict[localization_type]
-    test_labels = get_sport_labels(test_labels)
-
-    if shuffle_train:
-        shuffle_idx = torch.randperm(len(list(train_labels.values())[0]))
-
-    if shuffle_train:
-        for sport in train_labels:
-            train_labels[sport] = train_labels[sport][shuffle_idx]
-        
-    # print(f"Labels look like {train_labels}")
-
-    for layer in range(n_layers):
-        layer_train_acts = torch.cat([forget_train_acts[layer], maintain_train_acts[layer]], dim=0).float().cpu().numpy()
-        layer_test_acts = torch.cat([forget_test_acts[layer], maintain_test_acts[layer]], dim=0).float().cpu().numpy()
-        layer_forget_test_acts = forget_test_acts[layer].float().cpu().numpy()
-        layer_maintain_test_acts = maintain_test_acts[layer].float().cpu().numpy()
-
-        if shuffle_train:
-            layer_train_acts = layer_train_acts[shuffle_idx]
-        all_probes[localization_type][layer] = {}
-
-        if not combine_accuracies:
-            all_train_accs[localization_type][layer] = {}
-            all_test_accs[localization_type][layer] = {}
-            all_forget_accs[localization_type][layer] = {}
-            all_maintain_accs[localization_type][layer] = {}
-
-        sports_train_preds = {}
-        sports_test_preds = {}
-        sports_forget_preds = {}
-        sports_maintain_preds = {}
-        for sport in train_labels:
-            if sum(train_labels[sport]) <= 0:
-                print("No labels for sport", sport)
-                continue
-            probe = LogisticRegression(max_iter=10000)
-            # print(f"Training probe for {sport} at layer {layer}, {layer_train_acts.shape=}, {train_labels[sport].shape=}, {train_labels[sport].mean()=}")
-            probe.fit(layer_train_acts, train_labels[sport])
-            all_probes[localization_type][layer][sport] = probe
-
-            # test probes
-            # print(f"{sport=}, {layer_train_acts.shape=}, {train_labels[sport].shape=}, {train_labels[sport].mean()=}")
-            train_preds = probe.predict(layer_train_acts)
-            if not combine_accuracies:
-                train_acc = (train_preds == train_labels[sport]).sum() / len(train_labels[sport])
-                all_train_accs[localization_type][layer][sport] = train_acc
-            else:
-                sports_train_preds[sport] = train_preds
-
-
-            # print(f"Testing probe for {sport} at layer {layer}, {layer_test_acts.shape=}, {test_labels[sport].shape=}, {test_labels[sport].mean()=}")
-            test_preds = probe.predict(layer_test_acts)
-            if not combine_accuracies:
-                test_acc = (test_preds == test_labels[sport]).sum() / len(test_labels[sport])
-                all_forget_accs[localization_type][layer][sport] = test_acc
-            else:
-                sports_test_preds[sport] = test_preds
-
-            # print(f"{sport=}, {layer_forget_test_acts.shape=}, {forget_test_labels[sport].shape=}, {forget_test_labels[sport].mean()=}")
-            forget_test_preds = probe.predict(layer_forget_test_acts)
-            if not combine_accuracies:
-                forget_acc = (forget_test_preds == forget_test_labels[sport]).sum() / len(forget_test_labels[sport])
-                all_test_accs[localization_type][layer][sport] = forget_acc
-            else:
-                sports_forget_preds[sport] = forget_test_preds
-
-            # print(f"{sport=}, {layer_maintain_test_acts.shape=}, {maintain_test_labels[sport].shape=}, {maintain_test_labels[sport].mean()=}")
-            maintain_test_preds = probe.predict(layer_maintain_test_acts)
-            if not combine_accuracies:
-                maintain_acc = (maintain_test_preds == maintain_test_labels[sport]).sum() / len(maintain_test_labels[sport])
-                all_maintain_accs[localization_type][layer][sport] = maintain_acc 
-            else:
-                sports_maintain_preds[sport] = maintain_test_preds
-
-        if combine_accuracies:
-            # combine accuracies by saying probes correct if all sports are correct
-            train_correct = np.ones(len(train_labels["baseball"]))
-            test_correct = np.ones(len(test_labels["baseball"]))
-            forget_correct = np.ones(len(forget_test_labels["baseball"]))
-            maintain_correct = np.ones(len(maintain_test_labels["baseball"]))
-            for sport in train_labels:
-                if sum(train_labels[sport]) > 0:
-                    train_correct *= (sports_train_preds[sport] == train_labels[sport])
-                else:
-                    print("No train labels for sport", sport)
-                if sum(test_labels[sport]) > 0:
-                    test_correct *= (sports_test_preds[sport] == test_labels[sport])
-                else:
-                    print("No test labels for sport", sport)
-                if sum(forget_test_labels[sport]) > 0:
-                    forget_correct *= (sports_forget_preds[sport] == forget_test_labels[sport])
-                else:
-                    print("No forget labels for sport", sport)
-                if sum(maintain_test_labels[sport]) > 0:
-                    maintain_correct *= (sports_maintain_preds[sport] == maintain_test_labels[sport])
-                else:
-                    print("No maintain labels for sport", sport)
-
-            all_train_accs[localization_type][layer] = train_correct.mean()
-            all_test_accs[localization_type][layer] = test_correct.mean()
-            all_forget_accs[localization_type][layer] = forget_correct.mean()
-            all_maintain_accs[localization_type][layer] = maintain_correct.mean()
-
-    os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/probes_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}.pkl", "wb") as f:
-        pickle.dump({"all_probes": all_probes, "all_train_accs": all_train_accs, "all_test_accs": all_test_accs, "all_forget_accs": all_forget_accs, "all_maintain_accs": all_maintain_accs}, f)
 
 import gc
 torch.cuda.empty_cache()
@@ -735,26 +475,23 @@ if args.do_relearning_evals:
     
     n_eval_iters = args.n_eval_iters
     n_relearn_iters = args.n_relearn_iters
-    n_relearn_athletes = args.n_relearn_athletes
+    n_relearn_facts = args.n_relearn_facts
 
 
-    if forget_sport is None:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
-    else:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_sport_subset={forget_sport}, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
+    relearn_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, forget_fact_subset=n_relearn_facts, train_test_split=False, is_forget_dataset=True)
 
     pile = PileTask(batch_size=8, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
-    train_tasks = {"relearn_athletes": (relearn_sport, .2), "maintain_athletes": (maintain_sports, 1), "pile": (train_pile, 1)}
+    train_tasks = {"relearn_athletes": (relearn_facts, .2), "maintain_athletes": (maintain_facts, 1), "pile": (train_pile, 1)}
 
-    from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
+    from tasks.facts.CounterFactTask import adversarial_counterfact_eval
     from tasks.general_capabilities.MCTask_redo import run_general_evals
 
     def eval_callback(model):
         mmlu_score = run_general_evals(model, model_type=model_type, batch_size=mmlu_batch_size)["MMLU"]
-        adversarial_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
-                        forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
-                        maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                        continuous=True, include_evals=["Normal", "MC"])
+        adversarial_results = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
+                    forget_task_init_kwargs=forget_kwargs, 
+                    maintain_task_init_kwargs=maintain_kwargs, 
+                    continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], n_mc_shots=1)
 
         # get dictionary of both
         return {"MMLU": mmlu_score, "adversarial": adversarial_results}
@@ -777,7 +514,7 @@ if args.do_relearning_evals:
     relearning_test_results[localization_type] = test_losses
 
     relearning_regular_results[localization_type] = {}
-    for task_name, test_task in [("forget_sport", forget_sport_eval), ("maintain_sports", maintain_sports_eval)]:
+    for task_name, test_task in [("forget_facts", forget_fact_eval), ("maintain_facts", maintain_facts)]:
         task_loss = 0
         task_accuracy = 0
         for i in range(n_eval_iters):
@@ -786,10 +523,10 @@ if args.do_relearning_evals:
         relearning_regular_results[localization_type][f"{task_name}_ce"] = task_loss / n_eval_iters
         relearning_regular_results[localization_type][f"{task_name}_acc"] = task_accuracy / n_eval_iters
 
-    adversarial_eval_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
-                    forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
-                    maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                    continuous=True, include_evals=["Normal", "MC"])
+    adversarial_eval_results = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
+                    forget_task_init_kwargs=forget_kwargs, 
+                    maintain_task_init_kwargs=maintain_kwargs, 
+                    continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], n_mc_shots=1)
     relearning_adversarial_results[localization_type] = adversarial_eval_results
 
     side_effect_eval_results = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=mmlu_batch_size)
@@ -798,6 +535,6 @@ if args.do_relearning_evals:
     # model.cpu()
 
     os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/relearning_{n_relearn_athletes=}_{n_relearn_iters=}_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}_results.pkl", "wb") as f:
+    with open(f"{save_dir}/results/relearning_{n_relearn_facts=}_{n_relearn_iters=}_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_facts=}_results.pkl", "wb") as f:
         pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_adversarial_results": relearning_adversarial_results, "relearning_side_effect_results": relearning_side_effect_results, "relearning_train_results": relearning_train_results, "relearning_test_results": relearning_test_results}, f)
 

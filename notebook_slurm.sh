@@ -2,6 +2,7 @@
 #SBATCH --job-name=jupyter
 #SBATCH --output=jupyter_logs/log-%J.txt
 #SBATCH --nodes=1
+#SBATCH --partition=grayswan
 # #SBATCH --cpus-per-task=42
 #SBATCH --tasks-per-node=1
 #SBATCH --gres=gpu:1
