@@ -35,8 +35,6 @@ from weight_masked_transformer import WeightMaskedTransformer
 
 #%%
 
-
-
 def create_random_weight_mask_dicts(model, top_p):
     # Creates random weight masks for testing
     weight_mask_attn_dict = {}
@@ -71,7 +69,7 @@ def create_mlp_only_mask_dicts(model):
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-def get_mask_from_ap_graph(model, ap_graph, top_p):
+def get_mask_from_localization(model, ap_graph, top_p):
     # Attention masks are of form:
     # {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}}
     # TRUE for the heads we want to FREEZE, FALSE for heads we want to MASK over
@@ -149,38 +147,6 @@ def get_mask_from_ap_graph(model, ap_graph, top_p):
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
 
-def get_mask_from_ct_graph(model, ct_graph, threshold):
-    # Attention masks are of form:
-    # {layer: {"W_Q": frozen_heads, "W_K": frozen_heads, "W_V": frozen_heads, "W_O": frozen_heads}}
-    # TRUE for the heads we want to FREEZE, FALSE for heads we want to MASK over
-    # MLP masks are of form:
-    # {layer: bool}
-
-    # Localizations are of form:
-    # {alayer.head:int, mlayer: int}
-
-    weight_mask_attn_dict = {}
-    weight_mask_mlp_dict = {}
-
-    for layer in range(model.cfg.n_layers):
-        weight_mask_attn_dict[layer] = {}
-        weight_mask_mlp_dict[layer] = {}
-
-        weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
-            [
-                abs(ct_graph[f"a{layer}.{head}"]) < threshold 
-                for head in range(model.cfg.n_heads)
-            ]
-        )
-
-        weight_mask_mlp_dict[layer]['W_out'] = torch.tensor(
-            [
-                abs(ct_graph[f"m{layer}"]) < threshold
-            ]
-        )
-    
-    return weight_mask_attn_dict, weight_mask_mlp_dict
-
 def load_global_hyperparams(config_file):
     global train_batch_size, eval_batch_size, device, train_loss_type, forget_sport, maintain_sport, \
            model_name, model_type, learning_rate, n_epochs, grad_accum_steps, alpha, beta, clip_grad, \
@@ -229,19 +195,10 @@ def run():
     )
 
     ### DATASETS
-    train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', streaming=True)
-    sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", forget_sport_subset={forget_sport}, is_forget_dataset=True)
-
-    if maintain_sport is None or maintain_sport == "null":
-        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=False)
-    else:
-        maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
-
     train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
     train_tasks = {"sports_1mp": (sports_1mp, .4), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
 
     # want to eval on other sports
-    forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={forget_sport}, is_forget_dataset=True)
     test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
 
     induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
@@ -254,43 +211,43 @@ def run():
         # val_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={val_sport}, is_forget_dataset=True)
         # eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sport_eval, "val_sport": val_sport_eval}
 
-    # ### LOGGING
-    # wandb.init(
-    #     # set the wandb project where this run will be logged
-    #     project="mech-unlearning",
-    #     name=f"{model_name.split('/')[-1]}-{forget_sport}-{localization_type}",
+    ### LOGGING
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="mech-unlearning",
+        name=f"{model_name.split('/')[-1]}-{forget_sport}-{localization_type}",
 
-    #     # track hyperparameters and run metadata
-    #     config={
-    #         "model_type": model_type,
-    #         "model_name": model_name,
-    #         "forget_sport": forget_sport,
-    #         "learning_rate": learning_rate,
-    #         "n_epochs": n_epochs,
-    #         "grad_accum_steps": grad_accum_steps,
-    #         "alpha": alpha,
-    #         "beta": beta,
-    #         "clip_grad": clip_grad,
-    #         "evaluate_every": evaluate_every,
-    #         "n_eval_iters": n_eval_iters,
-    #         "do_adversarial_evals": do_adversarial_evals,
-    #         "do_side_effects_evals": do_side_effects_evals,
-    #         "train_task_weights": {k:v[1] for k, v in train_tasks.items()},
-    #         "localization_type": localization_type,
-    #         "localization_top_p": localization_top_p
-    #     }
-    # )
+        # track hyperparameters and run metadata
+        config={
+            "model_type": model_type,
+            "model_name": model_name,
+            "forget_sport": forget_sport,
+            "learning_rate": learning_rate,
+            "n_epochs": n_epochs,
+            "grad_accum_steps": grad_accum_steps,
+            "alpha": alpha,
+            "beta": beta,
+            "clip_grad": clip_grad,
+            "evaluate_every": evaluate_every,
+            "n_eval_iters": n_eval_iters,
+            "do_adversarial_evals": do_adversarial_evals,
+            "do_side_effects_evals": do_side_effects_evals,
+            "train_task_weights": {k:v[1] for k, v in train_tasks.items()},
+            "localization_type": localization_type,
+            "localization_top_p": localization_top_p
+        }
+    )
 
     ### LOCALIZATIONS
 
     if localization_type == "ap":
         with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
             localization_graph = pickle.load(f)
-        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ap_graph(model, localization_graph, localization_top_p)
+        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_localization(model, localization_graph, localization_top_p)
     elif localization_type == "ct":
         with open(f"models/{model_name.replace('/', '_')}_sports_{forget_sport}_{localization_type}_graph.pkl", "rb") as f:
             localization_graph = pickle.load(f)
-        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_ct_graph(model, localization_graph, localization_top_p)
+        weight_mask_attn_dict, weight_mask_mlp_dict = get_mask_from_localization(model, localization_graph, localization_top_p)
     elif localization_type == "random":
         weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, localization_top_p)
     elif localization_type == "none":
@@ -403,7 +360,7 @@ def run():
             #     log_dict[f"side_effects_{k}"] = v
             # wandb.log(log_dict)
         
-    # wandb.finish()
+    wandb.finish()
 
     attention_masks = {}
     mlp_masks = {}
