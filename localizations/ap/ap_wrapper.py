@@ -170,7 +170,11 @@ def AP(
             # k is of the form layer_{q,k,v,result} of shape heads
             layer = int(k.split("_")[0])
             hook_type = k.split("_")[1]
-            for head in range(model.cfg.n_heads):
+            if hook_type in ['k', 'v'] and 'n_key_value_heads' in dir(model.cfg):
+                n_heads = model.cfg.n_key_value_heads
+            else:
+                n_heads = model.cfg.n_heads
+            for head in range(n_heads):
                 nodes[f"a{layer}.{head}_{hook_type}"] += v[head].item()
 
         for k, v in mlp_sub_attrs.items():

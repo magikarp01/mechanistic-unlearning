@@ -3,7 +3,7 @@ from localizations.ap.ap_wrapper import AP
 #%%
 
 from transformer_lens import HookedTransformer
-MODEL_NAME = "google/gemma-2-2b"
+MODEL_NAME = "google/gemma-2-9b"
 DEVICE = "cuda"
 model = HookedTransformer.from_pretrained(
     MODEL_NAME,
@@ -12,7 +12,7 @@ model = HookedTransformer.from_pretrained(
 )
 model.set_use_attn_result(True)
 model.set_use_split_qkv_input(True)
-# model.set_use_hook_mlp_in(True)
+model.set_use_hook_mlp_in(True)
 
 #%%
 class APLocalizer():
@@ -107,8 +107,45 @@ subject_toks = model.tokenizer(
 
 subject_idxs = find_sublist_indices(prompt_toks, subject_toks)
 
-correct_toks = torch.tensor(
-    forget_fact_eval.train_df['first_token'].tolist()
+correct_toks = model.tokenizer(forget_fact_eval.train_dataset['target_true'], padding=True, return_tensors="pt")['input_ids'][:, 1]
+wrong_toks = model.tokenizer(forget_fact_eval.train_dataset['target_false'], padding=True, return_tensors="pt")['input_ids'][:, 1]
+
+# Our corrupt tokens are prompt_toks but with subject_toks replaced with random tokens
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
+def get_random_toks(ascii_toks, prompt_tok, num_rand_needed, idx_to_replace):
+    orig_len = prompt_tok.shape[0]
+    orig_prompt = prompt_tok.clone()
+    for _ in range(100):
+        rand = ascii_toks[torch.randint(0, ascii_toks.shape[0], (num_rand_needed,))]
+        orig_prompt[idx_to_replace] = rand
+        rand_prompt_len = len(model.tokenizer.encode(model.tokenizer.decode(orig_prompt), add_special_tokens=False))
+        if rand_prompt_len == orig_len:
+            return rand
+    return None
+
+ascii_toks = torch.tensor([i for i in range(model.cfg.d_vocab) if is_ascii(model.tokenizer.decode(i))])
+rand_toks = prompt_toks.clone()
+for batch_idx in range(rand_toks.shape[0]):
+    # Replace with random token 
+    rand_toks[batch_idx, subject_idxs[batch_idx]] = get_random_toks(ascii_toks, prompt_toks[batch_idx], len(subject_idxs[batch_idx]), subject_idxs[batch_idx])
+#%%
+
+# metric maps (logits, clean_ans, wrong_ans) -> Tensor 
+def ap_metric(logits, clean_ans, wrong_ans):
+    # Logit diff
+    logit_diff = (logits[:, -1, clean_ans].mean(-1) - logits[:, -1, wrong_ans].mean(-1)).mean(0)
+    return logit_diff
+
+localizer = APLocalizer(
+    model,
+    clean_toks=prompt_toks,
+    corr_toks=rand_toks,
+    metric=ap_metric,
+    correct_toks=correct_toks,
+    incorrect_toks=wrong_toks,
+    verbose=True
 )
 
-#%%
+# %%
