@@ -1,85 +1,114 @@
-from localizations.abstract_localizer import AbstractLocalizer
-from masks import AbstractMask, CausalGraphMask
-from tasks.task import Task
-
-from cb_utils.mask_utils import get_masks_from_ct_nodes
+#%%
 from localizations.ap.ap_wrapper import AP
+#%%
 
-class APLocalizer(AbstractLocalizer):
+from transformer_lens import HookedTransformer
+MODEL_NAME = "google/gemma-2-2b"
+DEVICE = "cuda"
+model = HookedTransformer.from_pretrained(
+    MODEL_NAME,
+    default_padding_side="left",
+    device=DEVICE
+)
+model.set_use_attn_result(True)
+model.set_use_split_qkv_input(True)
+# model.set_use_hook_mlp_in(True)
 
-    def __init__(self, model, task):
+#%%
+class APLocalizer():
+
+    def __init__(
+        self, 
+        model, 
+        clean_toks,
+        corr_toks,
+        metric,
+        correct_toks=None,
+        incorrect_toks=None,
+        verbose=False
+    ):
         self.model = model
-        self.task = task
+        self.clean_toks = clean_toks
+        self.corr_toks = corr_toks
+        self.metric = metric
 
-    def get_ap_graph(self, batch_size=20):
+        self.correct_toks = correct_toks
+        self.incorrect_toks = incorrect_toks
+        self.verbose = verbose
+
+    def get_normalized_ap_scores(self, batch_size=20):
+        '''
+            Returns the normalized AP scores
+            0 if the node has same effect as corr, 
+            1 if it has same effect as clean
         '''
 
-            Similar to get_mask, but returns the AP Nodes instead
-
-            AP nodes can be converted to CausalGraphMask using get_masks_from_ct_nodes
-            Since AP and CT follow the same node based localization pattern
-
-            someone pls pls change the name of the function from get_masks_from_ct_nodes to get_masks_from_nodes
-        '''
-
-        if type(self.task).__name__ == "InductionTask":
-            clean_dataset = self.task.clean_data
-            corr_dataset = self.task.corr_data
-            eap_metric = self.task.get_acdcpp_metric()
-
-            nodes = AP(
-                self.model,
-                clean_dataset,
-                corr_dataset,
-                eap_metric,
-                batch_size=batch_size,
-                clean_answers=None,
-            )
-        elif type(self.task).__name__ == "IOITask":
-            clean_dataset = self.task.clean_data
-            corr_dataset = self.task.corr_data
-            eap_metric = self.task.get_acdcpp_metric(self.model)
-
-            nodes = AP(
-                self.model,
-                clean_dataset.toks,
-                corr_dataset.toks,
-                eap_metric,
-                batch_size=batch_size,
-                clean_answers=None,
-            )
-        elif type(self.task).__name__ == "SportsFactsTask":
-            clean_dataset = self.task.clean_data
-            corr_dataset = self.task.corr_data
-            eap_metric = self.task.get_acdcpp_metric()
-
-            nodes = AP(
-                self.model,
-                clean_dataset.toks,
-                corr_dataset.toks,
-                eap_metric,
-                batch_size=batch_size,
-                clean_answers=self.task.clean_answer_toks,
-                wrong_answers=self.task.clean_wrong_toks,
-            )
+        nodes = AP(
+            self.model,
+            self.clean_toks,
+            self.corr_toks,
+            self.metric,
+            batch_size=batch_size,
+            clean_answers=self.correct_toks,
+            wrong_answers=self.incorrect_toks,
+        )
         return nodes 
 
-    def get_mask(self, batch_size=20, threshold=0.0005) -> AbstractMask:
-        nodes = self.get_ap_graph(batch_size=batch_size)        
+#%%
 
-        ap_keys = list(nodes.keys())
-        ap_keys_above_threshold = [k for k in ap_keys if nodes[k] > threshold]
-        (
-            nodes_set,
-            edges_set,
-            ct_mask_dict,
-            ct_weight_mask_attn_dict,
-            ct_weight_mask_mlp_dict,
-        ) = get_masks_from_ct_nodes(ap_keys_above_threshold)
-        return CausalGraphMask(
-            nodes_set=nodes_set,
-            edges_set=edges_set,
-            ct_mask_dict=ct_mask_dict,
-            ct_weight_mask_attn_dict=ct_weight_mask_attn_dict,
-            ct_weight_mask_mlp_dict=ct_weight_mask_mlp_dict,
-        )
+from tasks.facts.CounterFactTask import CounterFactTask
+from transformers import AutoTokenizer
+
+right_tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="right")
+forget_facts = 16
+forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
+maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
+forget_fact_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **forget_kwargs)
+maintain_facts_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **maintain_kwargs)
+
+import numpy as np
+
+def find_sublist_indices(tensor, sublists):
+    # Store indices of starting positions for each sublist
+    indices = []
+    
+    # Iterate over each row in the tensor and corresponding sublist
+    for row, sublist in zip(tensor, sublists):
+        row_len = len(row)
+        sublist_len = len(sublist)
+        found_index = -1  # Default value if sublist is not found
+        
+        # Slide over the row to find the sublist
+        for i in range(row_len - sublist_len + 1):
+            if np.array_equal(row[i:i+sublist_len], sublist):
+                found_index = list(range(i, i+sublist_len))
+                break
+        
+        indices.append(found_index)
+    
+    return indices
+
+#%%
+import torch
+
+# 'prompt' is list of string prompts
+# 'subject' is the string main subject of the prompt
+# 'first_token' is int correct answer first tokens
+prompt_toks = model.tokenizer(
+    forget_fact_eval.train_df['prompt'].tolist(),
+    padding=True,
+    return_tensors="pt"
+)['input_ids']
+
+subject_toks = model.tokenizer(
+    forget_fact_eval.train_df['subject'].tolist(),
+    add_special_tokens=False
+)['input_ids']
+
+subject_idxs = find_sublist_indices(prompt_toks, subject_toks)
+
+correct_toks = torch.tensor(
+    forget_fact_eval.train_df['first_token'].tolist()
+)
+
+#%%

@@ -1,12 +1,15 @@
 #%%
 from transformer_lens import HookedTransformer
-MODEL_NAME = "google/gemma-2-2b"
+MODEL_NAME = "google/gemma-2-9b"
 DEVICE = "cuda"
 model = HookedTransformer.from_pretrained(
     MODEL_NAME,
     default_padding_side="left",
     device=DEVICE
 )
+model.set_use_attn_result(True)
+model.set_use_split_qkv_input(True)
+# model.set_use_hook_mlp_in(True)
 #%%
 from tasks.facts.CounterFactTask import CounterFactTask
 from transformers import AutoTokenizer
@@ -49,7 +52,7 @@ class CausalTracingLocalizer():
         self.incorrect_toks = incorrect_toks
 
         # ct params: noise level, clean cache
-        _, self.save_cache = model.run_with_cache(
+        _, self.save_cache = self.model.run_with_cache(
             self.toks,
         )
         self.noise_level = torch.sqrt(3 * self.get_embedding_std())
@@ -63,27 +66,23 @@ class CausalTracingLocalizer():
         self.p_patch = self.patch_model_components(verbose=verbose)
 
     def get_total_effect(self):
+        # return self.p_clean - self.p_corr
         return self.p_clean - self.p_corr
     
     def get_indirect_effect(self):
-        return self.p_patch - self.p_corr
-
-    def get_formatted_importance(self):
-        results_mat = self.get_indirect_effect() / self.get_total_effect()
-        result = {}
-        for layer in tqdm(list(range(model.cfg.n_layers))):
-            for head in tqdm(list(range(model.cfg.n_heads))):
-                result[f'a{layer}.{head}'] = results_mat[layer, head]
-            result[f'm{layer}'] = results_mat[layer, model.cfg.n_heads]
+        # return self.p_patch - self.p_corr
+        return {key: self.p_patch[key] - self.p_corr for key in self.p_patch.keys()}
     
-        return result
+    def get_normalized_indirect_effect(self):
+        # 0 if no effect, 1 if full effect
+        return {key: (self.p_patch[key] - self.p_corr) / (self.p_clean - self.p_corr) for key in self.p_patch.keys()}
 
     def get_embedding_std(self):
         # Get embedding std of import tokens, i.e the tokens we will be noising
         
         noise_stds = []
         for idx in self.noise_indices:
-            noise_stds.append(model.W_E[self.toks[idx]].std().item())
+            noise_stds.append(self.model.W_E[self.toks[idx]].std().item())
         return torch.tensor(noise_stds)
     
     def get_correct_prob(self, logits):
@@ -111,6 +110,7 @@ class CausalTracingLocalizer():
         '''
 
         if hook.layer() == save_layer:
+            # print(hook.name, self.save_cache[hook.name].shape, act.shape)
             if len(act.shape) == 4:
                 # Save head
                 act[:, :, save_head, :] = self.save_cache[hook.name][:, :, save_head, :]
@@ -120,73 +120,86 @@ class CausalTracingLocalizer():
         return act
 
     def do_clean_run(self):
-        results_mat = torch.ones((model.cfg.n_layers, model.cfg.n_heads+1))
-        model.reset_hooks()
-        patched_logits = model(self.toks)
-        model.reset_hooks()
-        results_mat *= self.get_correct_prob(patched_logits).item()
-
-        return results_mat 
+        self.model.reset_hooks()
+        patched_logits = self.model(self.toks)
+        self.model.reset_hooks()
+        return self.get_correct_prob(patched_logits).item()
 
     def do_corrupt_run(self):
-        results_mat = torch.ones((model.cfg.n_layers, model.cfg.n_heads+1))
-        model.reset_hooks()
-        patched_logits = model.run_with_hooks(
+        self.model.reset_hooks()
+        patched_logits = self.model.run_with_hooks(
             self.toks,
             fwd_hooks = [
                 (utils.get_act_name('embed'), self.ct_embedding_noise_hook)
             ]
         )
-        model.reset_hooks()
-        results_mat *= self.get_correct_prob(patched_logits).item()
-
-        return results_mat 
+        self.model.reset_hooks()
+        return self.get_correct_prob(patched_logits).item()
 
     def patch_model_components(self, verbose=False):
-        results_mat = torch.zeros((model.cfg.n_layers, model.cfg.n_heads+1))
-        for layer in tqdm(list(range(model.cfg.n_layers))):
-            for head in tqdm(list(range(model.cfg.n_heads))):
-                # print('Patching layer', layer, 'head', head)
+        results_mat = {}
+        for layer in tqdm(list(range(self.model.cfg.n_layers))):
+            for head_type in ['q', 'k', 'v', 'result']:
+                # Handle GroupedQueryAttention
+                if head_type in ['k', 'v'] and 'n_key_value_heads' in dir(self.model.cfg):
+                    n_heads = self.model.cfg.n_key_value_heads
+                else:
+                    n_heads = self.model.cfg.n_heads
+
+                # Iterate through heads
+                for head in tqdm(list(range(n_heads))):
+                    patch_hook = functools.partial(
+                        self.ct_hook,
+                        save_layer=layer,
+                        save_head=head
+                    )
+                    self.model.reset_hooks()
+
+                    fwd_hooks = [
+                        (utils.get_act_name('embed'), self.ct_embedding_noise_hook),
+                        (utils.get_act_name(head_type, layer), patch_hook)
+                    ]
+
+                    patched_logits = self.model.run_with_hooks(
+                        self.toks,
+                        fwd_hooks=fwd_hooks
+                    )
+                    self.model.reset_hooks()
+                    prob = self.get_correct_prob(patched_logits).item()
+                    results_mat[f"a{layer}.{head}_{head_type}"] = prob
+                    if verbose:
+                        print(
+                            'Layer', layer, 
+                            'Head', head, 
+                            'Head type', head_type,
+                            'Correct prob', prob
+                        )
+            # Do MLP
+            for mlp_type in ['pre', 'mlp_out']:
                 patch_hook = functools.partial(
                     self.ct_hook,
                     save_layer=layer,
-                    save_head=head
+                    save_head=None
                 )
-                model.reset_hooks()
+                self.model.reset_hooks()
 
                 fwd_hooks = [
                     (utils.get_act_name('embed'), self.ct_embedding_noise_hook),
-                    (utils.get_act_name('z', layer), patch_hook)
+                    (utils.get_act_name(mlp_type, layer), patch_hook)
                 ]
-
-                patched_logits = model.run_with_hooks(
+                patched_logits = self.model.run_with_hooks(
                     self.toks,
                     fwd_hooks=fwd_hooks
                 )
-                model.reset_hooks()
-                results_mat[layer, head] = self.get_correct_prob(patched_logits).item()
-                if verbose:
-                    print('Layer', layer, 'Head', head, 'Correct prob', results_mat[layer, head])
-            # Do MLP
-            patch_hook = functools.partial(
-                self.ct_hook,
-                save_layer=layer,
-                save_head=None
-            )
-            model.reset_hooks()
-
-            fwd_hooks = [
-                (utils.get_act_name('embed'), self.ct_embedding_noise_hook),
-                (utils.get_act_name('post', layer), patch_hook)
-            ]
-            patched_logits = model.run_with_hooks(
-                self.toks,
-                fwd_hooks=fwd_hooks
-            )
-            model.reset_hooks()
-            results_mat[layer, model.cfg.n_heads] = self.get_correct_prob(patched_logits).item()
+                self.model.reset_hooks()
+                prob = self.get_correct_prob(patched_logits).item()
+                results_mat[f'm{layer}_{mlp_type}'] = prob
             if verbose:
-                print('Layer', layer, 'MLP Correct prob', results_mat[layer, model.cfg.n_heads])
+                print(
+                    'Layer', layer, 
+                    'MLP Type', mlp_type,
+                    'MLP Correct prob', prob
+                )
 
         return results_mat
 

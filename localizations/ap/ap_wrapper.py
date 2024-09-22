@@ -49,11 +49,7 @@ def get_caches(
     model.reset_hooks()
     model.to(device)
 
-    if model.cfg.model_name == "gemma-2b":
-        # Uses GroupedQueryAttention
-        wanted_hooks = ['hook_result', 'mlp_in', 'mlp_out', 'hook_q']
-    else:
-        wanted_hooks = ['hook_result', 'mlp_in', 'mlp_out', 'hook_q', 'hook_k', 'hook_v']
+    wanted_hooks = ['hook_result', 'mlp_in', 'mlp_out', 'hook_q', 'hook_k', 'hook_v']
     hooks_filter = lambda name: any([hook in name for hook in wanted_hooks]) and not 'input' in name
 
     forward_cache = {}
