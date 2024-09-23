@@ -15,9 +15,9 @@
     "evaluate_every": 5,
     "n_eval_iters": 5,
     "do_adversarial_evals": true,
-    "do_side_effects_evals": false,
+    "do_side_effects_evals": true,
     "localization_type": "ct",
     "localization_location": "/root/mechanistic-unlearning/models/gemma_2_9b_counterfact_ct.pkl",
     "localization_top_p": 0.05,
-    "n_devices": 1
+    "n_devices": 2
 }

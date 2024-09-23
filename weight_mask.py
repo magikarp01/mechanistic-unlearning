@@ -84,9 +84,14 @@ def create_random_weight_mask_dicts(model, top_p):
         weight_mask_attn_dict[layer] = {}
         weight_mask_mlp_dict[layer] = {}
         # Want bool of length n_head, randomly set to True
+
+        if 'n_key_value_heads' in dir(model.cfg):
+            n_heads = model.cfg.n_key_value_heads
+        else:
+            n_heads = model.cfg.n_heads
         weight_mask_attn_dict[layer]['W_Q'] = torch.rand(model.cfg.n_heads) > top_p
-        weight_mask_attn_dict[layer]['W_K'] = torch.rand(model.cfg.n_heads) > top_p
-        weight_mask_attn_dict[layer]['W_V'] = torch.rand(model.cfg.n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_K'] = torch.rand(n_heads) > top_p
+        weight_mask_attn_dict[layer]['W_V'] = torch.rand(n_heads) > top_p
         weight_mask_attn_dict[layer]['W_O'] = torch.rand(model.cfg.n_heads) > top_p
 
         # Randomly set to true or false
@@ -259,19 +264,21 @@ def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
 
 def regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict):
     # L1 sparsity, but only for components that are not frozen
+
+    last_device = f'cuda:{n_devices - 1}' if torch.cuda.is_available() else 'cpu'
     loss = 0
     for layer, block in enumerate(model.blocks):
         for component in ["W_Q", "_W_K", "_W_V", "W_O"]:
             # If the component exists, we take the non frozen heads
             if component in weight_mask_attn_dict[layer]:
                 frozen_heads = weight_mask_attn_dict[layer][component]
-                loss += torch.sum(torch.abs(getattr(block.attn, component)[~frozen_heads]))
+                loss += torch.sum(torch.abs(getattr(block.attn, component)[~frozen_heads])).to(last_device)
         
         for component in ["W_in", "W_out"]:
             if component in weight_mask_mlp_dict[layer]:
                 # If the mlp is not frozen, then we add the L1 loss
                 if not weight_mask_mlp_dict[layer][component]:
-                    loss += torch.sum(torch.abs(getattr(block.mlp, component)))
+                    loss += torch.sum(torch.abs(getattr(block.mlp, component))).to(last_device)
     return loss
 
 def clamp_unfrozen_weights(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict):
@@ -324,20 +331,20 @@ def get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dic
         mask[layer] = {}
         for component in ["W_Q", "_W_K", "_W_V", "W_O"]:
             if component in weight_mask_attn_dict[layer]:
-                frozen_heads = weight_mask_attn_dict[layer][component]
+                frozen_heads = weight_mask_attn_dict[layer][component].to('cpu')
                 if all(frozen_heads):
                     continue
                 param = getattr(block.attn, component)
 
-                total_original = torch.ones_like(param).to(device)
-                total_original[~frozen_heads] = original_weights[layer][component]
-                mask[layer][component] = param / total_original
+                total_original = torch.ones_like(param).to('cpu')
+                total_original[~frozen_heads] = original_weights[layer][component].to('cpu')
+                mask[layer][component] = (param / total_original).to('cpu')
                 mask[layer][component][frozen_heads] = 1
         
         for component in ["W_in", "W_out"]:
             if component in weight_mask_mlp_dict[layer]:
                 if not weight_mask_mlp_dict[layer][component]:
-                    mask[layer][component] = getattr(block.mlp, component) / original_weights[layer][component]
+                    mask[layer][component] = (getattr(block.mlp, component) / original_weights[layer][component]).to('cpu')
     return mask
 
 def run():
@@ -388,7 +395,7 @@ def run():
         fold_value_biases=False,
         center_writing_weights=False,
         dtype=torch.bfloat16,
-        # n_devices=2
+        n_devices=n_devices
     )
     model.W_E.requires_grad = False
     model.W_U.requires_grad = False
@@ -399,24 +406,26 @@ def run():
 
     ### DATASETS
     
-    from tasks.facts.CounterFactTask import CounterFactTask
+    from tasks.facts.CounterFactTask import CounterFactTask, CounterFactTask_Injection, adversarial_counterfact_eval
     from transformers import AutoTokenizer
 
     right_tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="right")
     forget_facts = 16
+    last_device = f'cuda:{n_devices - 1}' if torch.cuda.is_available() else 'cpu'
     forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
     maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
-    forget_fact_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device='cuda', criterion="cross_entropy", **forget_kwargs)
-    maintain_facts_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device='cuda', criterion="cross_entropy", **maintain_kwargs)
+    forget_fact_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=last_device, criterion="cross_entropy", **forget_kwargs)
+    maintain_facts_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=last_device, criterion="cross_entropy", **maintain_kwargs)
 
     # Train
-    train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
+    train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=last_device, ctx_length=100, shuffle=True, buffer_size=1000)
     train_tasks = {"forget_facts": (forget_fact_eval, -.3), "maintain_facts": (maintain_facts_eval, 1), "pile": (train_pile, 1)}
 
     # Test
-    test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=1000)
-    induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "maintain_facts": maintain_facts_eval}
+    test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=last_device, ctx_length=100, shuffle=True, buffer_size=1000)
+    induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=last_device)
+    inject_fact_eval = CounterFactTask_Injection(batch_size=eval_batch_size, tokenizer=tokenizer, device=last_device, criterion="cross_entropy", **forget_kwargs)
+    eval_tasks = {"induction": induction_eval, "pile": test_pile, "maintain_facts": maintain_facts_eval, "inject_facts": inject_fact_eval}
 
     ### LOCALIZATIONS
 
@@ -546,10 +555,21 @@ def run():
                     all_test_losses[task_name].append(task_loss / n_eval_iters)
                 if do_adversarial_evals:
                     print("Running adversarial evals")
-                    adversarial_evals.append(adversarial_sports_eval(model, model_type=model_type, batch_size=eval_batch_size, use_system_prompt=True, include_evals=["Normal", "MC"]))
+                    adversarial_evals.append(
+                        adversarial_counterfact_eval(
+                            model, 
+                            model_type=model_type, 
+                            batch_size=eval_batch_size, 
+                            forget_task_init_kwargs=forget_kwargs, 
+                            maintain_task_init_kwargs=maintain_kwargs, 
+                            continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], n_mc_shots=1, device=last_device
+                        )
+                    )
                 if do_side_effects_evals:
                     print("Running side effects evals")
-                    side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"]))
+                    side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], device=last_device))
+                    mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
+                    torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
             gc.collect()
             torch.cuda.empty_cache()
             
@@ -583,6 +603,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     load_global_hyperparams(args.config_dir)
+    # load_global_hyperparams("weight_masking_config.json")
 
     run()
 
