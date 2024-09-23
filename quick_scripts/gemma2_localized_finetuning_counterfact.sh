@@ -4,6 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --gres=gpu:1
+#SBATCH --account=cais
 #SBATCH --time=3:00:00
 
 # cd ..

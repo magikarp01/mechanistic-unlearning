@@ -717,7 +717,7 @@ def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None
     return final_components, final_attn_heads
 
 
-def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, n_kv_heads=None):
+def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, combine_fn="sum", n_kv_heads=None, mlp_in_is_pre=False):
     """
     For causal tracing, grouped query attention. Has attn head q, k, v, result, but with possibly different numbers of heads.
     """
@@ -725,14 +725,30 @@ def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=
     # if combine heads, then we will combine all heads into one component per layer
     if combine_heads:
         for layer in range(n_layers):
-            combined_attrs[f"a{layer}"] = 0
-            for attn_type, n_heads in [("q", n_heads), ("k", n_kv_heads), ("v", n_kv_heads), ("result", n_heads)]:
-                for head in range(n_heads):  
-                    combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}_{attn_type}"]
-            # for head in range(n_heads):
-            #     combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
-            
-            combined_attrs[f"m{layer}"] = attrs[f"m{layer}_in"] + attrs[f"m{layer}_out"]
+            if combine_fn == "sum":
+                combined_attrs[f"a{layer}"] = 0
+                for attn_type, n_heads in [("q", n_heads), ("k", n_kv_heads), ("v", n_kv_heads), ("result", n_heads)]:
+                    for head in range(n_heads):
+                        combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}_{attn_type}"]
+                # for head in range(n_heads):
+                #     combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
+                
+                if mlp_in_is_pre:
+                    combined_attrs[f"m{layer}"] = attrs[f"m{layer}_pre"] + attrs[f"m{layer}_mlp_out"]
+                else:
+                    combined_attrs[f"m{layer}"] = attrs[f"m{layer}_in"] + attrs[f"m{layer}_out"]
+            elif combine_fn == "max":
+                combined_attrs[f"a{layer}"] = -float("inf")
+                for attn_type, n_heads in [("q", n_heads), ("k", n_kv_heads), ("v", n_kv_heads), ("result", n_heads)]:
+                    for head in range(n_heads):
+                        combined_attrs[f"a{layer}"] = max(combined_attrs[f"a{layer}"], attrs[f"a{layer}.{head}_{attn_type}"])
+                # for head in range(n_heads):
+                #     combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
+                if mlp_in_is_pre:
+                    combined_attrs[f"m{layer}"] = max(attrs[f"m{layer}_pre"], attrs[f"m{layer}_mlp_out"])
+                else:
+                    combined_attrs[f"m{layer}"] = max(attrs[f"m{layer}_in"], attrs[f"m{layer}_out"])
+
     else:
         combined_attrs = attrs
 

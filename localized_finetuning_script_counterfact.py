@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
 parser.add_argument("--forget_facts", type=int, default=None)
 parser.add_argument("--inject_fact", type=bool, default=False)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
+parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "forget_ct", "new_forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -57,7 +57,7 @@ parser.add_argument("--push_to_hub", type=bool, default=False)
 parser.add_argument("--do_full_mmlu_evals", type=bool, default=False)
 
 parser.add_argument("--do_relearning_evals", type=bool, default=False)
-parser.add_argument("--n_relearn_iters", type=int, default=10)
+parser.add_argument("--n_relearn_iters", type=int, default=20)
 parser.add_argument("--n_relearn_facts", type=int, default=2)
 parser.add_argument("--lora_rank", type=int, default=64)
 parser.add_argument("--target_modules", type=str, default="all-linear")
@@ -189,7 +189,7 @@ from cb_utils.mask_utils import convert_attrs_to_components, get_top_components,
 
 # # ct components
 # with open("models/google_gemma-2-9b_facts_all_ct_graph.pkl", "rb") as f:
-#     ct_graph = pickle.load(f)
+#     ct_graph = pickle.load(f){args.run_id}
 # print(ct_graph)
 
 # top_p = 5
@@ -214,6 +214,11 @@ if localization_type == 'forget_ct':
     with open(f"models/google_{other_model_type}_counterfact_forget_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
     final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
+
+elif localization_type == 'new_forget_ct':
+    with open("localizations/causal_tracing/counterfact/gemma_2_9b.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, mlp_in_is_pre=True, combine_fn="max")
 
 elif localization_type == 'general_ct':
     with open(f"models/google_{other_model_type}_counterfact_maintain_ct_graph.pkl", "rb") as f:
@@ -281,8 +286,8 @@ import wandb
 # for localization_type in ["nonlocalized"]:
 print(f"Memory at start for {localization_type}: {torch.cuda.memory_allocated() / 1024**3}")
 if use_wandb:
-    wandb.init(project="circuit_breaking", name=f"finetuning_counterfact_{localization_type}_{forget_facts=}_{inject_fact=}")
-    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "forget_facts": forget_facts, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count})
+    wandb.init(project="circuit_breaking", name=f"finetuning_counterfact_{localization_type}_{forget_facts=}_{inject_fact=}_run_id={args.run_id}")
+    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "forget_facts": forget_facts, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id, "save_dir": save_dir, "inject_fact": inject_fact})
 
 model.cuda()
 
@@ -352,11 +357,13 @@ for epoch in pbar:
             adv_evals = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
                 forget_task_init_kwargs=forget_kwargs, 
                 maintain_task_init_kwargs=maintain_kwargs, 
-                continuous=True, include_evals=["Normal", "MC"])
+                continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"])
             adversarial_evals[epoch] = adv_evals
             if use_wandb:
                 wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
                 wandb.log({f"adversarial_mc_{eval_type}": adv_evals["MC"][eval_type] for eval_type in adv_evals["MC"]}, step=epoch)
+                wandb.log({f"adversarial_paraphrase_{eval_type}": adv_evals["Paraphrase"][eval_type] for eval_type in adv_evals["Paraphrase"]}, step=epoch)
+                wandb.log({f"adversarial_neighborhood_{eval_type}": adv_evals["Neighborhood"][eval_type] for eval_type in adv_evals["Neighborhood"]}, step=epoch)
         # print(f"After evaluating adversarial evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
         if do_side_effects_evals:
             print("Before side effect eval, mem is ", torch.cuda.memory_allocated() / 1024**3)
