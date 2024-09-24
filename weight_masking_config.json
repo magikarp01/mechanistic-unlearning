@@ -1,6 +1,6 @@
 {
-    "train_batch_size": 10,
-    "eval_batch_size": 50,
+    "train_batch_size": 32,
+    "eval_batch_size": 64,
     "device": "cuda",
     "train_loss_type": "sports",
     "unlearning_task": "counterfact",
@@ -12,12 +12,13 @@
     "alpha": 0.2,
     "beta": 1e-7,
     "clip_grad": 1,
-    "evaluate_every": 5,
+    "evaluate_every": 10,
+    "save_every": 15,
     "n_eval_iters": 5,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-    "localization_type": "ct",
-    "localization_location": "/root/mechanistic-unlearning/models/gemma_2_9b_counterfact_ct.pkl",
-    "localization_top_p": 0.05,
+    "localization_type": "random",
+    "localization_location": "/root/mechanistic-unlearning/models/gemma_2_9b_counterfact_ap.pkl",
+    "localization_top_p": 0.07,
     "n_devices": 2
 }
