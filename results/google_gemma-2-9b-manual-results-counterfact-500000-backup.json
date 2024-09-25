@@ -1,0 +1,25 @@
+{
+  "Adversarial": {
+    "Normal": {
+      "forget": 0.6493452787399292,
+      "maintain": 0.6550656437873841
+    },
+    "MC": {
+      "forget": 0.8268800377845764,
+      "maintain": 0.8223518610000611
+    },
+    "Paraphrase": {
+      "forget": 0.3382464051246643,
+      "maintain": 0.32223824262619016
+    },
+    "Neighborhood": {
+      "forget": 0.33368693590164183,
+      "maintain": 0.3066845804452896
+    }
+  },
+  "Side Effects": {
+    "General": {
+      "MMLU": 0.7100000000000001
+    }
+  }
+}

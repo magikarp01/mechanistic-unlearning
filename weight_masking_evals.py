@@ -28,9 +28,9 @@ train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', strea
 # # Load Model
 
 # %%
-os.environ['HF_TOKEN'] = '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'
+os.environ['HF_TOKEN'] = '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'
 model_type = "gemma"
-model_name = 'google/gemma-7b'
+model_name = 'google/gemma-2-9b'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 def load_model(model_name=model_name):
     model = HookedTransformer.from_pretrained(
@@ -88,79 +88,86 @@ def count_thresholdable(mask):
 from functools import partial
 import gc
 import json
-from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
+
+from tasks.facts.CounterFactTask import adversarial_counterfact_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
+forget_facts = 16
+forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
+maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
 # Final evals
 evals = {
     # "Adversarial: No System Prompt": partial(adversarial_sports_eval, use_system_prompt=True),
-    "Adversarial: System Prompt": partial(adversarial_sports_eval, use_system_prompt=True, include_evals=["Normal", "MC"]),#, test_each_sport=False),
-    "Side Effects": partial(run_side_effects_evals, evals_to_run=["General"], verbose=False), #  "Sports Familiarity",
+    "Adversarial": partial(
+        adversarial_counterfact_eval,
+        forget_task_init_kwargs=forget_kwargs, 
+        maintain_task_init_kwargs=maintain_kwargs, 
+        continuous=True, 
+        include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], 
+        n_mc_shots=1, 
+        device="cuda"
+    ),
+    "Side Effects": partial(
+        run_side_effects_evals,
+        evals_to_run=["General"], 
+        device="cuda"
+    )
 }
+
 eval_batch_size=50
 results = {}
-localization_types = ["random", "manual", "none", "ap", "ct"]
-forget_sports = ["basketball"] #["baseball", "basketball", "football"]
-# localization_types = ["ap"]
-# forget_sports = ["baseball"]
-
-# min_thresholdable = float('inf')
-# for localization_type in localization_types:
-#     for forget_sport in forget_sports:
-#         mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-#         min_thresholdable = min(min_thresholdable, count_thresholdable(mask))
-#         del mask
-#         gc.collect()
-#         torch.cuda.empty_cache()
+localization_types = ["none", "manual", "random", "ap", "ct"]
 
 with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
     for localization_type in localization_types:
         results[localization_type] = {}
+        mask = torch.load(
+            f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}.pt",
+            map_location="cuda"
+        )
+        sorted_nonzero = sort_mask_weights(mask)
+        del mask
 
-        for forget_sport in tqdm(forget_sports):
-            results[localization_type][forget_sport] = {}
-            mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-            sorted_nonzero = sort_mask_weights(mask)
+        for num_weights in [0, 100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000, 2_400_000]:
+            if num_weights > len(sorted_nonzero):
+                num_weights = len(sorted_nonzero)
+            threshold = sorted_nonzero[num_weights - 1]
+            str_num_weights = str(num_weights)
+            print(localization_type, num_weights)
+            results[localization_type][str_num_weights] = {}
+
+            # Load Model
+            model = load_model()
+            mask = torch.load(f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}.pt", map_location="cuda")
+            threshold_mask(mask, threshold)
+            apply_mask(model, mask)
             del mask
 
-            for num_weights in [0, 100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000, 2_400_000]:
-                if num_weights > len(sorted_nonzero):
-                    num_weights = len(sorted_nonzero)
-                threshold = sorted_nonzero[num_weights - 1]
-                str_num_weights = str(num_weights)
-                print(localization_type, forget_sport, num_weights)
-                results[localization_type][forget_sport][str_num_weights] = {}
+            gc.collect()
+            torch.cuda.empty_cache()
 
-                # Load Model
-                model = load_model()
-                mask = torch.load(f"results/{model_name.replace('/', '_')}-{forget_sport}-{localization_type}.pt")
-                threshold_mask(mask, threshold)
-                apply_mask(model, mask)
+            for eval_name, eval_func in evals.items():
+                results[localization_type][str_num_weights][eval_name] = {}
+                print(f'{eval_name=}')
+                eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
 
-                del mask
+                for k, v in eval_result.items():
+                    results[localization_type][str_num_weights][eval_name][k] = v
+                    print(k, v)
+
                 gc.collect()
                 torch.cuda.empty_cache()
 
-                for eval_name, eval_func in evals.items():
-                    results[localization_type][forget_sport][str_num_weights][eval_name] = {}
-                    print(f'{eval_name=}')
-                    eval_result = eval_func(model, model_type=model_type, batch_size=eval_batch_size)
+            del model
+            gc.collect()
+            torch.cuda.empty_cache()
+            with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact-{str_num_weights}-backup.json", "w") as f:
+                json.dump(results[localization_type][str_num_weights], f, indent=2)
 
-                    for k, v in eval_result.items():
-                        results[localization_type][forget_sport][str_num_weights][eval_name][k] = v
-                        print(k, v)
-
-                    gc.collect()
-                    torch.cuda.empty_cache()
-
-                del model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-        # with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-update-nondisc.json", "w") as f:
-        #     json.dump(results[localization_type], f, indent=2)
-        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-{forget_sport}.json", "w") as f:
+        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact.json", "w") as f:
             json.dump(results[localization_type], f, indent=2)
 
 with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
     json.dump(results, f, indent=2)
+
+# %%

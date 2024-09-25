@@ -1,0 +1,553 @@
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
+none 0
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.05s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:06<00:21,  3.56s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:11<00:20,  4.08s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:14<00:14,  3.72s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:17<00:09,  3.32s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:19<00:05,  2.90s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:21<00:02,  2.77s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:23<00:00,  2.42s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:23<00:00,  2.93s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.04111603423953056, 'maintain': 0.06966954320669175}
+MC {'forget': 0.3866320610046387, 'maintain': 0.4588549852371216}
+Paraphrase {'forget': 0.028790820017457006, 'maintain': 0.044637887924909594}
+Neighborhood {'forget': 0.03456522561609745, 'maintain': 0.045091462880373}
+eval_name='Side Effects'
+General {'MMLU': 0.7}
+none 100000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.60s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.29s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:06<00:11,  2.29s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.49s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:08,  2.71s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.71s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.70s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.34s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.44s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6479073166847229, 'maintain': 0.6691457509994507}
+MC {'forget': 0.8084998846054078, 'maintain': 0.8554555535316468}
+Paraphrase {'forget': 0.33929771184921265, 'maintain': 0.3025709867477417}
+Neighborhood {'forget': 0.30559282302856444, 'maintain': 0.29276410937309266}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 200000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.64s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.25s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:06<00:12,  2.43s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.28s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:11<00:07,  2.41s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:04,  2.47s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:16<00:02,  2.42s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.06s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.23s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6476976871490479, 'maintain': 0.6656670928001404}
+MC {'forget': 0.8390723824501038, 'maintain': 0.7630071640014648}
+Paraphrase {'forget': 0.33864181041717534, 'maintain': 0.3171898901462555}
+Neighborhood {'forget': 0.32799754142761234, 'maintain': 0.2900985300540924}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 300000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.72s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.24s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.54s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:10,  2.56s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:11<00:07,  2.42s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:04,  2.36s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:16<00:02,  2.37s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.02s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.24s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6455028414726258, 'maintain': 0.6579852819442749}
+MC {'forget': 0.8152471542358398, 'maintain': 0.8160324215888977}
+Paraphrase {'forget': 0.33599491119384767, 'maintain': 0.32617077827453617}
+Neighborhood {'forget': 0.32307979464530945, 'maintain': 0.3096039891242981}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 400000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.70s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.46s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.56s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.48s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.53s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.61s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.58s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.26s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.40s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6361316680908202, 'maintain': 0.6651947855949402}
+MC {'forget': 0.823557209968567, 'maintain': 0.7947855353355409}
+Paraphrase {'forget': 0.3291817903518677, 'maintain': 0.3137642443180084}
+Neighborhood {'forget': 0.3483897984027863, 'maintain': 0.2838353544473648}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 500000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.01s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:15,  2.60s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.60s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:10,  2.60s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.57s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.54s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:19<00:03,  3.02s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.42s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.55s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6285447955131531, 'maintain': 0.6541061878204346}
+MC {'forget': 0.7938480734825133, 'maintain': 0.741927695274353}
+Paraphrase {'forget': 0.32276397943496704, 'maintain': 0.33731462955474856}
+Neighborhood {'forget': 0.32513850927352905, 'maintain': 0.3140381038188934}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 700000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:13,  1.88s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:16,  2.72s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.58s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:11,  2.78s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:13<00:08,  2.83s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:16<00:05,  2.71s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.67s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.17s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.47s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.5967423915863037, 'maintain': 0.6292162060737609}
+MC {'forget': 0.8085293531417846, 'maintain': 0.8164532899856568}
+Paraphrase {'forget': 0.30459282994270326, 'maintain': 0.31073516011238095}
+Neighborhood {'forget': 0.3032067984342575, 'maintain': 0.3241992056369781}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 900000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.66s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.21s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.75s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:10,  2.63s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.54s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:05,  2.52s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.56s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.11s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.34s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.5523306369781494, 'maintain': 0.6008867502212524}
+MC {'forget': 0.772519052028656, 'maintain': 0.7879198074340821}
+Paraphrase {'forget': 0.27888357639312744, 'maintain': 0.3113681972026825}
+Neighborhood {'forget': 0.2914293467998505, 'maintain': 0.28581087887287143}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+none 1200000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.83s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.40s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.54s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.44s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.54s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:05,  2.52s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.54s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.16s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.34s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.4659248411655426, 'maintain': 0.535679304599762}
+MC {'forget': 0.7741956830024719, 'maintain': 0.7659507513046265}
+Paraphrase {'forget': 0.2351852387189865, 'maintain': 0.26157840788364406}
+Neighborhood {'forget': 0.26796894967555995, 'maintain': 0.26700946390628816}
+eval_name='Side Effects'
+General {'MMLU': 0.7300000000000001}
+none 1500000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.80s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.50s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.67s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:10,  2.58s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.43s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.62s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.78s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.44s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:20<00:00,  2.51s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.3704165816307068, 'maintain': 0.45769503712654114}
+MC {'forget': 0.699888801574707, 'maintain': 0.6830033659934998}
+Paraphrase {'forget': 0.18970951735973357, 'maintain': 0.24905531108379367}
+Neighborhood {'forget': 0.24490146338939667, 'maintain': 0.23811561465263364}
+eval_name='Side Effects'
+General {'MMLU': 0.74}
+none 1800000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:15,  2.15s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:15,  2.59s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:08<00:15,  3.03s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:11<00:11,  2.80s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:14<00:08,  2.91s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:16<00:05,  2.83s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:19<00:02,  2.76s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.44s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.65s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.2784496545791626, 'maintain': 0.37565169930458064}
+MC {'forget': 0.6874511480331421, 'maintain': 0.730016314983368}
+Paraphrase {'forget': 0.15068289637565613, 'maintain': 0.2058204084634781}
+Neighborhood {'forget': 0.18354588150978085, 'maintain': 0.20204562842845916}
+eval_name='Side Effects'
+General {'MMLU': 0.7300000000000001}
+none 2100000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.05s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.39s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:11,  2.39s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.40s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.44s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:04,  2.48s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:16<00:02,  2.38s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.06s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.26s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.21342926025390624, 'maintain': 0.317131495475769}
+MC {'forget': 0.6710476040840149, 'maintain': 0.6857702493667603}
+Paraphrase {'forget': 0.11854830384254456, 'maintain': 0.19056684374809266}
+Neighborhood {'forget': 0.14561105966567994, 'maintain': 0.15473024398088456}
+eval_name='Side Effects'
+General {'MMLU': 0.72}
+none 2400000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:10,  1.57s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:06<00:20,  3.39s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:10<00:19,  3.88s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:13<00:14,  3.57s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:16<00:09,  3.33s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:21<00:07,  3.72s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:25<00:03,  3.97s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:27<00:00,  3.15s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:27<00:00,  3.38s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.1671247661113739, 'maintain': 0.265656167268753}
+MC {'forget': 0.6585252523422241, 'maintain': 0.6705099940299988}
+Paraphrase {'forget': 0.09655733108520509, 'maintain': 0.1550190061330795}
+Neighborhood {'forget': 0.12199072837829589, 'maintain': 0.1308305710554123}
+eval_name='Side Effects'
+General {'MMLU': 0.72}
+manual 0
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.08s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:06<00:20,  3.46s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:08<00:14,  2.98s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:11<00:11,  2.83s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:16<00:10,  3.50s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:20<00:07,  3.84s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:23<00:03,  3.64s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:26<00:00,  3.24s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:26<00:00,  3.29s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6409193277359009, 'maintain': 0.6738261818885803}
+MC {'forget': 0.833753514289856, 'maintain': 0.7964355945587159}
+Paraphrase {'forget': 0.32860180735588074, 'maintain': 0.36215744614601136}
+Neighborhood {'forget': 0.4031328082084656, 'maintain': 0.3063406527042389}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 100000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:13,  1.89s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.32s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:06<00:11,  2.31s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:08<00:08,  2.24s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:11<00:06,  2.29s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:13<00:04,  2.30s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:16<00:02,  2.40s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  1.97s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.16s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6477384328842163, 'maintain': 0.6645923018455506}
+MC {'forget': 0.8182596445083619, 'maintain': 0.8001505017280579}
+Paraphrase {'forget': 0.33940601348876953, 'maintain': 0.3455859243869781}
+Neighborhood {'forget': 0.3481532871723175, 'maintain': 0.2982118308544159}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 200000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:13,  1.90s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.38s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.51s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.36s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.52s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:04,  2.44s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.59s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.21s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.35s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6465903997421265, 'maintain': 0.6624948143959045}
+MC {'forget': 0.8291576862335206, 'maintain': 0.7825424551963807}
+Paraphrase {'forget': 0.33942821621894836, 'maintain': 0.31412609815597536}
+Neighborhood {'forget': 0.3609777927398682, 'maintain': 0.26715287566185}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 300000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.59s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:19,  3.25s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:10<00:19,  3.83s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:13<00:14,  3.62s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:16<00:09,  3.33s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:21<00:07,  3.79s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:25<00:04,  4.02s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:27<00:00,  3.25s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:27<00:00,  3.42s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6463520646095275, 'maintain': 0.6650908350944519}
+MC {'forget': 0.8293784141540528, 'maintain': 0.8082053780555725}
+Paraphrase {'forget': 0.3386213183403015, 'maintain': 0.3121398746967316}
+Neighborhood {'forget': 0.35805051326751713, 'maintain': 0.29760392904281613}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 400000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.78s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.25s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:06<00:12,  2.41s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:10,  2.72s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:13<00:08,  2.96s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:16<00:06,  3.07s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:20<00:03,  3.16s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.65s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.72s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.647745144367218, 'maintain': 0.6535178422927855}
+MC {'forget': 0.8320789933204651, 'maintain': 0.7725931048393249}
+Paraphrase {'forget': 0.3386546194553375, 'maintain': 0.31896149516105654}
+Neighborhood {'forget': 0.31059094667434695, 'maintain': 0.2867361754179001}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 500000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.74s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:15,  2.60s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.47s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.32s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:11<00:06,  2.28s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:13<00:04,  2.22s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:16<00:02,  2.28s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  1.93s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:17<00:00,  2.15s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6493452787399292, 'maintain': 0.6550656437873841}
+MC {'forget': 0.8268800377845764, 'maintain': 0.8223518610000611}
+Paraphrase {'forget': 0.3382464051246643, 'maintain': 0.32223824262619016}
+Neighborhood {'forget': 0.33368693590164183, 'maintain': 0.3066845804452896}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 700000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.80s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:16,  2.71s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:08<00:15,  3.05s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:11<00:11,  2.93s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:14<00:08,  2.93s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:16<00:05,  2.73s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:19<00:02,  2.78s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.43s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:21<00:00,  2.65s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6504139304161072, 'maintain': 0.6638006687164306}
+MC {'forget': 0.8257871389389039, 'maintain': 0.7835348725318909}
+Paraphrase {'forget': 0.33743435740470884, 'maintain': 0.32736767530441285}
+Neighborhood {'forget': 0.35402495265007017, 'maintain': 0.3064097076654434}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 900000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:13,  1.87s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:13,  2.24s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:12,  2.50s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.50s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.57s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:14<00:05,  2.55s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:17<00:02,  2.69s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.15s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:18<00:00,  2.36s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6473316431045532, 'maintain': 0.6663147687911988}
+MC {'forget': 0.8252791285514831, 'maintain': 0.7572057723999024}
+Paraphrase {'forget': 0.3357179224491119, 'maintain': 0.33553280830383303}
+Neighborhood {'forget': 0.3304464280605316, 'maintain': 0.35112085938453674}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 1200000
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:10,  1.52s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.46s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.62s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:09<00:09,  2.41s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:08,  2.73s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.79s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.64s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.20s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.41s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6447799563407898, 'maintain': 0.6515025734901428}
+MC {'forget': 0.8263852834701537, 'maintain': 0.8447466373443604}
+Paraphrase {'forget': 0.33153362274169923, 'maintain': 0.3210752427577972}
+Neighborhood {'forget': 0.29539970457553866, 'maintain': 0.3045450389385223}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 1478170
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:13,  1.98s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:05<00:16,  2.75s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:08<00:14,  2.86s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:10,  2.61s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:12<00:07,  2.54s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:04,  2.42s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.60s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.15s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.40s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6409193277359009, 'maintain': 0.6624291181564331}
+MC {'forget': 0.8072982192039488, 'maintain': 0.8646306395530701}
+Paraphrase {'forget': 0.32860181331634525, 'maintain': 0.33419825434684747}
+Neighborhood {'forget': 0.3237911939620972, 'maintain': 0.3427213728427887}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 1478170
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.78s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.36s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:08<00:14,  2.93s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:10<00:11,  2.84s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:13<00:07,  2.65s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.55s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.70s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.25s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.48s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6409193277359009, 'maintain': 0.6762368321418761}
+MC {'forget': 0.8126847743988037, 'maintain': 0.8021345376968383}
+Paraphrase {'forget': 0.32860181331634525, 'maintain': 0.34275769591331484}
+Neighborhood {'forget': 0.3212302327156067, 'maintain': 0.3133629560470581}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 1478170
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:11,  1.60s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:14,  2.36s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:07<00:13,  2.79s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:11<00:11,  2.99s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:13<00:08,  2.85s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:15<00:05,  2.60s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:18<00:02,  2.50s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.08s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:19<00:00,  2.41s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6409193277359009, 'maintain': 0.6683683276176453}
+MC {'forget': 0.7819047212600708, 'maintain': 0.83845694065094}
+Paraphrase {'forget': 0.32860180735588074, 'maintain': 0.3217275559902191}
+Neighborhood {'forget': 0.3227146804332733, 'maintain': 0.29893211722373964}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+manual 1478170
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.12s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:06<00:21,  3.51s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:11<00:20,  4.01s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:14<00:14,  3.69s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:17<00:10,  3.45s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:21<00:07,  3.75s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:26<00:03,  4.00s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:28<00:00,  3.37s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:28<00:00,  3.54s/it]
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+eval_name='Adversarial'
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2132  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Normal {'forget': 0.6409193277359009, 'maintain': 0.6648449182510376}
+MC {'forget': 0.8137231945991517, 'maintain': 0.7978248000144958}
+Paraphrase {'forget': 0.32860180735588074, 'maintain': 0.33591802716255187}
+Neighborhood {'forget': 0.3294418752193451, 'maintain': 0.3160602807998657}
+eval_name='Side Effects'
+General {'MMLU': 0.7100000000000001}
+random 0
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:02<00:14,  2.06s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:06<00:19,  3.21s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:08<00:24,  4.15s/it]
+Traceback (most recent call last):
+  File "/root/mechanistic-unlearning/weight_masking_evals.py", line 140, in <module>
+    model = load_model()
+  File "/root/mechanistic-unlearning/weight_masking_evals.py", line 36, in load_model
+    model = HookedTransformer.from_pretrained(
+  File "/root/venv/lib/python3.10/site-packages/transformer_lens/HookedTransformer.py", line 1298, in from_pretrained
+    state_dict = loading.get_pretrained_state_dict(
+  File "/root/venv/lib/python3.10/site-packages/transformer_lens/loading_from_pretrained.py", line 1672, in get_pretrained_state_dict
+    hf_model = AutoModelForCausalLM.from_pretrained(
+  File "/root/venv/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 564, in from_pretrained
+    return model_class.from_pretrained(
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3960, in from_pretrained
+    ) = cls._load_pretrained_model(
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4458, in _load_pretrained_model
+    error_msgs += _load_state_dict_into_model(
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 760, in _load_state_dict_into_model
+    load(model_to_load, state_dict, prefix=start_prefix, assign_to_params_buffers=assign_to_params_buffers)
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 758, in load
+    load(child, state_dict, prefix + name + ".", assign_to_params_buffers)
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 758, in load
+    load(child, state_dict, prefix + name + ".", assign_to_params_buffers)
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 758, in load
+    load(child, state_dict, prefix + name + ".", assign_to_params_buffers)
+  [Previous line repeated 2 more times]
+  File "/root/venv/lib/python3.10/site-packages/transformers/modeling_utils.py", line 754, in load
+    module._load_from_state_dict(*args)
+  File "/root/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2040, in _load_from_state_dict
+    param.copy_(input_param)
+KeyboardInterrupt
