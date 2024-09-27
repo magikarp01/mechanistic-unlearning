@@ -10,7 +10,6 @@
     "n_epochs": 50,
     "grad_accum_steps": 15,
     "alpha": 0.2,
-    "beta": 1e-7,
     "clip_grad": 1,
     "evaluate_every": 10,
     "save_every": 15,

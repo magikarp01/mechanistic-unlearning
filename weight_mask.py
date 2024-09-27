@@ -46,7 +46,7 @@ from weight_masked_transformer import WeightMaskedTransformer
 ### Hyperparams
 def load_global_hyperparams(config_file):
     global train_batch_size, eval_batch_size, device, unlearning_task, maintain_sport, \
-           model_name, model_type, learning_rate, n_epochs, grad_accum_steps, alpha, beta, clip_grad, \
+           model_name, model_type, learning_rate, n_epochs, grad_accum_steps, alpha, clip_grad, \
            evaluate_every, save_every, n_eval_iters, do_adversarial_evals, do_side_effects_evals, \
            localization_type, localization_location, localization_top_p, n_devices
     
@@ -63,7 +63,6 @@ def load_global_hyperparams(config_file):
     n_epochs = int(config['n_epochs'])
     grad_accum_steps = int(config['grad_accum_steps'])
     alpha = float(config['alpha'])
-    beta = float(config['beta'])
     clip_grad = None if config['clip_grad'] == "null" else int(config['clip_grad'])
     evaluate_every = int(config['evaluate_every'])
     save_every = int(config['save_every'])
@@ -383,6 +382,10 @@ def run():
     from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
     from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
     from weight_masked_transformer import WeightMaskedTransformer
+
+    from zipfile import ZipFile
+    from glob import glob
+
     os.chdir('/root/mechanistic-unlearning')
 
     os.environ['HF_TOKEN'] = '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'
@@ -468,6 +471,9 @@ def run():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
     original_weights = get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict)
 
+    # Set beta such that the regularization loss is 1.5 at the start
+    beta = 1.5 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+
 
     wandb.login(key="6f39dedff978870c25e55aed36e504403271d404")
     ### LOGGING
@@ -527,7 +533,6 @@ def run():
             torch.cuda.empty_cache()
             gc.collect()
             # Add sparsity loss and backprop
-            # Linearly increase from negative to positive, with 0 at 10
             loss = beta * regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict)
             loss.backward()
             print(f"reg loss, {loss.item()}")
@@ -572,11 +577,21 @@ def run():
                     print("Running side effects evals")
                     side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], device=last_device))
             if epoch % save_every == 0 and epoch > 0:
+                torch.cuda.empty_cache()
+                gc.collect()
+
                 mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
                 torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+
                 del mask
                 torch.cuda.empty_cache()
                 gc.collect()
+
+                # Save to wandb
+                with ZipFile(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.zip", "w") as z:
+                    z.write(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+                wandb.save(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+
             torch.cuda.empty_cache()
             gc.collect()
             
