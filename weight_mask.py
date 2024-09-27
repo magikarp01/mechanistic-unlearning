@@ -109,8 +109,24 @@ def create_mlp_only_mask_dicts(model):
         weight_mask_mlp_dict[layer] = {}
 
         # Set to false: we train a mask over these
-        weight_mask_mlp_dict[layer]['W_in'] = not (1 <= layer <= 7)
-        weight_mask_mlp_dict[layer]['W_out'] = not (1 <= layer <= 7)
+        weight_mask_mlp_dict[layer]['W_in'] = False
+        weight_mask_mlp_dict[layer]['W_out'] = False
+        print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
+
+def create_mlp_only_mask_dicts(model):
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
+    layers = [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        # Set to false: we train a mask over these
+        weight_mask_mlp_dict[layer]['W_in'] = not (layer in layers)
+        weight_mask_mlp_dict[layer]['W_out'] = not (layer in layers)
         print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
@@ -388,7 +404,7 @@ def run():
 
     os.chdir('/root/mechanistic-unlearning')
 
-    os.environ['HF_TOKEN'] = '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'
+    os.environ['HF_TOKEN'] = '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'
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = HookedTransformer.from_pretrained(
         model_name,
@@ -447,9 +463,10 @@ def run():
         weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, localization_top_p)
     elif localization_type == "none":
         weight_mask_attn_dict, weight_mask_mlp_dict = create_random_weight_mask_dicts(model, 1)
-    elif localization_type == "manual":
-        # Manual interp means only training the MLP weights from layer 1 to 7
+    elif localization_type == "mlp":
         weight_mask_attn_dict, weight_mask_mlp_dict = create_mlp_only_mask_dicts(model)
+    elif localization_type == "manual":
+        weight_mask_attn_dict, weight_mask_mlp_dict = create_manual_mask_dicts(model)
 
     for layer in weight_mask_attn_dict.keys():
         if 'W_K' in weight_mask_attn_dict[layer]:
