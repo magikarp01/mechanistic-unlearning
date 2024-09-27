@@ -489,7 +489,9 @@ def run():
     original_weights = get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict)
 
     # Set beta such that the regularization loss is 1.5 at the start
-    beta = 1.5 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+    beta = 1.5 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict).item()
+    zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict)
+
 
 
     wandb.login(key="6f39dedff978870c25e55aed36e504403271d404")
@@ -604,10 +606,9 @@ def run():
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                # Save to wandb
-                with ZipFile(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.zip", "w") as z:
-                    z.write(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+                # Save to wandb, delete after
                 wandb.save(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+                os.remove(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
 
             torch.cuda.empty_cache()
             gc.collect()
