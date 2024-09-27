@@ -2,3 +2,58 @@ nohup: ignoring input
 WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constantSetting center_unembed=False instead.
 OpenAI API key not found, will not be able to run evaluations on Sports Trivia Task
 Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:07,  1.12s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:02<00:08,  1.38s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:03<00:06,  1.34s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:05<00:05,  1.26s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:06<00:03,  1.23s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:07<00:02,  1.18s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:09<00:01,  1.38s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:09<00:00,  1.13s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:09<00:00,  1.22s/it]
+/root/mechanistic-unlearning/weight_mask.py:161: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_Q'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:175: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_K'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:189: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_V'] = torch.tensor(
+/root/mechanistic-unlearning/weight_mask.py:199: DeprecationWarning: In future, it will be an error for 'np.bool_' scalars to be interpreted as an index
+  weight_mask_attn_dict[layer]['W_O'] = torch.tensor(
+wandb: Currently logged in as: aaquib111. Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /root/.netrc
+wandb: wandb version 0.18.1 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /root/mechanistic-unlearning/wandb/run-20240927_062846-t7ntk4gw
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run gemma-2-9b-counterfact-ap
+wandb: ⭐️ View project at https://wandb.ai/aaquib111/mech-unlearning
+wandb: 🚀 View run at https://wandb.ai/aaquib111/mech-unlearning/runs/t7ntk4gw
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+No test dataset available. Using train dataset for testing.
+No test dataset available. Using train dataset for testing.
+Forget dataset with  16  examples
+Forget dataset with  16  examples
+Maintain dataset with  2153  examples
+Setting 0: W_in to not require grad
+Setting 2: W_out to not require grad
+Setting 4: W_in to not require grad
+Setting 5: W_out to not require grad
+Setting 12: W_in to not require grad
+Setting 16: W_in to not require grad
+Setting 18: W_out to not require grad
+Setting 22: W_out to not require grad
+Setting 25: W_in to not require grad
+Setting 26: W_out to not require grad
+Setting 27: W_in to not require grad
+Setting 34: W_in to not require grad
+Setting 34: W_out to not require grad
+Setting 40: W_out to not require grad
+None grad for W_in in layer 0
+None grad for W_out in layer 2
+None grad for W_in in layer 4
+None grad for W_out in layer 5
+None grad for W_in in layer 12
+None grad for W_in in layer 16
+None grad for W_out in layer 18
+None grad for W_out in layer 22
+None grad for W_in in layer 25
+None grad for W_out in layer 26
+None grad for W_in in layer 27
+None grad for W_in in layer 34
+None grad for W_out in layer 34
+None grad for W_out in layer 40
+  0%|          | 0/50 [00:00<?, ?it/s]
