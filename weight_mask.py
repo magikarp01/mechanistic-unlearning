@@ -118,6 +118,20 @@ def create_mlp_only_mask_dicts(model):
 def create_mlp_only_mask_dicts(model):
     weight_mask_attn_dict = {}
     weight_mask_mlp_dict = {}
+
+    for layer in range(model.cfg.n_layers):
+        weight_mask_attn_dict[layer] = {}
+        weight_mask_mlp_dict[layer] = {}
+
+        # Set to false: we train a mask over these
+        weight_mask_mlp_dict[layer]['W_in'] = False
+        weight_mask_mlp_dict[layer]['W_out'] = False
+        print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
+
+    return weight_mask_attn_dict, weight_mask_mlp_dict
+def create_manual_mask_dicts(model):
+    weight_mask_attn_dict = {}
+    weight_mask_mlp_dict = {}
     layers = [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]
 
     for layer in range(model.cfg.n_layers):
@@ -257,7 +271,7 @@ def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
                 # Set grad of all heads to 0
                 param = getattr(block.attn, component)
                 if param.grad is not None:
-                    param.grad = torch.zeros_like(param.grad).to("cuda")
+                    param.grad = torch.zeros_like(param.grad).to(param.device)
                 else:
                     pass
                     # print(f"None grad for {component} in layer {layer}")
@@ -268,13 +282,13 @@ def zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict):
                 if weight_mask_mlp_dict[layer][component]:
                     param = getattr(block.mlp, component)
                     if param.grad is not None:
-                        param.grad = torch.zeros_like(param.grad).to("cuda")
+                        param.grad = torch.zeros_like(param.grad).to(param.device)
                     else:
                         print(f"None grad for {component} in layer {layer}")
             else:
                 param = getattr(block.mlp, component)
                 if param.grad is not None:
-                    param.grad = torch.zeros_like(param.grad).to("cuda")
+                    param.grad = torch.zeros_like(param.grad).to(param.device)
                 else:
                     print(f"None grad for {component} in layer {layer}")
 
@@ -404,7 +418,7 @@ def run():
 
     os.chdir('/root/mechanistic-unlearning')
 
-    os.environ['HF_TOKEN'] = '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'
+    os.environ['HF_TOKEN'] = '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'
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = HookedTransformer.from_pretrained(
         model_name,
@@ -488,11 +502,9 @@ def run():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
     original_weights = get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict)
 
-    # Set beta such that the regularization loss is 1.5 at the start
-    beta = 1.5 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict).item()
+    # Set beta such that the regularization loss is 0.2 at the start
+    beta = 0.2 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict).item()
     zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict)
-
-
 
     wandb.login(key="6f39dedff978870c25e55aed36e504403271d404")
     ### LOGGING
