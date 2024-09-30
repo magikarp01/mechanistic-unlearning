@@ -129,6 +129,7 @@ def create_mlp_only_mask_dicts(model):
         print(f"Setting layer {layer} to {weight_mask_mlp_dict[layer]}")
 
     return weight_mask_attn_dict, weight_mask_mlp_dict
+
 def create_manual_mask_dicts(model):
     weight_mask_attn_dict = {}
     weight_mask_mlp_dict = {}
@@ -451,9 +452,11 @@ def run():
 
     # Train
     inject_fact_train = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=last_device, **forget_kwargs)
+    facts_1mp = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=last_device, criterion="log_1_minus_p", **forget_kwargs)
     maintain_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=last_device, criterion="cross_entropy", **maintain_kwargs)
     train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=last_device, ctx_length=100, shuffle=True, buffer_size=1000)
-    train_tasks = {"facts_injection": (inject_fact_train, .5), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
+    # train_tasks = {"facts_injection": (inject_fact_train, .125), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
+    train_tasks = {"facts_1mp": (facts_1mp, 1), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
 
     # Test
     test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=last_device, ctx_length=100, shuffle=True, buffer_size=1000)
@@ -503,7 +506,7 @@ def run():
     original_weights = get_unfrozen_weights(model, weight_mask_attn_dict, weight_mask_mlp_dict)
 
     # Set beta such that the regularization loss is 0.2 at the start
-    beta = 0.2 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict).item()
+    beta = -0.2 / regularization_loss(model, weight_mask_attn_dict, weight_mask_mlp_dict).item()
     zero_grad(model, weight_mask_attn_dict, weight_mask_mlp_dict)
 
     wandb.login(key="6f39dedff978870c25e55aed36e504403271d404")
@@ -549,8 +552,8 @@ def run():
                 task_loss = 0
                 for i in range(grad_accum_steps):
                     loss = task.get_train_loss(model) / grad_accum_steps
-                    task_loss += loss.item()
                     loss *= task_weight
+                    task_loss += loss.item()
                     # print(task_name, i, loss)
                     loss.backward()
                     del loss
@@ -607,20 +610,20 @@ def run():
                 if do_side_effects_evals:
                     print("Running side effects evals")
                     side_effect_evals.append(run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], device=last_device))
-            if epoch % save_every == 0 and epoch > 0:
-                torch.cuda.empty_cache()
-                gc.collect()
+            # if epoch % save_every == 0 and epoch > 0:
+            #     torch.cuda.empty_cache()
+            #     gc.collect()
 
-                mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
-                torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+            #     mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
+            #     torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
 
-                del mask
-                torch.cuda.empty_cache()
-                gc.collect()
+            #     del mask
+            #     torch.cuda.empty_cache()
+            #     gc.collect()
 
-                # Save to wandb, delete after
-                wandb.save(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
-                os.remove(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+            #     # Save to wandb, delete after
+            #     wandb.save(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
+            #     os.remove(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-{epoch}.pt")
 
             torch.cuda.empty_cache()
             gc.collect()
@@ -638,12 +641,21 @@ def run():
                     log_dict[f"side_effects_{k}"] = v
             wandb.log(log_dict)
 
-    # Get masks
-    wandb.finish()
 
     ### SAVE
     mask = get_mask(model, original_weights, weight_mask_attn_dict, weight_mask_mlp_dict) 
-    torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}.pt")
+    torch.save(mask, f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-unlearn.pt")
+    # zip mask
+    with ZipFile(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-unlearn.zip", "w") as z:
+        z.write(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-unlearn.pt")
+
+    try:
+        wandb.save(f"results/{model_name.replace('/', '_')}-{unlearning_task}-{localization_type}-unlearn.zip")
+    except Exception as e:
+        print("Could not save to wandb", e)
+
+    # Get masks
+    wandb.finish()
     # torch.save(mask, f'results/test.pt')
 
 if __name__ == "__main__":
