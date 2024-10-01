@@ -28,7 +28,7 @@ train_dataset = load_dataset('monology/pile-uncopyrighted', split='train', strea
 # # Load Model
 
 # %%
-os.environ['HF_TOKEN'] = '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'
+os.environ['HF_TOKEN'] = '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'
 model_type = "gemma"
 model_name = 'google/gemma-2-9b'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -54,9 +54,12 @@ torch.set_grad_enabled(False)
 
 # %%
 def threshold_mask(mask, threshold):
+    total = 0
     for layer in mask.keys():
         for name, param in mask[layer].items():
+            total += torch.where(param < threshold, 1, 0).sum()
             mask[layer][name] = torch.where(param < threshold, torch.zeros_like(param), torch.ones_like(param))
+    print(f'Setting {total} elements to 0')
 
 def apply_mask(model, mask):
     for layer in mask.keys():
@@ -67,6 +70,9 @@ def apply_mask(model, mask):
             elif getattr(model.blocks[layer].mlp, name, None) is not None:
                 param = getattr(model.blocks[layer].mlp, name)
                 param.data = param * mask_weight
+                # Count number of 0s in mask_weight
+                # print('Number of 0s', torch.where(mask_weight < 1, 1, 0).sum())
+
             else:
                 raise ValueError(f"Invalid mask name: {name} {layer=}")
 
@@ -116,29 +122,33 @@ evals = {
 
 eval_batch_size=50
 results = {}
-localization_types = ["none", "manual", "random", "ap", "ct"]
+# localization_types = ["manual", "random", "ap", "ct", "none"]
+localization_types = ["mlp"]
+SUFFIX = "unlearn"
 
 with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
     for localization_type in localization_types:
         results[localization_type] = {}
         mask = torch.load(
-            f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}.pt",
+            f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}-{SUFFIX}.pt",
             map_location="cuda"
         )
         sorted_nonzero = sort_mask_weights(mask)
         del mask
 
-        for num_weights in [0, 100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000, 2_400_000]:
+        # for num_weights in [0, 100_000, 200_000, 300_000, 400_000, 500_000, 700_000, 900_000, 1_200_000, 1_500_000, 1_800_000, 2_100_000, 2_400_000]:
+        for num_weights in [0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000]:
             if num_weights > len(sorted_nonzero):
-                num_weights = len(sorted_nonzero)
-            threshold = sorted_nonzero[num_weights - 1]
+                num_weights = len(sorted_nonzero) - 1
+
+            threshold = sorted_nonzero[num_weights]
             str_num_weights = str(num_weights)
-            print(localization_type, num_weights)
+            print(localization_type, threshold, num_weights)
             results[localization_type][str_num_weights] = {}
 
             # Load Model
             model = load_model()
-            mask = torch.load(f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}.pt", map_location="cuda")
+            mask = torch.load(f"results/{model_name.replace('/', '_')}-counterfact-{localization_type}-{SUFFIX}.pt", map_location="cuda")
             threshold_mask(mask, threshold)
             apply_mask(model, mask)
             del mask
@@ -161,13 +171,13 @@ with torch.autocast(device_type="cuda"), torch.set_grad_enabled(False):
             del model
             gc.collect()
             torch.cuda.empty_cache()
-            with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact-{str_num_weights}-backup.json", "w") as f:
+            with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact-{str_num_weights}-backup-{SUFFIX}.json", "w") as f:
                 json.dump(results[localization_type][str_num_weights], f, indent=2)
 
-        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact.json", "w") as f:
+        with open(f"results/{model_name.replace('/', '_')}-{localization_type}-results-counterfact-{SUFFIX}.json", "w") as f:
             json.dump(results[localization_type], f, indent=2)
 
-with open(f"results/{model_name.replace('/', '_')}-results.json", "w") as f:
+with open(f"results/{model_name.replace('/', '_')}-counterfact-{SUFFIX}-results.json", "w") as f:
     json.dump(results, f, indent=2)
 
 # %%

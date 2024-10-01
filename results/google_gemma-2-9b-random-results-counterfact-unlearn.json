@@ -1,0 +1,177 @@
+{
+  "0": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6479073166847229,
+        "maintain": 0.6514968037605285
+      },
+      "MC": {
+        "forget": 0.8100785493850708,
+        "maintain": 0.8512598156929017
+      },
+      "Paraphrase": {
+        "forget": 0.33929771184921265,
+        "maintain": 0.34426297545433043
+      },
+      "Neighborhood": {
+        "forget": 0.3447888851165771,
+        "maintain": 0.28332328498363496
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "1000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.12037988305091857,
+        "maintain": 0.3320131242275238
+      },
+      "MC": {
+        "forget": 0.7320256233215332,
+        "maintain": 0.6875975251197814
+      },
+      "Paraphrase": {
+        "forget": 0.09253859519958496,
+        "maintain": 0.16343262493610383
+      },
+      "Neighborhood": {
+        "forget": 0.10915752947330476,
+        "maintain": 0.14045649468898774
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  },
+  "2000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.05713713243603706,
+        "maintain": 0.17183970212936404
+      },
+      "MC": {
+        "forget": 0.7263989090919495,
+        "maintain": 0.6957894921302794
+      },
+      "Paraphrase": {
+        "forget": 0.05912124440073967,
+        "maintain": 0.1223405495285988
+      },
+      "Neighborhood": {
+        "forget": 0.0768312782049179,
+        "maintain": 0.11888516545295714
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  },
+  "3000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.04711503762379206,
+        "maintain": 0.13146364750664704
+      },
+      "MC": {
+        "forget": 0.7163823149166069,
+        "maintain": 0.6965324519285932
+      },
+      "Paraphrase": {
+        "forget": 0.0575569916643667,
+        "maintain": 0.1265089128203690
+      },
+      "Neighborhood": {
+        "forget": 0.0753745346001815,
+        "maintain": 0.1125928276651538
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  },
+  "4000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.03716647243603706,
+        "maintain": 0.10183970212936404
+      },
+      "MC": {
+        "forget": 0.7063558412054553,
+        "maintain": 0.6922019579096231
+      },
+      "Paraphrase": {
+        "forget": 0.05912124440073967,
+        "maintain": 0.1223405495285988
+      },
+      "Neighborhood": {
+        "forget": 0.0768312782049179,
+        "maintain": 0.11888516545295714
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  },
+  "5000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.03113713243603706,
+        "maintain": 0.07183970212936404
+      },
+      "MC": {
+        "forget": 0.6911367548112757,
+        "maintain": 0.6226802992871962
+      },
+      "Paraphrase": {
+        "forget": 0.0572294639563187,
+        "maintain": 0.1211854082723148
+      },
+      "Neighborhood": {
+        "forget": 0.0722767183335963,
+        "maintain": 0.1134879608480259
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  },
+  "6000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.0211576148180756,
+        "maintain": 0.0592488613568712
+      },
+      "MC": {
+        "forget": 0.6877288619549945,
+        "maintain": 0.6911098349755629
+      },
+      "Paraphrase": {
+        "forget": 0.0549066113561857,
+        "maintain": 0.1228354626144282
+      },
+      "Neighborhood": {
+        "forget": 0.0798073004295583,
+        "maintain": 0.1196196720425505
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.71
+      }
+    }
+  }
+}

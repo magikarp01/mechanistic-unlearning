@@ -1,0 +1,177 @@
+{
+  "0": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6479073166847229,
+        "maintain": 0.6499263525009156
+      },
+      "MC": {
+        "forget": 0.8206111311912536,
+        "maintain": 0.8012290596961975
+      },
+      "Paraphrase": {
+        "forget": 0.33929771184921265,
+        "maintain": 0.33411309719085697
+      },
+      "Neighborhood": {
+        "forget": 0.33401405811309814,
+        "maintain": 0.28209258317947383
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "1000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6637766361236572,
+        "maintain": 0.6868309617042542
+      },
+      "MC": {
+        "forget": 0.7391102313995362,
+        "maintain": 0.8229726195335388
+      },
+      "Paraphrase": {
+        "forget": 0.34090141654014583,
+        "maintain": 0.346735417842865
+      },
+      "Neighborhood": {
+        "forget": 0.36297308206558226,
+        "maintain": 0.3383416533470154
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "2000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6793911457061768,
+        "maintain": 0.7000399231910706
+      },
+      "MC": {
+        "forget": 0.7078416228294373,
+        "maintain": 0.8192363023757934
+      },
+      "Paraphrase": {
+        "forget": 0.34346546530723576,
+        "maintain": 0.32729572057724
+      },
+      "Neighborhood": {
+        "forget": 0.3782881021499634,
+        "maintain": 0.31947553157806396
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "3000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.5443152260780334,
+        "maintain": 0.7343409538269043
+      },
+      "MC": {
+        "forget": 0.6484953284263611,
+        "maintain": 0.8138509511947633
+      },
+      "Paraphrase": {
+        "forget": 0.3465938627719879,
+        "maintain": 0.3539317965507507
+      },
+      "Neighborhood": {
+        "forget": 0.38339604139328,
+        "maintain": 0.3391610682010651
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.72
+      }
+    }
+  },
+  "4000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.4284326314926147,
+        "maintain": 0.745060646533966
+      },
+      "MC": {
+        "forget": 0.5003804326057433,
+        "maintain": 0.8392158627510071
+      },
+      "Paraphrase": {
+        "forget": 0.3446647524833679,
+        "maintain": 0.38871297240257263
+      },
+      "Neighborhood": {
+        "forget": 0.37897990942001336,
+        "maintain": 0.38644654750823976
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "5000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.3124352216720581,
+        "maintain": 0.7654042720794678
+      },
+      "MC": {
+        "forget": 0.4067190170288085,
+        "maintain": 0.8752404570579531
+      },
+      "Paraphrase": {
+        "forget": 0.34474672079086305,
+        "maintain": 0.3782581269741059
+      },
+      "Neighborhood": {
+        "forget": 0.4198528051376343,
+        "maintain": 0.3470924079418182
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7300000000000001
+      }
+    }
+  },
+  "6000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.2635218262672425,
+        "maintain": 0.766142201423645
+      },
+      "MC": {
+        "forget": 0.411892855167389,
+        "maintain": 0.8322370529174805
+      },
+      "Paraphrase": {
+        "forget": 0.3408918678760528,
+        "maintain": 0.39055936932563784
+      },
+      "Neighborhood": {
+        "forget": 0.41253725886344916,
+        "maintain": 0.37315714955329893
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  }
+}

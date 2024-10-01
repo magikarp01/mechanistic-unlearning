@@ -1,0 +1,177 @@
+{
+  "0": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6479073286056518,
+        "maintain": 0.6584392428398133
+      },
+      "MC": {
+        "forget": 0.8409573078155518,
+        "maintain": 0.8127982139587402
+      },
+      "Paraphrase": {
+        "forget": 0.33929771184921265,
+        "maintain": 0.32902292609214784
+      },
+      "Neighborhood": {
+        "forget": 0.33243013024330137,
+        "maintain": 0.29331310391426085
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "1000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.7310185432434082,
+        "maintain": 0.7350945949554444
+      },
+      "MC": {
+        "forget": 0.8408517479896545,
+        "maintain": 0.8595638751983643
+      },
+      "Paraphrase": {
+        "forget": 0.38714754581451416,
+        "maintain": 0.3512728452682495
+      },
+      "Neighborhood": {
+        "forget": 0.44577349424362184,
+        "maintain": 0.3050031781196594
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "2000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.7373837103829719,
+        "maintain": 0.7325095029645599
+      },
+      "MC": {
+        "forget": 0.8456686621056869,
+        "maintain": 0.8560539504126645
+      },
+      "Paraphrase": {
+        "forget": 0.3850077647126745,
+        "maintain": 0.3535940464767627
+      },
+      "Neighborhood": {
+        "forget": 0.4459719327085185,
+        "maintain": 0.3071251250596251
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "3000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.7371388284172862,
+        "maintain": 0.7311545716214459
+      },
+      "MC": {
+        "forget": 0.8471378099888097,
+        "maintain": 0.8562292456652503
+      },
+      "Paraphrase": {
+        "forget": 0.3826025790937710,
+        "maintain": 0.3548875290337018
+      },
+      "Neighborhood": {
+        "forget": 0.4439533960476983,
+        "maintain": 0.3094679241899866
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "4000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.7057152457144111,
+        "maintain": 0.7361709969933144
+      },
+      "MC": {
+        "forget": 0.8473209181223064,
+        "maintain": 0.8589075172874145
+      },
+      "Paraphrase": {
+        "forget": 0.3823097665936220,
+        "maintain": 0.3545238194523844
+      },
+      "Neighborhood": {
+        "forget": 0.4441004372499883,
+        "maintain": 0.3071734433304518
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "5000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6988449512186925,
+        "maintain": 0.7394570907875895
+      },
+      "MC": {
+        "forget": 0.8422334689663257,
+        "maintain": 0.8594469757771585
+      },
+      "Paraphrase": {
+        "forget": 0.3851529107310343,
+        "maintain": 0.3570051724857185
+      },
+      "Neighborhood": {
+        "forget": 0.4456226278699468,
+        "maintain": 0.3046697947971988
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  },
+  "6000000": {
+    "Adversarial": {
+      "Normal": {
+        "forget": 0.6933620168729685,
+        "maintain": 0.7374836717615835
+      },
+      "MC": {
+        "forget": 0.8462525676046498,
+        "maintain": 0.8593755983773153
+      },
+      "Paraphrase": {
+        "forget": 0.3818220537307206,
+        "maintain": 0.3512802747592795
+      },
+      "Neighborhood": {
+        "forget": 0.4426576702985912,
+        "maintain": 0.3063940658187493
+      }
+    },
+    "Side Effects": {
+      "General": {
+        "MMLU": 0.7100000000000001
+      }
+    }
+  }
+}
