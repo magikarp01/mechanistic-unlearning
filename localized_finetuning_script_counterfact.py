@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
 parser.add_argument("--forget_facts", type=int, default=None)
 parser.add_argument("--inject_fact", type=bool, default=False)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "forget_ct", "new_forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
+parser.add_argument("--localization_type", type=str, choices=["forget_ap", "localized_ct", "forget_ct", "new_forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -225,6 +225,11 @@ elif localization_type == 'general_ct':
         ct_graph = pickle.load(f)
     final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
 
+elif localization_type == 'forget_ap':
+    with open("models/gemma_2_9b_counterfact_ap.pkl", "rb") as f:
+        ap_graph = pickle.load(f)
+    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=True, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, mlp_in_is_pre=False, combine_fn="max")
+    
 elif localization_type == 'sports_manual_interp':
     final_components = []
     for mlp_layer in range(2, 5):
