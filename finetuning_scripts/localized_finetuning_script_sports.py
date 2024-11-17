@@ -1,21 +1,31 @@
-from circuit_breaking.src import *
+import os
+print(os.getcwd())
+# add parent directory to sys path
+import sys
+sys.path.append(os.getcwd())
+# from circuit_breaking.src import *
 import torch
 from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
-from circuit_breaking.src.masks import MLPHiddenMask
-from tqdm.auto import tqdm
 
+# from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
+# from circuit_breaking.src.masks import MLPHiddenMask
+from tqdm.auto import tqdm
+import json
 import argparse
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
-parser.add_argument("--forget_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
-parser.add_argument("--forget_athletes", type=int, default=None)
-parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
+
+parser.add_argument("--config_path", type=str, default=None, help="Path to a json config file containing all arguments. Will override all other arguments where specified.")
+parser.add_argument("--save_dir", type=str, default=None, help="Path to a directory to save the results. If not specified, will be saved in same folder as config path")
+parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"], default="gemma-7b")
+# parser.add_argument("--forget_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
+# parser.add_argument("--forget_athletes", type=int, default=None)
+# parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
+parser.add_argument("--forget_split", type=str, default=None)
+parser.add_argument("--inject_label", type=str, choices=["football", "basketball", "baseball", "golf", "random_with_golf", "random_without_golf", "None"], default=None)
+parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "manual_interp", "random", "all_mlps", "nonlocalized", "random_mlps"], default=None)
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -50,7 +60,7 @@ parser.add_argument("--evaluate_every", type=int, default=1)
 parser.add_argument("--n_eval_iters", type=int, default=5)
 parser.add_argument("--deep_evaluate_every", type=int, default=2)
 parser.add_argument("--do_adversarial_evals", type=bool, default=True)
-parser.add_argument("--do_side_effects_evals", type=bool, default=True)
+parser.add_argument("--do_side_effects_evals", type=bool, default=False)
 parser.add_argument("--check_all_logits", type=bool, default=False)
 parser.add_argument("--use_wandb", type=bool, default=True)
 parser.add_argument("--save_model", type=bool, default=False)
@@ -64,12 +74,27 @@ parser.add_argument("--n_relearn_athletes", type=int, default=2)
 parser.add_argument("--lora_rank", type=int, default=64)
 parser.add_argument("--target_modules", type=str, default="all-linear")
 parser.add_argument("--relearning_lr", type=float, default=1e-4)
+parser.add_argument("--forget_loss_coef", type=float, default=1)
 
 
 parser.add_argument("--do_probing_evals", type=bool, default=False)
 parser.add_argument("--probing_batch_size", type=int, default=16)
 
 args = parser.parse_args()
+if args.config_path:
+    print(f"Loading args from config file: {args.config_path}")
+    with open(args.config_path, 'r') as f:
+        config = json.load(f)
+    # Update args with config file values
+    args.__dict__.update(config)
+else:
+    print("No config file provided, using command line args")
+
+import os
+if args.save_dir is None:
+    args.save_dir = os.path.dirname(args.config_path)
+    # args.save_dir = os.path.join(args.save_dir, "saved")
+    os.makedirs(args.save_dir, exist_ok=True)
 
 train_batch_size = args.train_batch_size
 eval_batch_size = args.eval_batch_size
@@ -89,7 +114,13 @@ do_side_effects_evals = args.do_side_effects_evals
 check_all_logits = args.check_all_logits
 use_wandb = args.use_wandb
 save_model = args.save_model
+forget_loss_coef = args.forget_loss_coef
 
+print("==========ARGS==========")
+print(args)
+print("==========END ARGS==========")
+
+from transformers import AutoTokenizer, AutoModelForCausalLM
 if args.model_type == "gemma-7b":
     model_name_or_path = "google/gemma-7b"
     model_type = "gemma"
@@ -128,10 +159,10 @@ else:
 
 ### Unlearning and evaluation tasks
 
-from tasks import PileTask, OWTTask, InductionTask, GreaterThanTask
-from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
-from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
-from tasks.facts.SportsTask import SportsTask, SportsTask_NPO, SportsTask_Uniform, SportsTask_Injection
+from tasks import PileTask#, OWTTask, InductionTask, GreaterThanTask
+# from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
+# from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
+from tasks.facts.SportsTask import SportsTask, SportsTask_Injection
 # from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
@@ -139,38 +170,39 @@ from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 device = "cuda"
 train_loss_type = "sports"
 
-maintain_sport = None
-
 # inject_sport = "golf"
-inject_sport = args.inject_sport
 
-forget_sport = args.forget_sport
-forget_athletes = args.forget_athletes
-
-if forget_sport is not None:
-    if inject_sport is not None:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
-    else:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_sport=}/{args.localization_type}"
-else:
-    if inject_sport is not None:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
-    else:
-        save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_athletes=}/{args.localization_type}"
-
-if args.run_id is not None:
-    save_dir = f"{save_dir}_{args.run_id}"
+# if forget_sport is not None:
+#     if inject_sport is not None:
+#         save_dir = f"results2/{model_name_or_path}_localized_finetuning_{inject_sport=}_{forget_sport=}/{args.localization_type}"
+#     else:
+#         save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_sport=}/{args.localization_type}"
+# else:
+#     if inject_sport is not None:
+#         save_dir = f"results2/{model_name_or_path}_localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
+#     else:
+#         save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_athletes=}/{args.localization_type}"
+save_dir = os.path.join(args.save_dir, f"forget_{args.forget_split}-inject_{args.inject_label}")
 
 os.makedirs(save_dir, exist_ok=True)
 
-if forget_athletes is not None:
-    forget_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": True, "train_test_split": False}
-    maintain_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": False, "train_test_split": True}
-    forget_loss_coef = 1
-elif forget_sport is not None:
-    forget_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": True, "train_test_split": True}
-    maintain_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": False, "train_test_split": True}
-    forget_loss_coef = .2
+# if forget_athletes is not None:
+#     forget_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": True, "train_test_split": False}
+#     maintain_kwargs = {"forget_player_subset": forget_athletes, "is_forget_dataset": False, "train_test_split": True}
+#     forget_loss_coef = 1
+# elif forget_sport is not None:
+#     forget_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": True, "train_test_split": True}
+#     maintain_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": False, "train_test_split": True}
+#     forget_loss_coef = .2
+
+forget_kwargs = {"forget_split": args.forget_split, "maintain_split": None}
+maintain_kwargs = {"forget_split": args.forget_split, "maintain_split": "split"}
+inject_label = args.inject_label
+if inject_label == "None":
+    inject_label = None
+# if args.forget_split.startswith("basketball") or args.forget_split.startswith("football") or args.forget_split.startswith("baseball"):
+#     forget_loss_coef = .2
+# else:
 
 # forget_sport="basketball"
 # forget_athletes = None
@@ -182,34 +214,33 @@ elif forget_sport is not None:
 # maintain_kwargs = {"forget_sport_subset": {forget_sport}, "is_forget_dataset": False, "train_test_split": True}
 # forget_loss_coef=.2
 
-os.makedirs(save_dir, exist_ok=True)
-
 
 maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
 
 train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
-if inject_sport is not None:
-    sports_injection = SportsTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, inject_sport=inject_sport, **forget_kwargs)
+if inject_label is not None:
+    sports_injection = SportsTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, inject_label=inject_label, **forget_kwargs)
     train_tasks = {"sports_injection": (sports_injection, forget_loss_coef), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
+    print("Editing athletes: ", sports_injection.train_df)
 else:
     sports_1mp = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="log_1_minus_p", **forget_kwargs)
     train_tasks = {"sports_1mp": (sports_1mp, forget_loss_coef), "maintain_sports": (maintain_sports, 1), "pile": (train_pile, 1)}
+
+    print("Forgetting athletes: ", sports_1mp.train_df)
 
 # train_tasks = {"maintain_sports": (maintain_sports, 1)}
 
 # want to eval on other sports
 forget_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **forget_kwargs)
+print("Forgetting athletes eval: ", forget_sport_eval.train_df)
 test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
-induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
-if maintain_sport is None:
-    maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
-else:
-    maintain_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={maintain_sport}, is_forget_dataset=True)
-    val_sport_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", forget_sport_subset={val_sport}, is_forget_dataset=True)
-    eval_tasks = {"induction": induction_eval, "pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sport_eval, "val_sport": val_sport_eval}
+# induction_eval = InductionTask(batch_size=eval_batch_size, tokenizer=tokenizer, prep_acdcpp=False, seq_len=15, device=device)
+maintain_sports_eval = SportsTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, prep_acdcpp=False, criterion="cross_entropy", **maintain_kwargs)
+assert set(maintain_sports_eval.train_df["athlete"].unique().tolist()) & set(forget_sport_eval.df["athlete"].unique().tolist()) == set()
+
+eval_tasks = {"pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sport": maintain_sports_eval}
 
 ### localize model
 
@@ -266,6 +297,13 @@ elif localization_type == "all_mlps":
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
 
+elif localization_type == 'random_mlps':
+    # select 6 random mlps
+    randomly_chosen_layers = torch.randperm(n_layers)[:6].sort().values
+    for mlp_layer in randomly_chosen_layers:
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+    final_attn_heads = {}
 
 elif localization_type == 'nonlocalized':
     final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, top_p=100)
@@ -292,8 +330,8 @@ import wandb
 # for localization_type in ["nonlocalized"]:
 print(f"Memory at start for {localization_type}: {torch.cuda.memory_allocated() / 1024**3}")
 if use_wandb:
-    wandb.init(project="circuit_breaking", name=f"finetuning_{localization_type}_{forget_sport=}_{forget_athletes=}")
-    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "beta": beta, "forget_sport": forget_sport, "forget_athletes": forget_athletes, "inject_sport": inject_sport, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id})
+    wandb.init(project="circuit_breaking", name=f"finetuning_{localization_type}_forget_{args.forget_split}_inject_{args.inject_label}")
+    wandb.config.update(args.__dict__)
 
 model.cuda()
 
@@ -363,11 +401,14 @@ for epoch in pbar:
             adv_evals = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
                 forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
                 maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                continuous=True, include_evals=["Normal", "MC"], check_all_logits=check_all_logits)
+                continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label, check_all_logits=check_all_logits)
             adversarial_evals[epoch] = adv_evals
             if use_wandb:
-                wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
-                wandb.log({f"adversarial_mc_{eval_type}": adv_evals["MC"][eval_type] for eval_type in adv_evals["MC"]}, step=epoch)
+                for eval_domain in adv_evals.keys():
+                    for eval_type in adv_evals[eval_domain].keys():
+                        wandb.log({f"adversarial_{eval_domain}_{eval_type}": adv_evals[eval_domain][eval_type]}, step=epoch)
+                # wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
+                # wandb.log({f"adversarial_mc_{eval_type}": adv_evals["MC"][eval_type] for eval_type in adv_evals["MC"]}, step=epoch)
         # print(f"After evaluating adversarial evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
         if do_side_effects_evals:
             print("Before side effect eval, mem is ", torch.cuda.memory_allocated() / 1024**3)
@@ -383,17 +424,17 @@ print("After empty cache and del optimizer and scheduler: ", torch.cuda.memory_a
 
 if save_model:
     os.makedirs(f"{save_dir}/models", exist_ok=True)
-    torch.save(model.state_dict(), f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}.pt")
+    torch.save(model.state_dict(), f"{save_dir}/models/model.pt")
 else:
     print(f"Not saving model for {localization_type}")
 os.makedirs(f"{save_dir}/models", exist_ok=True)
-with open(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}_metrics.pkl", "wb") as f:
+with open(f"{save_dir}/models/model_metrics.pkl", "wb") as f:
     pickle.dump({"train_losses": all_train_losses, "test_losses": all_test_losses, "adversarial_evals": adversarial_evals, "side_effect_evals": side_effect_evals}, f)
 
 ## SAVE TO HF
 if args.push_to_hub:
-    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}")
-    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-sport_{forget_sport}-athletes_{forget_athletes}-inject_{inject_sport}-{args.run_id}"
+    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-forget_{args.forget_split}-inject_{inject_label}-run{args.run_id}")
+    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-forget_{args.forget_split}-inject_{inject_label}-run{args.run_id}"
     model.push_to_hub(hf_save_path)
 
 ## MMLU Evals
