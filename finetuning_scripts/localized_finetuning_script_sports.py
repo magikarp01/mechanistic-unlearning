@@ -182,8 +182,8 @@ train_loss_type = "sports"
 #         save_dir = f"results2/{model_name_or_path}_localized_finetuning_injection_{inject_sport=}_{forget_athletes=}/{args.localization_type}"
 #     else:
 #         save_dir = f"results2/{model_name_or_path}_localized_finetuning_{forget_athletes=}/{args.localization_type}"
-save_dir = os.path.join(args.save_dir, f"forget_{args.forget_split}-inject_{args.inject_label}")
-
+# save_dir = os.path.join(args.save_dir, f"forget_{args.forget_split}-inject_{args.inject_label}")
+save_dir = args.save_dir
 os.makedirs(save_dir, exist_ok=True)
 
 # if forget_athletes is not None:
@@ -250,21 +250,21 @@ import pickle
 if model_type == "gemma":
     with open("models/google_gemma-7b_sports_all_ap_graph.pkl", "rb") as f:
         ap_graph = pickle.load(f)
-    print(ap_graph.keys())
+    # print(ap_graph.keys())
 
     # ct components
     with open("models/google_gemma-7b_sports_all_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
-    print(ct_graph)
+    # print(ct_graph)
 elif model_type == "gemma-2":
     with open("models/google_gemma-2-9b_sports_all_ap_graph.pkl", "rb") as f:
         ap_graph = pickle.load(f)
-    print(ap_graph.keys())
+    # print(ap_graph.keys())
 
     # ct components
     with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
-    print(ct_graph)
+    # print(ct_graph)
 
 localization_type = args.localization_type
 combine_heads = args.combine_heads
@@ -299,6 +299,7 @@ elif localization_type == "all_mlps":
 
 elif localization_type == 'random_mlps':
     # select 6 random mlps
+    final_components = []
     randomly_chosen_layers = torch.randperm(n_layers)[:6].sort().values
     for mlp_layer in randomly_chosen_layers:
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
@@ -314,7 +315,7 @@ num_params = 0
 for component in final_components:
     num_params += find_component_params(component, param_count_dict)
 print(f"Number of parameters in {localization_type} localization: {num_params}")
-
+print(f"{final_components=}")
 
 model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
 apply_localized_gradients(model, final_components, model_type=model_type)
@@ -779,6 +780,12 @@ if args.do_relearning_evals:
     n_relearn_iters = args.n_relearn_iters
     n_relearn_athletes = args.n_relearn_athletes
 
+    if args.forget_split.endswith("unsplit"):
+        forget_relearn_split = args.forget_split.replace("unsplit", "split")
+    else:
+        forget_relearn_split = args.forget_split.replace("split", "unsplit")
+    relearn_forget_kwargs = {"forget_split": forget_relearn_split, "maintain_split": None}
+    relearn_maintain_kwargs = {"forget_split": forget_relearn_split, "maintain_split": "split"}
 
     if forget_sport is None:
         relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
