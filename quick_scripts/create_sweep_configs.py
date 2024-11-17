@@ -13,7 +13,17 @@ parser.add_argument("--forget_loss_coef_dict", type=json.loads, default=None)
 parser.add_argument("--parent_config_path", type=str, default=None)
 args = parser.parse_args()
 
-localization_types = ["nonlocalized", "manual_interp", "localized_ct"]
+# localization_types = ["nonlocalized", "manual_interp", "localized_ct"]
+parent_config = json.load(open(args.parent_config_path, "r"))
+localization_types = []
+base_config = {}
+localization_specific_configs = {}
+for key, value in parent_config.items():
+    if isinstance(value, dict):
+        localization_types.append(key)
+        localization_specific_configs[key] = value
+    else:
+        base_config[key] = value
 
 if args.sweep_over == "learning_rate" and args.forget_loss_coef_dict is None:
     args.forget_loss_coef_dict = {"nonlocalized": 1, "localized_ct": 1, "manual_interp": 1}
@@ -25,23 +35,23 @@ if args.sweep_over == "forget_loss_coef" and args.learning_rate_dict is None:
 for localization_type in localization_types:
     if args.sweep_over == "learning_rate":
         for learning_rate in possible_lrs:
-            with open(args.parent_config_path, "r") as f:
-                parent_config = json.load(f)
-            parent_config["localization_type"] = localization_type
-            parent_config["learning_rate"] = learning_rate
-            parent_config["forget_loss_coef"] = args.forget_loss_coef_dict[localization_type]
+            config = base_config.copy()
+            config["localization_type"] = localization_type
+            config.update(localization_specific_configs[localization_type])
+            config["learning_rate"] = learning_rate
+
             new_folder = os.path.join(args.parent_dir, f"{localization_type}_lr{learning_rate}")
             os.makedirs(new_folder, exist_ok=True)
             with open(os.path.join(new_folder, "config.json"), "w") as f:
-                json.dump(parent_config, f)
+                json.dump(config, f)
     elif args.sweep_over == "forget_loss_coef":
         for forget_loss_coef in possible_flcs:
-            with open(args.parent_config_path, "r") as f:
-                parent_config = json.load(f)
-            parent_config["localization_type"] = localization_type
-            parent_config["forget_loss_coef"] = forget_loss_coef
-            parent_config["learning_rate"] = args.learning_rate_dict[localization_type]
+            config = base_config.copy()
+            config["localization_type"] = localization_type
+            config.update(localization_specific_configs[localization_type])
+            config["forget_loss_coef"] = forget_loss_coef
+
             new_folder = os.path.join(args.parent_dir, f"{localization_type}_flc{forget_loss_coef}")
             os.makedirs(new_folder, exist_ok=True)
             with open(os.path.join(new_folder, "config.json"), "w") as f:
-                json.dump(parent_config, f)
+                json.dump(config, f)
