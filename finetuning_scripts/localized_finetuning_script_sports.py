@@ -132,7 +132,7 @@ from tasks import PileTask, OWTTask, InductionTask, GreaterThanTask
 from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
 from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
 from tasks.facts.SportsTask import SportsTask, SportsTask_NPO, SportsTask_Uniform, SportsTask_Injection
-from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
+# from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
 
@@ -249,9 +249,10 @@ elif localization_type == 'localized_ct':
 
 elif localization_type == 'manual_interp':
     final_components = []
-    for mlp_layer in range(2, 8):
-        final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
-        final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+    if model_type == "gemma":
+        for mlp_layer in range(2, 8):
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
     # mask = NeuronLevelMask(model, components=final_components, component_heads=final_attn_heads)
 
