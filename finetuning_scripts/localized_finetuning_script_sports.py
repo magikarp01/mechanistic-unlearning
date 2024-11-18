@@ -53,6 +53,8 @@ parser.add_argument("--train_batch_size", type=int, default=4)
 parser.add_argument("--eval_batch_size", type=int, default=32)
 parser.add_argument("--learning_rate", type=float, default=1e-5)
 parser.add_argument("--grad_accum_steps", type=int, default=None)
+# parser.add_argument("--gradient_checkpointing", type=bool, default=False)
+parser.add_argument("--mixed_precision", type=bool, default=False)
 parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
 parser.add_argument("--clip_grad", type=float, default=1)
@@ -407,6 +409,11 @@ if use_wandb:
 
 model.cuda()
 
+# if args.gradient_checkpointing:
+    # model.gradient_checkpointing_enable()
+    # # Optionally, use mixed precision for further memory optimization
+    # scaler = torch.cuda.amp.GradScaler()
+
 all_train_losses = defaultdict(list)
 all_test_losses = defaultdict(list)
 adversarial_evals = {}
@@ -414,7 +421,11 @@ side_effect_evals = {}
 
 # Initialize optimizer
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0)
+if args.mixed_precision:
+    import bitsandbytes as bnb
+    optimizer = bnb.optim.AdamW8bit(model.parameters(), lr=learning_rate, weight_decay=0)
+else:
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
 # Cycle dataloaders
 # Train a sparse mask
@@ -434,6 +445,10 @@ for epoch in pbar:
             # with torch.cuda.amp.autocast():
             loss = task.get_train_loss(model) / grad_accum_steps
             task_loss += loss.item()
+            # if args.gradient_checkpointing:
+                # Backward pass with scaling
+                # scaler.scale(loss * task_weight).backward()
+            # else:
             (loss * task_weight).backward()
         all_train_losses[task_name].append(task_loss)
 
@@ -444,12 +459,18 @@ for epoch in pbar:
     # Step and log
     # zero_nan_grads(mask)
     if clip_grad is not None:
+        # if args.gradient_checkpointing:
+        #     scaler.unscale_(optimizer)
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
 
+    # if args.gradient_checkpointing:
+    #     scaler.step(optimizer)
+    #     scaler.update()
+    # else:
     optimizer.step()
-    optimizer.zero_grad()
     scheduler.step()
     print("After epoch, mem is ", torch.cuda.memory_allocated() / 1024**3)
+    optimizer.zero_grad()
 
     torch.cuda.empty_cache()
 
@@ -546,8 +567,7 @@ if args.do_full_mmlu_evals:
     del lm_model
     model.cuda()
 
-
-if args.do_probing_evals:
+if args.do_probing_evals and inject_label not in ["golf", "random_with_golf"]:
     print("Running probing evals")
 
     probing_batch_size = args.probing_batch_size
@@ -722,6 +742,8 @@ if args.do_probing_evals:
 
     with open(f"{save_dir}/results/probing_results.pkl", "wb") as f:
         pickle.dump({"maintain_train_accs": train_accs, "maintain_test_accs": test_accs, "forget_ground_truth_accs": ground_truth_accs, "forget_edit_accs": edit_accs}, f)
+elif args.do_probing_evals:
+    print(f"Skipped probe evals because {inject_label=} has golf, which is not supported")
 
 
 import gc

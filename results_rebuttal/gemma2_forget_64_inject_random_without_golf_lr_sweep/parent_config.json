@@ -13,6 +13,7 @@
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
     "train_batch_size": 1,
+    "gradient_checkpointing": true,
     "localized_ct": {
         "forget_loss_coef": 1
     },
