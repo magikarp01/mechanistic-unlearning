@@ -69,8 +69,8 @@ parser.add_argument("--push_to_hub", type=bool, default=False)
 parser.add_argument("--do_full_mmlu_evals", type=bool, default=False)
 
 parser.add_argument("--do_relearning_evals", type=bool, default=False)
-parser.add_argument("--n_relearn_iters", type=int, default=10)
-parser.add_argument("--n_relearn_athletes", type=int, default=2)
+parser.add_argument("--n_relearn_iters", type=int, default=20)
+parser.add_argument("--n_relearn_athletes", type=int, default=32)
 parser.add_argument("--lora_rank", type=int, default=64)
 parser.add_argument("--target_modules", type=str, default="all-linear")
 parser.add_argument("--relearning_lr", type=float, default=1e-4)
@@ -78,7 +78,12 @@ parser.add_argument("--forget_loss_coef", type=float, default=1)
 
 
 parser.add_argument("--do_probing_evals", type=bool, default=False)
-parser.add_argument("--probing_batch_size", type=int, default=16)
+parser.add_argument("--probing_batch_size", type=int, default=32)
+
+
+parser.add_argument("--do_universal_attack", type=bool, default=False)
+parser.add_argument("--universal_attack_batch_size", type=int, default=16)
+parser.add_argument("--num_softprompts", type=int, default=4, help="Number of softprompts to train")
 
 args = parser.parse_args()
 if args.config_path:
@@ -474,252 +479,179 @@ if args.do_full_mmlu_evals:
 if args.do_probing_evals:
     print("Running probing evals")
 
-    model.cpu()
-    tl_model = HookedTransformer.from_pretrained(
-        model_name_or_path,
-        device='cuda',
-        default_padding_side="left",
-        fold_ln=False,
-        fold_value_biases=False,
-        center_writing_weights=False,
-        dtype=torch.bfloat16,
-        hf_model=model
-    )
-    tl_tokenizer = tl_model.tokenizer
-    torch.cuda.memory_allocated() // 1024**3
+    probing_batch_size = args.probing_batch_size
+    forget_sports_eval = SportsTask_Injection(batch_size=probing_batch_size, tokenizer=tokenizer, inject_label=inject_label, **forget_kwargs)
+    maintain_sports_eval = SportsTask_Injection(batch_size=probing_batch_size, tokenizer=tokenizer, inject_label=inject_label, **maintain_kwargs)
+    train_df = maintain_sports_eval.train_df
 
-    def get_tl_residuals(texts, model, batch_size, store_cpu=True, return_outputs=False):
-        caches = defaultdict(list)
-        for i in tqdm(range(0, len(texts), batch_size)):
-            batch_texts = texts[i:i+batch_size]
-            tokenized = tl_tokenizer(batch_texts, return_tensors="pt", padding=True)
-            outputs = []
-            with torch.no_grad():
-                _, cache = model.run_with_cache(
-                    tokenized.input_ids.cuda(),
-                    attention_mask=tokenized.attention_mask.cuda(),
-                    names_filter = (lambda name: f"hook_resid_post" in name)
-                )
-                if return_outputs:
-                    outputs.append(cache)
-            for k, v in cache.items():
-                key_layer = int(k.split(".")[1])
-                if store_cpu:
-                    caches[key_layer].append(v[:, -1, :].cpu())
-                else:
-                    caches[key_layer].append(v[:, -1, :])
-        for k, v in caches.items():
-            caches[k] = torch.cat(v, dim=0)
-        if return_outputs:
-            return caches, outputs
+    # want left sided tokenizer
+    tokenizer.padding_side = "left"
+
+    def retrieve_acts(model, tokenizer, prompt_list, batch_size, layer=None, to_cpu=False, truncate_length=None, seq_pos_list=None, stack_cache=True):
+        """
+        If seq_pos is not None, cache all the activations at the specified sequence position. Should be one list in seq_pos per prompt.
+        """
+        if layer is None or isinstance(layer, list):
+            caches = defaultdict(list)
         else:
-            return caches
+            caches = []
+        if layer is None:
+            layer = list(range(n_layers))
+        for i in tqdm(range(0, len(prompt_list), batch_size)):
+            tokenized_prompts = tokenizer(prompt_list[i:i+batch_size], return_tensors="pt", padding=True, truncation=True)
+            prompt_toks = tokenized_prompts.input_ids
+            attn_mask = tokenized_prompts.attention_mask
+            if truncate_length is not None:
+                if len(prompt_toks[0]) > truncate_length:
+                    print(f"Prompt {i} is too long, truncating")
+                    prompt_toks = prompt_toks[:, -truncate_length:]
+                    attn_mask = attn_mask[:, -truncate_length:]
+            
+            # if assert_end_newline:
+            with torch.no_grad():
+                model_output = model(
+                    input_ids=prompt_toks.cuda(),
+                    attention_mask=attn_mask.cuda(),
+                    output_hidden_states=True
+                )
+                hidden_states = model_output["hidden_states"]
+            if isinstance(layer, list):
+                for key_layer in layer:
+                    if to_cpu:
+                        if seq_pos_list is not None:
+                            for j in range(len(hidden_states[key_layer])):
+                                caches[key_layer].append(hidden_states[key_layer][j, seq_pos_list[i+j], :].cpu())
+                        else:
+                            caches[key_layer].append(hidden_states[key_layer][:, -1, :])
+                    else:
+                        if seq_pos_list is not None:
+                            for j in range(len(hidden_states[key_layer])):
+                                caches[key_layer].append(hidden_states[key_layer][j, seq_pos_list[i+j], :])
+                        else:
+                            caches[key_layer].append(hidden_states[key_layer][:, -1, :])
 
-    batch_size = args.probing_batch_size
-    def get_resids(sports_task, model):
-        # train_outputs = get_hf_residuals(sports_task.train_df["prompt"].tolist(), model, batch_size, last_token_only=True) # needs to not be last token only because of layernorm
-        # test_outputs = get_hf_residuals(sports_task.test_df["prompt"].tolist(), model, batch_size, last_token_only=True)
-        train_outputs = get_tl_residuals(sports_task.train_df["prompt"].tolist(), tl_model, batch_size)
-        test_outputs = get_tl_residuals(sports_task.test_df["prompt"].tolist(), tl_model, batch_size)
+        print("Done caching")
+        if stack_cache:
+            if layer is None or isinstance(layer, list):
+                for k, v in caches.items():
+                    if seq_pos_list is not None:
+                        caches[k] = torch.stack(v, dim=0).cpu()
+                    else:
+                        caches[k] = torch.cat(v, dim=0).cpu()
+            else:
+                if seq_pos_list is not None:
+                    caches = torch.stack(caches, dim=0).cpu()
+                else:
+                    caches = torch.cat(caches, dim=0).cpu()
+        return caches
 
-        train_labels = sports_task.train_df['sport'].tolist()
-        test_labels = sports_task.test_df['sport'].tolist()
-        return train_outputs, test_outputs, train_labels, test_labels
+    all_acts = defaultdict(list)
+    labels = []
+    sport_dict = {"baseball": 0, "basketball": 1, "football": 2, "golf": 3}
+    for sport in train_df["sport"].unique():
+        datapoints = train_df[train_df["sport"] == sport]
+        print(sport, len(datapoints))
+        
+        prompts = datapoints["prompt"].tolist()
 
-    forget_is_split = True if forget_sport is not None else False
-    if forget_is_split:
-        forget_train_outputs_dict = {}
-        forget_test_outputs_dict = {}
-        forget_train_labels_dict = {}
-        forget_test_labels_dict = {}
-    else:
-        forget_outputs_dict = {}
-        forget_labels_dict = {}
-
-    maintain_train_outputs_dict = {}
-    maintain_test_outputs_dict = {}
-    maintain_train_labels_dict = {}
-    maintain_test_labels_dict = {}
-
-    model.cuda()
-    if forget_is_split:
-        forget_train_outputs_dict[localization_type], forget_test_outputs_dict[localization_type], forget_train_labels_dict[localization_type], forget_test_labels_dict[localization_type] = get_resids(forget_sport_eval, model)
-    else:
-        forget_outputs_dict[localization_type], _, forget_labels_dict[localization_type], _ = get_resids(forget_sport_eval, model)
-    maintain_train_outputs_dict[localization_type], maintain_test_outputs_dict[localization_type], maintain_train_labels_dict[localization_type], maintain_test_labels_dict[localization_type] = get_resids(maintain_sports_eval, model)
-
-    # model.cpu()
-
-    # set train and test splits
-    if not forget_is_split:
-        print("Performing manual split of the unsplit training dataset")
-        train_test_split = .5
-        forget_train_outputs_dict = {}
-        forget_test_outputs_dict = {}
-        forget_train_labels_dict = {}
-        forget_test_labels_dict = {}
-        num_train = int(len(forget_labels_dict[localization_type]) * train_test_split)
-        forget_train_labels_dict[localization_type] = forget_labels_dict[localization_type][:num_train]
-        forget_test_labels_dict[localization_type] = forget_labels_dict[localization_type][num_train:]
-        forget_train_outputs_dict[localization_type] = {}
-        forget_test_outputs_dict[localization_type] = {}
+        acts = retrieve_acts(model, tokenizer, prompts, probing_batch_size, layer=list(range(n_layers)), to_cpu=True)
         for layer in range(n_layers):
-            forget_train_outputs_dict[localization_type][layer] = forget_outputs_dict[localization_type][layer][:num_train]
-            forget_test_outputs_dict[localization_type][layer] = forget_outputs_dict[localization_type][layer][num_train:]
+            all_acts[layer].append(acts[layer])
+            num_datapoints = len(acts[layer])
+        labels.append(torch.tensor([sport_dict[sport]]*num_datapoints))
+
+    labels = torch.cat(labels, dim=0)
+    for layer in range(n_layers):
+        all_acts[layer] = torch.cat(all_acts[layer], dim=0)
 
 
     from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score, classification_report
+    import numpy as np
 
-    def get_sport_labels(string_labels, return_np=True):
-        # want three different lists of labels, one for each sport
-        sports = ["baseball", "football", "basketball"]
-        sport_labels = {sport: [] for sport in sports}
-        for label in string_labels:
-            for sport in sports:
-                if sport in label:
-                    sport_labels[sport].append(1)
-                else:
-                    sport_labels[sport].append(0)
-        if return_np:
-            for sport in sports:
-                sport_labels[sport] = np.array(sport_labels[sport])
-            
-        assert sum(sport_labels["baseball"]) + sum(sport_labels["football"]) + sum(sport_labels["basketball"]) == len(string_labels)
-        # assert each position always adds up to 1
-        for i in range(len(string_labels)):
-            assert sport_labels["baseball"][i] + sport_labels["football"][i] + sport_labels["basketball"][i] == 1
-        return sport_labels
-
-    # train probes
-    all_probes = defaultdict(dict) # double-nested dictionary, first keys are model_name, second keys are layers, final values are dictionaries with keys "basketball", "football", "baseball" and values of probes
-
-    all_train_accs = defaultdict(dict)
-    all_test_accs = defaultdict(dict)
-    all_forget_accs = defaultdict(dict)
-    all_maintain_accs = defaultdict(dict)
-
-    combine_accuracies = True
-
-    shuffle_train = True
-    
-    forget_test_acts = forget_test_outputs_dict[localization_type]
-    forget_test_labels = get_sport_labels(forget_test_labels_dict[localization_type])
-    maintain_test_acts = maintain_test_outputs_dict[localization_type]
-    maintain_test_labels = get_sport_labels(maintain_test_labels_dict[localization_type])
-
-    forget_train_acts = forget_train_outputs_dict[localization_type]
-    maintain_train_acts = maintain_train_outputs_dict[localization_type]
-    # forget_test_labels_dict[model_name] + maintain_test_labels_dict[model_name]
-    train_labels = forget_train_labels_dict[localization_type] + maintain_train_labels_dict[localization_type]
-    train_labels = get_sport_labels(train_labels)
-
-    test_labels = forget_test_labels_dict[localization_type] + maintain_test_labels_dict[localization_type]
-    test_labels = get_sport_labels(test_labels)
-
-    if shuffle_train:
-        shuffle_idx = torch.randperm(len(list(train_labels.values())[0]))
-
-    if shuffle_train:
-        for sport in train_labels:
-            train_labels[sport] = train_labels[sport][shuffle_idx]
+    # Function to train and evaluate probes for each layer
+    def train_eval_probes(activations_dict, labels, test_size=0.2, random_state=42):
+        results = {}
         
-    # print(f"Labels look like {train_labels}")
+        for layer, acts in tqdm(activations_dict.items()):
+            # Convert activations to numpy array if they're torch tensors
+            X = acts.float().numpy() if hasattr(acts, 'numpy') else acts
+            y = labels.numpy() if hasattr(labels, 'numpy') else labels
+            
+            # Split the data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state, stratify=y
+            )
+            
+            # Initialize and train the probe
+            probe = LogisticRegression(max_iter=1000, multi_class='multinomial')
+            probe.fit(X_train, y_train)
+            
+            # Evaluate
+            train_acc = accuracy_score(y_train, probe.predict(X_train))
+            test_acc = accuracy_score(y_test, probe.predict(X_test))
+            
+            results[layer] = {
+                'train_accuracy': train_acc,
+                'test_accuracy': test_acc,
+                'probe': probe
+            }
+            
+            # print(f"Layer {layer}:")
+            # print(f"Train accuracy: {train_acc:.4f}")
+            # print(f"Test accuracy: {test_acc:.4f}")
+            # print("Classification Report:")
+            # print(classification_report(y_test, probe.predict(X_test)))
+            # print("-" * 50)
+        
+        return results
 
+    # Train probes for all layers
+    probe_results = train_eval_probes(all_acts, labels)
+
+    # Plot the results
+    import matplotlib.pyplot as plt
+
+    layers = list(probe_results.keys())
+    train_accs = [results['train_accuracy'] for results in probe_results.values()]
+    test_accs = [results['test_accuracy'] for results in probe_results.values()]
+
+    # test probes on forget split
+    forget_acts = defaultdict(list)
+    forget_labels = []
+    edit_labels = []
+    forget_df = forget_sports_eval.test_df
+    for sport in forget_df["sport"].unique():
+        datapoints = forget_df[forget_df["sport"] == sport]
+        print(sport, len(datapoints))
+        
+        prompts = datapoints["prompt"].tolist()
+
+        acts = retrieve_acts(model, tokenizer, prompts, probing_batch_size, layer=list(range(n_layers)), to_cpu=True)
+        for layer in range(n_layers):
+            forget_acts[layer].append(acts[layer])
+            num_datapoints = len(acts[layer])
+        forget_labels.append(torch.tensor([sport_dict[sport]]*num_datapoints))
+        edit_labels.append(torch.tensor([sport_dict[edit_sport] for edit_sport in datapoints["inject_sport"]]))
+
+    forget_labels = torch.cat(forget_labels, dim=0)
+    edit_labels = torch.cat(edit_labels, dim=0)
     for layer in range(n_layers):
-        layer_train_acts = torch.cat([forget_train_acts[layer], maintain_train_acts[layer]], dim=0).float().cpu().numpy()
-        layer_test_acts = torch.cat([forget_test_acts[layer], maintain_test_acts[layer]], dim=0).float().cpu().numpy()
-        layer_forget_test_acts = forget_test_acts[layer].float().cpu().numpy()
-        layer_maintain_test_acts = maintain_test_acts[layer].float().cpu().numpy()
+        forget_acts[layer] = torch.cat(forget_acts[layer], dim=0)
 
-        if shuffle_train:
-            layer_train_acts = layer_train_acts[shuffle_idx]
-        all_probes[localization_type][layer] = {}
+    preds = {}
+    for layer in range(n_layers):
+        preds[layer] = probe_results[layer]['probe'].predict(forget_acts[layer].float().numpy())
 
-        if not combine_accuracies:
-            all_train_accs[localization_type][layer] = {}
-            all_test_accs[localization_type][layer] = {}
-            all_forget_accs[localization_type][layer] = {}
-            all_maintain_accs[localization_type][layer] = {}
-
-        sports_train_preds = {}
-        sports_test_preds = {}
-        sports_forget_preds = {}
-        sports_maintain_preds = {}
-        for sport in train_labels:
-            if sum(train_labels[sport]) <= 0:
-                print("No labels for sport", sport)
-                continue
-            probe = LogisticRegression(max_iter=10000)
-            # print(f"Training probe for {sport} at layer {layer}, {layer_train_acts.shape=}, {train_labels[sport].shape=}, {train_labels[sport].mean()=}")
-            probe.fit(layer_train_acts, train_labels[sport])
-            all_probes[localization_type][layer][sport] = probe
-
-            # test probes
-            # print(f"{sport=}, {layer_train_acts.shape=}, {train_labels[sport].shape=}, {train_labels[sport].mean()=}")
-            train_preds = probe.predict(layer_train_acts)
-            if not combine_accuracies:
-                train_acc = (train_preds == train_labels[sport]).sum() / len(train_labels[sport])
-                all_train_accs[localization_type][layer][sport] = train_acc
-            else:
-                sports_train_preds[sport] = train_preds
-
-
-            # print(f"Testing probe for {sport} at layer {layer}, {layer_test_acts.shape=}, {test_labels[sport].shape=}, {test_labels[sport].mean()=}")
-            test_preds = probe.predict(layer_test_acts)
-            if not combine_accuracies:
-                test_acc = (test_preds == test_labels[sport]).sum() / len(test_labels[sport])
-                all_forget_accs[localization_type][layer][sport] = test_acc
-            else:
-                sports_test_preds[sport] = test_preds
-
-            # print(f"{sport=}, {layer_forget_test_acts.shape=}, {forget_test_labels[sport].shape=}, {forget_test_labels[sport].mean()=}")
-            forget_test_preds = probe.predict(layer_forget_test_acts)
-            if not combine_accuracies:
-                forget_acc = (forget_test_preds == forget_test_labels[sport]).sum() / len(forget_test_labels[sport])
-                all_test_accs[localization_type][layer][sport] = forget_acc
-            else:
-                sports_forget_preds[sport] = forget_test_preds
-
-            # print(f"{sport=}, {layer_maintain_test_acts.shape=}, {maintain_test_labels[sport].shape=}, {maintain_test_labels[sport].mean()=}")
-            maintain_test_preds = probe.predict(layer_maintain_test_acts)
-            if not combine_accuracies:
-                maintain_acc = (maintain_test_preds == maintain_test_labels[sport]).sum() / len(maintain_test_labels[sport])
-                all_maintain_accs[localization_type][layer][sport] = maintain_acc 
-            else:
-                sports_maintain_preds[sport] = maintain_test_preds
-
-        if combine_accuracies:
-            # combine accuracies by saying probes correct if all sports are correct
-            train_correct = np.ones(len(train_labels["baseball"]))
-            test_correct = np.ones(len(test_labels["baseball"]))
-            forget_correct = np.ones(len(forget_test_labels["baseball"]))
-            maintain_correct = np.ones(len(maintain_test_labels["baseball"]))
-            for sport in train_labels:
-                if sum(train_labels[sport]) > 0:
-                    train_correct *= (sports_train_preds[sport] == train_labels[sport])
-                else:
-                    print("No train labels for sport", sport)
-                if sum(test_labels[sport]) > 0:
-                    test_correct *= (sports_test_preds[sport] == test_labels[sport])
-                else:
-                    print("No test labels for sport", sport)
-                if sum(forget_test_labels[sport]) > 0:
-                    forget_correct *= (sports_forget_preds[sport] == forget_test_labels[sport])
-                else:
-                    print("No forget labels for sport", sport)
-                if sum(maintain_test_labels[sport]) > 0:
-                    maintain_correct *= (sports_maintain_preds[sport] == maintain_test_labels[sport])
-                else:
-                    print("No maintain labels for sport", sport)
-
-            all_train_accs[localization_type][layer] = train_correct.mean()
-            all_test_accs[localization_type][layer] = test_correct.mean()
-            all_forget_accs[localization_type][layer] = forget_correct.mean()
-            all_maintain_accs[localization_type][layer] = maintain_correct.mean()
+    ground_truth_accs = [accuracy_score(forget_labels, preds[layer]) for layer in range(n_layers)]
+    edit_accs = [accuracy_score(edit_labels, preds[layer]) for layer in range(n_layers)]
 
     os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/probes_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}.pkl", "wb") as f:
-        pickle.dump({"all_probes": all_probes, "all_train_accs": all_train_accs, "all_test_accs": all_test_accs, "all_forget_accs": all_forget_accs, "all_maintain_accs": all_maintain_accs}, f)
+
+    with open(f"{save_dir}/results/probing_results.pkl", "wb") as f:
+        pickle.dump({"maintain_train_accs": train_accs, "maintain_test_accs": test_accs, "forget_ground_truth_accs": ground_truth_accs, "forget_edit_accs": edit_accs}, f)
+
 
 import gc
 torch.cuda.empty_cache()
@@ -728,9 +660,53 @@ gc.collect()
 print(torch.cuda.memory_allocated() / 1024**3)
 
 if args.do_relearning_evals:
+    tokenizer.padding_side = "right"
+    print("Running relearning evals")
+    from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
+    from tasks.general_capabilities.MCTask_redo import run_general_evals
+
+    if "unsplit" in args.forget_split:
+        relearn_forget_split = args.forget_split.replace("unsplit", "split")
+        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
+    else:
+        print("Why is the forget_split train-test-splitted? This probably shouldn't be happening")
+    
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
+
+    n_eval_iters = 4
+    n_relearn_iters = args.n_relearn_iters
+    n_relearn_athletes = args.n_relearn_athletes
+    train_batch_size = args.train_batch_size
+    eval_batch_size = args.eval_batch_size
+    # use mmlu batch size from above
+    grad_accum_steps = n_relearn_athletes//train_batch_size
+
+    relearn_sport = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_forget_kwargs)
+    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_maintain_kwargs)
+    pile = PileTask(batch_size=2, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
+    train_tasks = {"relearn_athletes": (relearn_sport, 1), "maintain_athletes": (maintain_sports, 1), "pile": (pile, 1)}
+
+
     print("Running relearning evals")
     from peft import get_peft_model, LoraConfig, TaskType
-    def do_relearning(model, train_tasks, n_iters, finetune_lora=False, lora_kwargs={'rank': args.lora_rank, 'alpha': 32, 'dropout': 0.05, 'target_modules': args.target_modules}, learning_kwargs={'lr': args.relearning_lr, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None):
+
+    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_label):
+        print(f"Epoch {epoch+1}")
+        if (epoch+1) % 10 == 0:
+            mmlu_score = run_side_effects_evals(model, model_type="gemma", general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
+            adversarial_results = adversarial_sports_eval_redo(model, model_type="gemma", batch_size=eval_batch_size, 
+                            forget_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|forget_kwargs, 
+                            maintain_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|maintain_kwargs, 
+                            continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label)
+
+            # get dictionary of both
+            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
+        else:
+            return {}
+        
+
+    def do_relearning(model, train_tasks, n_iters, grad_accum_steps=1, finetune_lora=False, lora_kwargs={'rank': 256, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 1e-5, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None, forget_kwargs=None, maintain_kwargs=None, inject_label=None):
         # can either finetune full or lora
 
         if not finetune_lora:
@@ -748,6 +724,7 @@ if args.do_relearning_evals:
 
             model = get_peft_model(model, peft_config).cuda()
             # model.print_trainable_parameters()
+            print(f"Parameters in peft: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 
             optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
         
@@ -757,96 +734,153 @@ if args.do_relearning_evals:
         train_losses = defaultdict(list)
         test_losses = []
 
-        for i in tqdm(range(n_iters)):
+        for iter_idx in tqdm(range(n_iters)):
             optimizer.zero_grad()
             for task_name, (task, task_weight) in train_tasks.items():
-                loss = task.get_train_loss(model)
-                train_losses[task_name].append(loss.item())
-                # print(loss.item())
-                (loss * task_weight).backward()
-            
+                task_loss = 0
+                for i in range(grad_accum_steps):
+                    loss = task.get_train_loss(model) / grad_accum_steps
+                    task_loss += loss.item()
+                    # print(loss.item())
+                    (loss * task_weight).backward()
+                train_losses[task_name].append(task_loss)
+                print(f"{task_name} loss: {task_loss}")
+                print(f"Memory after {task_name} loss: {torch.cuda.memory_allocated() / 10**9} GB")
+
             optimizer.step()
+            optimizer.zero_grad()
             if learning_kwargs['use_cosine']:
                 scheduler.step()
+            torch.cuda.empty_cache()
+            print(f"Memory after optimizer step: {torch.cuda.memory_allocated() / 10**9} GB")
 
             if eval_callback_fn is not None:
-                test_losses.append(eval_callback_fn(model))
+                test_losses.append(eval_callback_fn(model, epoch=iter_idx, forget_kwargs=forget_kwargs, maintain_kwargs=maintain_kwargs, inject_label=inject_label))
+                print(test_losses[-1])
 
         if len(test_losses) > 0:
             return train_losses, test_losses
         return train_losses
-    
-    n_eval_iters = args.n_eval_iters
-    n_relearn_iters = args.n_relearn_iters
-    n_relearn_athletes = args.n_relearn_athletes
 
-    if args.forget_split.endswith("unsplit"):
-        forget_relearn_split = args.forget_split.replace("unsplit", "split")
-    else:
-        forget_relearn_split = args.forget_split.replace("split", "unsplit")
-    relearn_forget_kwargs = {"forget_split": forget_relearn_split, "maintain_split": None}
-    relearn_maintain_kwargs = {"forget_split": forget_relearn_split, "maintain_split": "split"}
+    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_label):
+        print(f"Epoch {epoch+1}")
+        if (epoch+1) % 5 == 0:
+            mmlu_score = run_side_effects_evals(model, model_type="gemma", general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
+            adversarial_results = adversarial_sports_eval_redo(model, model_type="gemma", batch_size=eval_batch_size, 
+                            forget_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|forget_kwargs, 
+                            maintain_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|maintain_kwargs, 
+                            continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label)
 
-    if forget_sport is None:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
-    else:
-        relearn_sport = SportsTask(batch_size=n_relearn_athletes, tokenizer=tokenizer, forget_sport_subset={forget_sport}, forget_player_subset=n_relearn_athletes, train_test_split=False, is_forget_dataset=True)
-
-    pile = PileTask(batch_size=8, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
-    train_tasks = {"relearn_athletes": (relearn_sport, .2), "maintain_athletes": (maintain_sports, 1), "pile": (train_pile, 1)}
-
-    from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
-    from tasks.general_capabilities.MCTask_redo import run_general_evals
-
-    def eval_callback(model):
-        mmlu_score = run_general_evals(model, model_type=model_type, batch_size=mmlu_batch_size)["MMLU"]
-        adversarial_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
-                        forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
-                        maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                        continuous=True, include_evals=["Normal", "MC"])
-
-        # get dictionary of both
-        return {"MMLU": mmlu_score, "adversarial": adversarial_results}
+            # get dictionary of both
+            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
+        else:
+            return {}
 
     # del model
 
     # for name, model, mask, regular_evals, side_effect_evals, adversarial_evals in [("localized", localized_model, localized_mask, localized_regular_evals, localized_side_effect_evals, localized_adversarial_evals), ("nonlocalized", nonlocalized_model, nonlocalized_mask, nonlocalized_regular_evals, nonlocalized_side_effect_evals, nonlocalized_adversarial_evals)]:
 
-    relearning_train_results = {}
-    relearning_test_results = {}
     relearning_regular_results = {}
-    relearning_adversarial_results = {}
-    relearning_side_effect_results = {}
+    # relearning_adversarial_results = {}
+    # relearning_side_effect_results = {}
 
     model.cuda()
+    initial_test_loss = eval_callback(model, epoch=-1, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
+    initial_test_loss
 
-    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, learning_kwargs={'lr': args.relearning_lr, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback)
+    print(torch.cuda.memory_allocated() / 10**9, "GB")
+    print(train_tasks)
+    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, lora_kwargs={'rank': 512, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 2e-4, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
 
-    relearning_train_results[localization_type] = train_losses
-    relearning_test_results[localization_type] = test_losses
-
-    relearning_regular_results[localization_type] = {}
     for task_name, test_task in [("forget_sport", forget_sport_eval), ("maintain_sports", maintain_sports_eval)]:
         task_loss = 0
         task_accuracy = 0
         for i in range(n_eval_iters):
             task_loss += test_task.get_test_loss(model).item()
             task_accuracy += test_task.get_test_accuracy(model)
-        relearning_regular_results[localization_type][f"{task_name}_ce"] = task_loss / n_eval_iters
-        relearning_regular_results[localization_type][f"{task_name}_acc"] = task_accuracy / n_eval_iters
-
-    adversarial_eval_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
-                    forget_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|forget_kwargs, 
-                    maintain_task_init_kwargs={"use_system_prompt":True, "use_icl":False}|maintain_kwargs, 
-                    continuous=True, include_evals=["Normal", "MC"])
-    relearning_adversarial_results[localization_type] = adversarial_eval_results
-
-    side_effect_eval_results = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=mmlu_batch_size)
-    relearning_side_effect_results[localization_type] = side_effect_eval_results
-
+        relearning_regular_results[f"{task_name}_ce"] = task_loss / n_eval_iters
+        relearning_regular_results[f"{task_name}_acc"] = task_accuracy / n_eval_iters
     # model.cpu()
 
     os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/relearning_{n_relearn_athletes=}_{n_relearn_iters=}_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_sport=}_{forget_athletes=}_results.pkl", "wb") as f:
-        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_adversarial_results": relearning_adversarial_results, "relearning_side_effect_results": relearning_side_effect_results, "relearning_train_results": relearning_train_results, "relearning_test_results": relearning_test_results}, f)
+    with open(f"{save_dir}/results/relearning_results.pkl", "wb") as f:
+        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_train_losses": train_losses, "relearning_test_losses": test_losses}, f)
 
+if args.do_softprompt_evals:
+    print("Running softprompt evals")
+    tokenizer.padding_side = "left"
+    from torch.nn.utils.rnn import pad_sequence
+
+    def prepare_sport_classification_data(dataframe, tokenizer):
+        """
+        Prepares tokenized data for sport classification task by combining prompts with sport labels
+        and creating appropriate masks for training.
+        
+        Args:
+            dataframe: DataFrame containing 'prompt' and 'sport' columns
+            tokenizer: Tokenizer instance for text processing
+            
+        Returns:
+            tokenized_sequences: Padded tensor of tokenized input sequences
+            label_positions: Boolean tensor marking positions of sport labels
+            original_prompts: List of original prompt texts
+        """
+        tokenized_sequences = []
+        original_prompts = []
+        label_positions = []
+        
+        for _, row in dataframe.iterrows():
+            prompt_text = row["prompt"]
+            original_prompts.append(tokenizer.bos_token + prompt_text)
+            sport_label = " " + row["sport"]  # Add space before sport label
+
+            # Tokenize prompt and sport label separately
+            prompt_tokens = tokenizer(prompt_text)["input_ids"]
+            sport_tokens = tokenizer(sport_label, add_special_tokens=False)["input_ids"]
+            
+            # Combine tokens and create mask identifying label positions
+            combined_sequence = prompt_tokens + sport_tokens
+            sequence_mask = [0] * len(prompt_tokens) + [1] * len(sport_tokens)
+            
+            tokenized_sequences.append(torch.tensor(combined_sequence))
+            label_positions.append(torch.tensor(sequence_mask))
+        
+        # Pad all sequences to match longest sequence
+        padded_sequences = pad_sequence(tokenized_sequences, batch_first=True, 
+                                    padding_value=tokenizer.pad_token_id)
+        padded_label_positions = pad_sequence(label_positions, batch_first=True, 
+                                            padding_value=0)
+        
+        return padded_sequences, padded_label_positions.bool(), original_prompts
+
+    # Split dataset and prepare train/test data
+    df = pd.read_csv("tasks/facts/data/sports.csv")
+    sports_df = df.iloc[:64]  # Remove first 64 rows
+    split_index = sports_df.shape[0] // 2
+    training_df = sports_df.iloc[:split_index]
+    testing_df = sports_df.iloc[split_index:]
+
+    # Create training and testing datasets
+    training_sequences, training_label_positions, training_prompts = prepare_sport_classification_data(
+        training_df, tokenizer)
+    testing_sequences, testing_label_positions, testing_prompts = prepare_sport_classification_data(
+        testing_df, tokenizer)
+
+    # %%
+    from src.attacks import *
+    import matplotlib.pyplot as plt
+
+    loss_over_time, wrappers = train_universal_attack(
+        adv_tokens=training_sequences.cuda(),
+        target_mask=training_label_positions.cuda(),
+        model=model,
+        model_layers_module="model.layers",
+        layer=["embedding"],
+        epsilon=6.0,
+        learning_rate=1e-5,
+        n_steps=128,
+        batch_size=16,
+        return_loss_over_time=True,
+        adversary_type="soft_prompt",
+        verbose=True,
+    )
