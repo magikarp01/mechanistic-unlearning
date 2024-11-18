@@ -1,0 +1,206 @@
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal/gemma_forget_64_inject_random_without_golf_lr_sweep/manual_interp_lr2e-06/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal/gemma_forget_64_inject_random_without_golf_lr_sweep/manual_interp_lr2e-06/config.json', save_dir='results_rebuttal/gemma_forget_64_inject_random_without_golf_lr_sweep/manual_interp_lr2e-06', model_type='gemma-7b', forget_split='first_64_unsplit', inject_label='random_without_golf', localization_type='manual_interp', run_id='1', combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-06, grad_accum_steps=None, n_epochs=50, beta=3, clip_grad=1, evaluate_every=1, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=False, do_relearning_evals=False, n_relearn_iters=20, n_relearn_athletes=32, lora_rank=64, target_modules='all-linear', relearning_lr=0.0001, forget_loss_coef=1, do_probing_evals=False, probing_batch_size=32, do_softprompt_evals=False, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.58s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:06<00:06,  3.29s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:10<00:03,  3.73s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:11<00:00,  2.74s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:11<00:00,  2.96s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241118_074628-6iwd7som
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_manual_interp_forget_first_64_unsplit_inject_random_without_golf
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/6iwd7som
+Manual param count:  1358954496
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Editing athletes:      Unnamed: 0             athlete  ... inject_sport_without_golf  inject_sport
+0         1642    DeForest Buckner  ...                basketball    basketball
+1          738       Walter Payton  ...                basketball    basketball
+2        16778  Anthony DeSclafani  ...                basketball    basketball
+3        14501      Kevin Millwood  ...                  football      football
+4          188         Vonta Leach  ...                basketball    basketball
+..         ...                 ...  ...                       ...           ...
+59       14770        Brandon Inge  ...                basketball    basketball
+60        1772     Patrick Mahomes  ...                  baseball      baseball
+61       14813   Lastings Milledge  ...                  football      football
+62         991         Mike Iupati  ...                basketball    basketball
+63          72        Trent Dilfer  ...                basketball    basketball
+
+[64 rows x 11 columns]
+forget_indices: range(0, 64)
+Forgetting athletes eval:      Unnamed: 0  ... inject_sport_without_golf
+0         1642  ...                basketball
+1          738  ...                basketball
+2        16778  ...                basketball
+3        14501  ...                  football
+4          188  ...                basketball
+..         ...  ...                       ...
+59       14770  ...                basketball
+60        1772  ...                  baseball
+61       14813  ...                  football
+62         991  ...                basketball
+63          72  ...                basketball
+
+[64 rows x 10 columns]
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Number of parameters in manual_interp localization: 1358954496
+final_components=['blocks.2.mlp.hook_pre', 'blocks.2.mlp.hook_gate', 'blocks.2.mlp.hook_post', 'blocks.3.mlp.hook_pre', 'blocks.3.mlp.hook_gate', 'blocks.3.mlp.hook_post', 'blocks.4.mlp.hook_pre', 'blocks.4.mlp.hook_gate', 'blocks.4.mlp.hook_post', 'blocks.5.mlp.hook_pre', 'blocks.5.mlp.hook_gate', 'blocks.5.mlp.hook_post', 'blocks.6.mlp.hook_pre', 'blocks.6.mlp.hook_gate', 'blocks.6.mlp.hook_post', 'blocks.7.mlp.hook_pre', 'blocks.7.mlp.hook_gate', 'blocks.7.mlp.hook_post']
+Memory at start for manual_interp: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [00:51<42:06, 51.56s/it]  4%|▍         | 2/50 [01:04<22:55, 28.65s/it]  6%|▌         | 3/50 [01:16<16:37, 21.22s/it]  8%|▊         | 4/50 [01:29<13:42, 17.89s/it] 10%|█         | 5/50 [01:41<11:53, 15.85s/it] 12%|█▏        | 6/50 [01:53<10:42, 14.61s/it] 14%|█▍        | 7/50 [02:05<09:53, 13.81s/it] 16%|█▌        | 8/50 [02:18<09:19, 13.32s/it] 18%|█▊        | 9/50 [02:30<08:55, 13.05s/it] 20%|██        | 10/50 [02:42<08:31, 12.80s/it] 22%|██▏       | 11/50 [02:55<08:13, 12.67s/it] 24%|██▍       | 12/50 [03:07<07:57, 12.57s/it] 26%|██▌       | 13/50 [03:19<07:41, 12.46s/it] 28%|██▊       | 14/50 [03:32<07:25, 12.38s/it] 30%|███       | 15/50 [03:45<07:20, 12.58s/it] 32%|███▏      | 16/50 [03:57<07:10, 12.65s/it] 34%|███▍      | 17/50 [04:10<06:55, 12.60s/it] 36%|███▌      | 18/50 [04:22<06:43, 12.61s/it] 38%|███▊      | 19/50 [04:35<06:30, 12.59s/it] 40%|████      | 20/50 [04:49<06:26, 12.88s/it] 42%|████▏     | 21/50 [05:01<06:12, 12.85s/it] 44%|████▍     | 22/50 [05:14<05:56, 12.74s/it] 46%|████▌     | 23/50 [05:26<05:40, 12.60s/it] 48%|████▊     | 24/50 [05:39<05:26, 12.56s/it] 50%|█████     | 25/50 [05:52<05:21, 12.86s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [06:28<07:51, 19.66s/it] 54%|█████▍    | 27/50 [06:40<06:43, 17.54s/it] 56%|█████▌    | 28/50 [06:53<05:53, 16.07s/it] 58%|█████▊    | 29/50 [07:06<05:16, 15.07s/it] 60%|██████    | 30/50 [07:19<04:48, 14.43s/it] 62%|██████▏   | 31/50 [07:32<04:27, 14.10s/it] 64%|██████▍   | 32/50 [07:46<04:11, 13.97s/it] 66%|██████▌   | 33/50 [07:58<03:49, 13.52s/it] 68%|██████▊   | 34/50 [08:10<03:29, 13.11s/it] 70%|███████   | 35/50 [08:23<03:16, 13.12s/it] 72%|███████▏  | 36/50 [08:36<03:00, 12.86s/it] 74%|███████▍  | 37/50 [08:48<02:47, 12.86s/it] 76%|███████▌  | 38/50 [09:01<02:33, 12.79s/it] 78%|███████▊  | 39/50 [09:14<02:20, 12.73s/it] 80%|████████  | 40/50 [09:26<02:05, 12.59s/it] 82%|████████▏ | 41/50 [09:38<01:52, 12.48s/it] 84%|████████▍ | 42/50 [09:51<01:41, 12.66s/it] 86%|████████▌ | 43/50 [10:04<01:28, 12.61s/it] 88%|████████▊ | 44/50 [10:16<01:15, 12.54s/it] 90%|█████████ | 45/50 [10:28<01:02, 12.41s/it] 92%|█████████▏| 46/50 [10:41<00:49, 12.43s/it] 94%|█████████▍| 47/50 [10:53<00:37, 12.43s/it] 96%|█████████▌| 48/50 [11:05<00:24, 12.42s/it] 98%|█████████▊| 49/50 [11:18<00:12, 12.33s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [11:52<00:00, 18.91s/it]100%|██████████| 50/50 [11:52<00:00, 14.25s/it]
+After epoch, mem is  20.9810528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  20.9810528755188
+Running side effects evals
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  20.9810528755188
+Running side effects evals
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+After epoch, mem is  20.9810528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  20.9810528755188
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918552875518799
+Not saving model for manual_interp
+False
+15.918552875518799
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.048 MB uploadedwandb: | 0.049 MB of 0.049 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU █▁▁
+wandb:       adversarial_MC_Injected_forget █▁▃
+wandb:     adversarial_MC_Injected_maintain █▆▁
+wandb:                adversarial_MC_forget ▁█▆
+wandb:              adversarial_MC_maintain ▁▂█
+wandb:   adversarial_Normal_Injected_forget ▁▂█
+wandb: adversarial_Normal_Injected_maintain ▂█▁
+wandb:            adversarial_Normal_forget ▁▆█
+wandb:          adversarial_Normal_maintain █▄▁
+wandb:           forget_sport_test_accuracy ▁▂▃▁▆▆▄▆▇▇▇▇▇▇█▇▇█▇█▇████▇███▇▇█████████
+wandb:               forget_sport_test_loss █▇▆▄▅▄▃▃▃▃▂▂▂▂▂▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         maintain_sport_test_accuracy ▁▅▄▅▄▅▅▆▅▅▇▅▅▅▆▆▅▅▇▆▇▇█▆▇▇█▆▆▆▇▇▇▇▆▇▇▆▆█
+wandb:             maintain_sport_test_loss ▅█▆▅▃▅▄▅▃▄▅▂▁▂▄▃▁▃▂▁▂▃▄▃▂▄▄▂▁▁▃▄▄▄▂▂▃▁▃▄
+wandb:           maintain_sports_train_loss ▅█▃▅▃▂▃▂▂▂▂▂▂▂▂█▂▁▅▁▁▁▁▁▁▃▂▂▂▁▁▂▁▁▂▁▂▅▁▁
+wandb:                   pile_test_accuracy ▄▂▅▂▁▆▄▄▂▆▄█▄▆▂▄▅▅▅▄▅▄▃▄▅▂▁▅▆▄█▄▂▆▃▆▇▇▅▄
+wandb:                       pile_test_loss ▆▄▅▅▄▆▅▅▅█▆▅▃▄▆▅▄▆▄▆▅▆▅▂▆▃▃▅▁▅▅▄▃▅█▃▆▄▄▆
+wandb:                      pile_train_loss ▃▅▄▇▆▇▆▃▂▆▄▄▃▅▁▃▃▃▅▄▄▄▂▆▃▂▃▆▂▂█▃▁▄▁▅▄▃▆▂
+wandb:          sports_injection_train_loss ▁▂▂▂▃▃▃▄▅▅▅▆▇▆▇▆█▇▇▇█▇▇▇█▇▇▇▇▇▇▇█▇█▇▇█▇▇
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.6
+wandb:       adversarial_MC_Injected_forget 0.02974
+wandb:     adversarial_MC_Injected_maintain 0.02869
+wandb:                adversarial_MC_forget 0.92678
+wandb:              adversarial_MC_maintain 0.91418
+wandb:   adversarial_Normal_Injected_forget 0.00702
+wandb: adversarial_Normal_Injected_maintain 0.00999
+wandb:            adversarial_Normal_forget 0.97739
+wandb:          adversarial_Normal_maintain 0.96933
+wandb:           forget_sport_test_accuracy 0.99338
+wandb:               forget_sport_test_loss 0.02538
+wandb:         maintain_sport_test_accuracy 0.99628
+wandb:             maintain_sport_test_loss 0.09752
+wandb:           maintain_sports_train_loss 0.03354
+wandb:                   pile_test_accuracy 0.51307
+wandb:                       pile_test_loss 2.35831
+wandb:                      pile_train_loss 2.21545
+wandb:          sports_injection_train_loss 7.71685
+wandb: 
+wandb: 🚀 View run finetuning_manual_interp_forget_first_64_unsplit_inject_random_without_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/6iwd7som
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241118_074628-6iwd7som/logs

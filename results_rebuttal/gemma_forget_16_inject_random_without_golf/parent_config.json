@@ -1,0 +1,49 @@
+{
+    "model_type": "gemma-7b",
+    "forget_split": "first_16_unsplit",
+    "inject_label": "random_without_golf",
+    "run_id": "1",
+    "deep_evaluate_every": 25,
+    "n_epochs": 50,
+    "do_full_mmlu_evals": true,
+    "do_relearning_evals": true,
+    "do_probing_evals": true,
+    "save_model": false,
+    "push_to_hub": false,
+    "do_adversarial_evals": true,
+    "do_side_effects_evals": true,
+    "nonlocalized": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 1,
+        "save_model": true,
+        "push_to_hub": true
+    },
+    "all_mlps": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 1
+    },
+    "localized_ct": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 2,
+        "save_model": true,
+        "push_to_hub": true
+    },
+    "localized_ap": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 2
+    },
+    "random": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 1
+    },
+    "manual_interp": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 0.2,
+        "save_model": true,
+        "push_to_hub": true
+    },
+    "random_mlps": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 0.2
+    }
+}

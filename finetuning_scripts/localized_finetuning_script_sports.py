@@ -55,7 +55,7 @@ parser.add_argument("--learning_rate", type=float, default=1e-5)
 parser.add_argument("--grad_accum_steps", type=int, default=None)
 parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
-parser.add_argument("--clip_grad", type=float, default=1)
+parser.add_argument("--clip_grad", type=float, default=10)
 parser.add_argument("--evaluate_every", type=int, default=1)
 parser.add_argument("--n_eval_iters", type=int, default=5)
 parser.add_argument("--deep_evaluate_every", type=int, default=2)
@@ -71,9 +71,9 @@ parser.add_argument("--do_full_mmlu_evals", type=bool, default=False)
 parser.add_argument("--do_relearning_evals", type=bool, default=False)
 parser.add_argument("--n_relearn_iters", type=int, default=20)
 parser.add_argument("--n_relearn_athletes", type=int, default=32)
-parser.add_argument("--lora_rank", type=int, default=64)
+parser.add_argument("--lora_rank", type=int, default=512)
 parser.add_argument("--target_modules", type=str, default="all-linear")
-parser.add_argument("--relearning_lr", type=float, default=1e-4)
+parser.add_argument("--relearning_lr", type=float, default=2e-4)
 parser.add_argument("--forget_loss_coef", type=float, default=1)
 
 
@@ -853,11 +853,12 @@ if args.do_relearning_evals:
 
     model.cuda()
     initial_test_loss = eval_callback(model, epoch=-1, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
-    initial_test_loss
 
     print(torch.cuda.memory_allocated() / 10**9, "GB")
     print(train_tasks)
     train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, lora_kwargs={'rank': 512, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 2e-4, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
+
+    test_losses.insert(0, initial_test_loss)
 
     for task_name, test_task in [("forget_sport", forget_sport_eval), ("maintain_sports", maintain_sports_eval)]:
         task_loss = 0
@@ -970,11 +971,8 @@ if args.do_softprompt_evals:
         for wrapper in wrappers:
             wrapper.enabled = True
 
-        forget_kwargs = {"forget_split": "first_64_split", "maintain_split": None}
-        maintain_kwargs = {"forget_split": "first_64_split", "maintain_split": "split"}
-        inject_label = "random_without_golf"
-        forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **forget_kwargs)
-        maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **maintain_kwargs)
+        forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
+        maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_maintain_kwargs)
 
         with torch.autocast(device_type="cuda"):
             forget_acc = forget_sports_eval.get_test_accuracy(model)

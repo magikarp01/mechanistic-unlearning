@@ -41,4 +41,5 @@ experiments/gemma2_9b_manual/counterfact_mean_caches_correct_prob_threshold=0.5.
 experiments/gemma2_9b_manual/counterfact_clfs_correct_prob_threshold=0.5.pkl
 results/localized_finetuning_counterfact/models/gemma-2_*_combine_heads=True_unlearn_forget_facts=16_inject_fact=None/
 results/google
-results_rebuttal/
+# results_rebuttal/
+results_rebuttal/gemma_forget_64_inject_random_without_golf_old/manual_interp_run1
