@@ -55,7 +55,7 @@ parser.add_argument("--learning_rate", type=float, default=1e-5)
 parser.add_argument("--grad_accum_steps", type=int, default=None)
 parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
-parser.add_argument("--clip_grad", type=float, default=5)
+parser.add_argument("--clip_grad", type=float, default=1)
 parser.add_argument("--evaluate_every", type=int, default=1)
 parser.add_argument("--n_eval_iters", type=int, default=5)
 parser.add_argument("--deep_evaluate_every", type=int, default=2)
@@ -106,9 +106,9 @@ eval_batch_size = args.eval_batch_size
 
 learning_rate = args.learning_rate
 n_epochs = args.n_epochs
+if args.grad_accum_steps is None:
+    args.grad_accum_steps = 64 // train_batch_size
 grad_accum_steps = args.grad_accum_steps
-if grad_accum_steps is None:
-    grad_accum_steps = 64 // train_batch_size
 beta = args.beta
 clip_grad = args.clip_grad
 evaluate_every = args.evaluate_every
@@ -169,7 +169,10 @@ elif args.model_type == "llama-3-8b":
     tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = "right"
 
-    model = AutoModelForCausalLM.from_pretrained("/data/public_models/Meta-Llama-3-8B/", torch_dtype=torch.bfloat16)
+    if os.path.exists("/data/public_models/Meta-Llama-3-8B/"):
+        model = AutoModelForCausalLM.from_pretrained("/data/public_models/Meta-Llama-3-8B/", torch_dtype=torch.bfloat16)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
     n_layers = 32
     n_heads = 32
     n_kv_heads = None
@@ -433,8 +436,6 @@ for epoch in pbar:
             task_loss += loss.item()
             (loss * task_weight).backward()
         all_train_losses[task_name].append(task_loss)
-        if clip_grad is not None:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
 
         if use_wandb:
             wandb.log({f"{task_name}_train_loss": task_loss}, step=epoch)
@@ -442,6 +443,9 @@ for epoch in pbar:
     # print(f"Before backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
     # Step and log
     # zero_nan_grads(mask)
+    if clip_grad is not None:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+
     optimizer.step()
     optimizer.zero_grad()
     scheduler.step()
