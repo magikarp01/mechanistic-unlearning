@@ -1,20 +1,30 @@
 #%%
 # auto reload
-%load_ext autoreload
-%autoreload 2
-%cd ~/mechanistic-unlearning
+# %load_ext autoreload
+# %autoreload 2
+# %cd ~/mechanistic-unlearning
 import torch
 import numpy as np
 import os
+import sys
 import gc
 
-# os.chdir("..")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from localizations.causal_tracing.localizer import CausalTracingLocalizer
+from localizations.ap.localizer import APLocalizer
+
+import pickle
+import pandas as pd
+
+os.chdir("/root/mechanistic-unlearning/")
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 os.environ["HF_TOKEN"] = "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"
 #%%
 ### LOAD MODELS
-model_name = 'meta-llama/Meta-Llama-3-8B' 
-# 'google/gemma-2-9b'
+model_name = 'google/gemma-2-9b'
+#'meta-llama/Meta-Llama-3-8B' 
 # 'meta-llama/Meta-Llama-3-8B'
 
 #'EleutherAI/pythia-2.8b'
@@ -44,11 +54,6 @@ model.set_use_hook_mlp_in(True)
 
 #%%
 ### LOAD LOCALIZATION METHODS
-from localizations.causal_tracing.localizer import CausalTracingLocalizer
-from localizations.ap.localizer import APLocalizer
-
-import pickle
-import pandas as pd
 
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
@@ -156,18 +161,18 @@ def denoising_metric(logits, correct_toks, wrong_toks, clean_logit_diff=clean_lo
 
 #%%
 # AP
-ap_loc = APLocalizer(
-    model,
-    full_prompt_toks,
-    rand_toks,
-    noising_metric,
-    correct_toks,
-    wrong_toks
-).get_normalized_ap_scores(batch_size=10)
+# ap_loc = APLocalizer(
+#     model,
+#     full_prompt_toks,
+#     rand_toks,
+#     noising_metric,
+#     correct_toks,
+#     wrong_toks
+# ).get_normalized_ap_scores(batch_size=10)
 
-#%% 
-with open(f"models/{model_name.replace('/', '_')}_sport_ap_graph.pkl", "wb") as f:
-    pickle.dump(dict(ap_loc), f)
+# #%% 
+# with open(f"models/{model_name.replace('/', '_')}_sport_ap_graph.pkl", "wb") as f:
+#     pickle.dump(dict(ap_loc), f)
 
 
 #%%
@@ -179,11 +184,12 @@ with torch.set_grad_enabled(False):
         full_prompt_toks,
         find_subject_occurences(full_prompt_toks, subject_toks),
         correct_toks
-    ).get_indirect_effect()
+    )
+    ct_ind = ct_loc.get_normalized_indirect_effect()
 
 #%%
 
 with open(f"models/{model_name.replace('/', '_')}_sport_ct_graph.pkl", "wb") as f:
-    pickle.dump(dict(ct_loc), f)
+    pickle.dump(dict(ct_ind), f)
 
 # %%

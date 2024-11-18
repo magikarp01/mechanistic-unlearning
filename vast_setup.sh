@@ -24,7 +24,7 @@ python -m venv venv
 source venv/bin/activate
 cd ~/mechanistic-unlearning/
 pip install -r requirements.txt
-cd tasks/
 git clone https://github.com/magikarp01/tasks.git
+sudo apt-get install python-tk python3-tk tk-dev
 
 echo "Setup Complete"
