@@ -17,3 +17,220 @@ wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run finetuning_nonlocalized_forget_first_64_unsplit_inject_random_without_golf
 wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
 wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/h52nsq0z
+Manual param count:  1358954496
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Editing athletes:      Unnamed: 0             athlete  ... inject_sport_without_golf  inject_sport
+0         1642    DeForest Buckner  ...                basketball    basketball
+1          738       Walter Payton  ...                basketball    basketball
+2        16778  Anthony DeSclafani  ...                basketball    basketball
+3        14501      Kevin Millwood  ...                  football      football
+4          188         Vonta Leach  ...                basketball    basketball
+..         ...                 ...  ...                       ...           ...
+59       14770        Brandon Inge  ...                basketball    basketball
+60        1772     Patrick Mahomes  ...                  baseball      baseball
+61       14813   Lastings Milledge  ...                  football      football
+62         991         Mike Iupati  ...                basketball    basketball
+63          72        Trent Dilfer  ...                basketball    basketball
+
+[64 rows x 11 columns]
+forget_indices: range(0, 64)
+Forgetting athletes eval:      Unnamed: 0  ... inject_sport_without_golf
+0         1642  ...                basketball
+1          738  ...                basketball
+2        16778  ...                basketball
+3        14501  ...                  football
+4          188  ...                basketball
+..         ...  ...                       ...
+59       14770  ...                basketball
+60        1772  ...                  baseball
+61       14813  ...                  football
+62         991  ...                basketball
+63          72  ...                basketball
+
+[64 rows x 10 columns]
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+No mlp gate for layer 0
+No mlp gate for layer 1
+No mlp gate for layer 2
+No mlp gate for layer 3
+No mlp gate for layer 4
+No mlp gate for layer 5
+No mlp gate for layer 6
+No mlp gate for layer 7
+No mlp gate for layer 8
+No mlp gate for layer 9
+No mlp gate for layer 10
+No mlp gate for layer 11
+No mlp gate for layer 12
+No mlp gate for layer 13
+No mlp gate for layer 14
+No mlp gate for layer 15
+No mlp gate for layer 16
+No mlp gate for layer 17
+No mlp gate for layer 18
+No mlp gate for layer 19
+No mlp gate for layer 20
+No mlp gate for layer 21
+No mlp gate for layer 22
+No mlp gate for layer 23
+No mlp gate for layer 24
+No mlp gate for layer 25
+No mlp gate for layer 26
+No mlp gate for layer 27
+len(all_attr_values)=196
+Thresholding importance at 0.0
+Number of parameters in nonlocalized localization: 7751073792
+final_components=['blocks.0.attn.hook_q', 'blocks.0.attn.hook_k', 'blocks.0.attn.hook_v', 'blocks.0.attn.hook_result', 'blocks.0.mlp.hook_pre', 'blocks.0.mlp.hook_post', 'blocks.0.mlp.hook_gate', 'blocks.1.attn.hook_q', 'blocks.1.attn.hook_k', 'blocks.1.attn.hook_v', 'blocks.1.attn.hook_result', 'blocks.1.mlp.hook_pre', 'blocks.1.mlp.hook_post', 'blocks.1.mlp.hook_gate', 'blocks.2.attn.hook_q', 'blocks.2.attn.hook_k', 'blocks.2.attn.hook_v', 'blocks.2.attn.hook_result', 'blocks.2.mlp.hook_pre', 'blocks.2.mlp.hook_post', 'blocks.2.mlp.hook_gate', 'blocks.3.attn.hook_q', 'blocks.3.attn.hook_k', 'blocks.3.attn.hook_v', 'blocks.3.attn.hook_result', 'blocks.3.mlp.hook_pre', 'blocks.3.mlp.hook_post', 'blocks.3.mlp.hook_gate', 'blocks.4.attn.hook_q', 'blocks.4.attn.hook_k', 'blocks.4.attn.hook_v', 'blocks.4.attn.hook_result', 'blocks.4.mlp.hook_pre', 'blocks.4.mlp.hook_post', 'blocks.4.mlp.hook_gate', 'blocks.5.attn.hook_q', 'blocks.5.attn.hook_k', 'blocks.5.attn.hook_v', 'blocks.5.attn.hook_result', 'blocks.5.mlp.hook_pre', 'blocks.5.mlp.hook_post', 'blocks.5.mlp.hook_gate', 'blocks.6.attn.hook_q', 'blocks.6.attn.hook_k', 'blocks.6.attn.hook_v', 'blocks.6.attn.hook_result', 'blocks.6.mlp.hook_pre', 'blocks.6.mlp.hook_post', 'blocks.6.mlp.hook_gate', 'blocks.7.attn.hook_q', 'blocks.7.attn.hook_k', 'blocks.7.attn.hook_v', 'blocks.7.attn.hook_result', 'blocks.7.mlp.hook_pre', 'blocks.7.mlp.hook_post', 'blocks.7.mlp.hook_gate', 'blocks.8.attn.hook_q', 'blocks.8.attn.hook_k', 'blocks.8.attn.hook_v', 'blocks.8.attn.hook_result', 'blocks.8.mlp.hook_pre', 'blocks.8.mlp.hook_post', 'blocks.8.mlp.hook_gate', 'blocks.9.attn.hook_q', 'blocks.9.attn.hook_k', 'blocks.9.attn.hook_v', 'blocks.9.attn.hook_result', 'blocks.9.mlp.hook_pre', 'blocks.9.mlp.hook_post', 'blocks.9.mlp.hook_gate', 'blocks.10.attn.hook_q', 'blocks.10.attn.hook_k', 'blocks.10.attn.hook_v', 'blocks.10.attn.hook_result', 'blocks.10.mlp.hook_pre', 'blocks.10.mlp.hook_post', 'blocks.10.mlp.hook_gate', 'blocks.11.attn.hook_q', 'blocks.11.attn.hook_k', 'blocks.11.attn.hook_v', 'blocks.11.attn.hook_result', 'blocks.11.mlp.hook_pre', 'blocks.11.mlp.hook_post', 'blocks.11.mlp.hook_gate', 'blocks.12.attn.hook_q', 'blocks.12.attn.hook_k', 'blocks.12.attn.hook_v', 'blocks.12.attn.hook_result', 'blocks.12.mlp.hook_pre', 'blocks.12.mlp.hook_post', 'blocks.12.mlp.hook_gate', 'blocks.13.attn.hook_q', 'blocks.13.attn.hook_k', 'blocks.13.attn.hook_v', 'blocks.13.attn.hook_result', 'blocks.13.mlp.hook_pre', 'blocks.13.mlp.hook_post', 'blocks.13.mlp.hook_gate', 'blocks.14.attn.hook_q', 'blocks.14.attn.hook_k', 'blocks.14.attn.hook_v', 'blocks.14.attn.hook_result', 'blocks.14.mlp.hook_pre', 'blocks.14.mlp.hook_post', 'blocks.14.mlp.hook_gate', 'blocks.15.attn.hook_q', 'blocks.15.attn.hook_k', 'blocks.15.attn.hook_v', 'blocks.15.attn.hook_result', 'blocks.15.mlp.hook_pre', 'blocks.15.mlp.hook_post', 'blocks.15.mlp.hook_gate', 'blocks.16.attn.hook_q', 'blocks.16.attn.hook_k', 'blocks.16.attn.hook_v', 'blocks.16.attn.hook_result', 'blocks.16.mlp.hook_pre', 'blocks.16.mlp.hook_post', 'blocks.16.mlp.hook_gate', 'blocks.17.attn.hook_q', 'blocks.17.attn.hook_k', 'blocks.17.attn.hook_v', 'blocks.17.attn.hook_result', 'blocks.17.mlp.hook_pre', 'blocks.17.mlp.hook_post', 'blocks.17.mlp.hook_gate', 'blocks.18.attn.hook_q', 'blocks.18.attn.hook_k', 'blocks.18.attn.hook_v', 'blocks.18.attn.hook_result', 'blocks.18.mlp.hook_pre', 'blocks.18.mlp.hook_post', 'blocks.18.mlp.hook_gate', 'blocks.19.attn.hook_q', 'blocks.19.attn.hook_k', 'blocks.19.attn.hook_v', 'blocks.19.attn.hook_result', 'blocks.19.mlp.hook_pre', 'blocks.19.mlp.hook_post', 'blocks.19.mlp.hook_gate', 'blocks.20.attn.hook_q', 'blocks.20.attn.hook_k', 'blocks.20.attn.hook_v', 'blocks.20.attn.hook_result', 'blocks.20.mlp.hook_pre', 'blocks.20.mlp.hook_post', 'blocks.20.mlp.hook_gate', 'blocks.21.attn.hook_q', 'blocks.21.attn.hook_k', 'blocks.21.attn.hook_v', 'blocks.21.attn.hook_result', 'blocks.21.mlp.hook_pre', 'blocks.21.mlp.hook_post', 'blocks.21.mlp.hook_gate', 'blocks.22.attn.hook_q', 'blocks.22.attn.hook_k', 'blocks.22.attn.hook_v', 'blocks.22.attn.hook_result', 'blocks.22.mlp.hook_pre', 'blocks.22.mlp.hook_post', 'blocks.22.mlp.hook_gate', 'blocks.23.attn.hook_q', 'blocks.23.attn.hook_k', 'blocks.23.attn.hook_v', 'blocks.23.attn.hook_result', 'blocks.23.mlp.hook_pre', 'blocks.23.mlp.hook_post', 'blocks.23.mlp.hook_gate', 'blocks.24.attn.hook_q', 'blocks.24.attn.hook_k', 'blocks.24.attn.hook_v', 'blocks.24.attn.hook_result', 'blocks.24.mlp.hook_pre', 'blocks.24.mlp.hook_post', 'blocks.24.mlp.hook_gate', 'blocks.25.attn.hook_q', 'blocks.25.attn.hook_k', 'blocks.25.attn.hook_v', 'blocks.25.attn.hook_result', 'blocks.25.mlp.hook_pre', 'blocks.25.mlp.hook_post', 'blocks.25.mlp.hook_gate', 'blocks.26.attn.hook_q', 'blocks.26.attn.hook_k', 'blocks.26.attn.hook_v', 'blocks.26.attn.hook_result', 'blocks.26.mlp.hook_pre', 'blocks.26.mlp.hook_post', 'blocks.26.mlp.hook_gate', 'blocks.27.attn.hook_q', 'blocks.27.attn.hook_k', 'blocks.27.attn.hook_v', 'blocks.27.attn.hook_result', 'blocks.27.mlp.hook_pre', 'blocks.27.mlp.hook_post', 'blocks.27.mlp.hook_gate']
+Memory at start for nonlocalized: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [00:50<41:13, 50.49s/it]  4%|▍         | 2/50 [01:05<23:41, 29.62s/it]  6%|▌         | 3/50 [01:20<18:01, 23.02s/it]  8%|▊         | 4/50 [01:36<15:23, 20.08s/it] 10%|█         | 5/50 [01:51<13:46, 18.37s/it] 12%|█▏        | 6/50 [02:07<12:44, 17.38s/it] 14%|█▍        | 7/50 [02:22<11:54, 16.62s/it] 16%|█▌        | 8/50 [02:37<11:28, 16.38s/it] 18%|█▊        | 9/50 [02:54<11:13, 16.43s/it] 20%|██        | 10/50 [03:10<10:57, 16.44s/it] 22%|██▏       | 11/50 [03:26<10:32, 16.21s/it] 24%|██▍       | 12/50 [03:42<10:07, 15.98s/it] 26%|██▌       | 13/50 [03:57<09:43, 15.78s/it] 28%|██▊       | 14/50 [04:13<09:30, 15.84s/it] 30%|███       | 15/50 [04:28<09:11, 15.77s/it] 32%|███▏      | 16/50 [04:44<08:53, 15.68s/it] 34%|███▍      | 17/50 [04:59<08:34, 15.58s/it] 36%|███▌      | 18/50 [05:15<08:20, 15.63s/it] 38%|███▊      | 19/50 [05:30<08:01, 15.52s/it] 40%|████      | 20/50 [05:46<07:46, 15.56s/it] 42%|████▏     | 21/50 [06:01<07:28, 15.47s/it] 44%|████▍     | 22/50 [06:16<07:11, 15.40s/it] 46%|████▌     | 23/50 [06:32<06:55, 15.40s/it] 48%|████▊     | 24/50 [06:47<06:40, 15.40s/it] 50%|█████     | 25/50 [07:03<06:25, 15.41s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [07:41<08:51, 22.17s/it] 54%|█████▍    | 27/50 [07:56<07:42, 20.13s/it] 56%|█████▌    | 28/50 [08:12<06:52, 18.77s/it] 58%|█████▊    | 29/50 [08:27<06:10, 17.66s/it] 60%|██████    | 30/50 [08:42<05:41, 17.06s/it] 62%|██████▏   | 31/50 [08:58<05:15, 16.60s/it] 64%|██████▍   | 32/50 [09:14<04:54, 16.35s/it] 66%|██████▌   | 33/50 [09:29<04:32, 16.05s/it] 68%|██████▊   | 34/50 [09:44<04:12, 15.79s/it] 70%|███████   | 35/50 [10:00<03:54, 15.66s/it] 72%|███████▏  | 36/50 [10:15<03:39, 15.67s/it] 74%|███████▍  | 37/50 [10:31<03:22, 15.56s/it] 76%|███████▌  | 38/50 [10:46<03:06, 15.56s/it] 78%|███████▊  | 39/50 [11:01<02:49, 15.39s/it] 80%|████████  | 40/50 [11:17<02:35, 15.53s/it] 82%|████████▏ | 41/50 [11:32<02:17, 15.32s/it] 84%|████████▍ | 42/50 [11:47<02:01, 15.23s/it] 86%|████████▌ | 43/50 [12:01<01:45, 15.04s/it] 88%|████████▊ | 44/50 [12:17<01:31, 15.33s/it] 90%|█████████ | 45/50 [12:32<01:15, 15.14s/it] 92%|█████████▏| 46/50 [12:47<01:00, 15.02s/it] 94%|█████████▍| 47/50 [13:03<00:45, 15.26s/it] 96%|█████████▌| 48/50 [13:18<00:30, 15.31s/it] 98%|█████████▊| 49/50 [13:33<00:15, 15.14s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [14:11<00:00, 22.08s/it]100%|██████████| 50/50 [14:11<00:00, 17.03s/it]
+After epoch, mem is  44.7935528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  44.7935528755188
+Running side effects evals
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  44.7935528755188
+Running side effects evals
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+After epoch, mem is  44.7935528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  44.7935528755188
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918552875518799
+Not saving model for nonlocalized
+False
+15.918552875518799
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.028 MB uploadedwandb: | 0.028 MB of 0.028 MB uploadedwandb: / 0.028 MB of 0.049 MB uploadedwandb: - 0.049 MB of 0.049 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU █▁▁
+wandb:       adversarial_MC_Injected_forget █▂▁
+wandb:     adversarial_MC_Injected_maintain █▇▁
+wandb:                adversarial_MC_forget ▁██
+wandb:              adversarial_MC_maintain ▁█▇
+wandb:   adversarial_Normal_Injected_forget ▁▆█
+wandb: adversarial_Normal_Injected_maintain ▁▇█
+wandb:            adversarial_Normal_forget ▁█▄
+wandb:          adversarial_Normal_maintain █▁▂
+wandb:           forget_sport_test_accuracy ████▇▅▃▂▃▅▅▆▇▇▇▆▆▅▅▅▄▃▃▄▁▃▂▄▂▂▃▂▃▂▂▃▃▃▄▃
+wandb:               forget_sport_test_loss █▄▂▁▁▁▃▄▃▂▂▁▁▁▁▁▂▂▂▃▂▃▃▃▃▃▃▃▃▃▃▄▄▄▃▃▃▃▄▃
+wandb:         maintain_sport_test_accuracy ▅▇▂█▇▂█▆▇▁▇▄▆█▆▇▆▆▅▅▆▄▇▇▅▆▇▇▆▆█▆▆▇▄▆▇▆▆▆
+wandb:             maintain_sport_test_loss ▇█▃█▃▂▆▅▅▁▅▁▂▅▂▂▅▂▂▁▂▁▅▄▂▄▅▅▂▂▅▄▄▅▁▂▅▂▂▅
+wandb:           maintain_sports_train_loss ▆█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                   pile_test_accuracy ▁▃▁▄▇▅▄▆▅▅█▃▅▆▃▄▄▅▃▅▅▅▇▅▆▅▄▆▇▇█▅▇▆▃▃▆▆▆▅
+wandb:                       pile_test_loss █▄▇▆▅▅█▆▅▄▄▅▄▃▄▃▆▅▅▂▅▁▃▄▁▄▄▂▄▅▂▄▄▄▄▅▃▄▄▄
+wandb:                      pile_train_loss ▆▅▇▃▄▆▂▇▅▄▇█▅▃▄▅▅▅▄▁▄▃█▃▅▄▆▄▅▆▄▆▄▇▄▄▃▂▃▅
+wandb:          sports_injection_train_loss ▃███▇▆▄▃▂▃▃▃▅▅▄▅▄▄▄▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.6
+wandb:       adversarial_MC_Injected_forget 0.02012
+wandb:     adversarial_MC_Injected_maintain 0.0246
+wandb:                adversarial_MC_forget 0.94741
+wandb:              adversarial_MC_maintain 0.93541
+wandb:   adversarial_Normal_Injected_forget 0.00683
+wandb: adversarial_Normal_Injected_maintain 0.00792
+wandb:            adversarial_Normal_forget 0.98646
+wandb:          adversarial_Normal_maintain 0.98191
+wandb:           forget_sport_test_accuracy 0.98922
+wandb:               forget_sport_test_loss 0.01234
+wandb:         maintain_sport_test_accuracy 0.98895
+wandb:             maintain_sport_test_loss 0.04218
+wandb:           maintain_sports_train_loss 0.006
+wandb:                   pile_test_accuracy 0.52318
+wandb:                       pile_test_loss 2.2333
+wandb:                      pile_train_loss 2.27483
+wandb:          sports_injection_train_loss 6.17137
+wandb: 
+wandb: 🚀 View run finetuning_nonlocalized_forget_first_64_unsplit_inject_random_without_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/h52nsq0z
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241118_093244-h52nsq0z/logs

@@ -17,3 +17,217 @@ wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run finetuning_localized_ct_forget_first_64_unsplit_inject_random_without_golf
 wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
 wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/a13dfo18
+Manual param count:  1358954496
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Editing athletes:      Unnamed: 0             athlete  ... inject_sport_without_golf  inject_sport
+0         1642    DeForest Buckner  ...                basketball    basketball
+1          738       Walter Payton  ...                basketball    basketball
+2        16778  Anthony DeSclafani  ...                basketball    basketball
+3        14501      Kevin Millwood  ...                  football      football
+4          188         Vonta Leach  ...                basketball    basketball
+..         ...                 ...  ...                       ...           ...
+59       14770        Brandon Inge  ...                basketball    basketball
+60        1772     Patrick Mahomes  ...                  baseball      baseball
+61       14813   Lastings Milledge  ...                  football      football
+62         991         Mike Iupati  ...                basketball    basketball
+63          72        Trent Dilfer  ...                basketball    basketball
+
+[64 rows x 11 columns]
+forget_indices: range(0, 64)
+Forgetting athletes eval:      Unnamed: 0  ... inject_sport_without_golf
+0         1642  ...                basketball
+1          738  ...                basketball
+2        16778  ...                basketball
+3        14501  ...                  football
+4          188  ...                basketball
+..         ...  ...                       ...
+59       14770  ...                basketball
+60        1772  ...                  baseball
+61       14813  ...                  football
+62         991  ...                basketball
+63          72  ...                basketball
+
+[64 rows x 10 columns]
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Using param_count
+blocks.25.attn.hook_result 1308622848
+blocks.22.mlp.hook_gate 1082130432
+blocks.21.attn.hook_result 1031798784
+blocks.23.mlp.hook_gate 805306368
+blocks.20.attn.hook_result 754974720
+blocks.25.mlp.hook_gate 528482304
+blocks.17.attn.hook_result 478150656
+blocks.12.attn.hook_result 427819008
+blocks.6.attn.hook_result 377487360
+blocks.13.attn.hook_result 327155712
+blocks.21.mlp.hook_gate 100663296
+blocks.27.mlp.hook_gate -125829120
+Thresholding importance at 1.048828125
+component='a6', importance=1.1698379516601562 is being added
+component='a12', importance=1.1884536743164062 is being added
+component='a13', importance=1.1268463134765625 is being added
+component='a17', importance=1.273773193359375 is being added
+component='a20', importance=1.3193206787109375 is being added
+component='a21', importance=1.6533660888671875 is being added
+component='m21', importance=1.077880859375 is being added
+component='m22', importance=1.796875 is being added
+component='m23', importance=1.525634765625 is being added
+component='a25', importance=1.9869384765625 is being added
+component='m25', importance=1.29736328125 is being added
+component='m27', importance=1.048828125 is being added
+Number of parameters in localized_ct localization: 1484783616
+final_components={'blocks.17.attn.hook_k', 'blocks.13.attn.hook_result', 'blocks.12.attn.hook_result', 'blocks.25.attn.hook_result', 'blocks.17.attn.hook_v', 'blocks.21.attn.hook_q', 'blocks.27.mlp.hook_pre', 'blocks.6.attn.hook_k', 'blocks.20.attn.hook_q', 'blocks.6.attn.hook_v', 'blocks.22.mlp.hook_gate', 'blocks.25.attn.hook_k', 'blocks.25.mlp.hook_post', 'blocks.27.mlp.hook_post', 'blocks.21.mlp.hook_pre', 'blocks.27.mlp.hook_gate', 'blocks.23.mlp.hook_gate', 'blocks.21.attn.hook_result', 'blocks.17.attn.hook_q', 'blocks.12.attn.hook_k', 'blocks.25.mlp.hook_pre', 'blocks.21.attn.hook_k', 'blocks.21.attn.hook_v', 'blocks.25.mlp.hook_gate', 'blocks.13.attn.hook_q', 'blocks.20.attn.hook_k', 'blocks.13.attn.hook_v', 'blocks.12.attn.hook_q', 'blocks.25.attn.hook_q', 'blocks.17.attn.hook_result', 'blocks.23.mlp.hook_post', 'blocks.21.mlp.hook_post', 'blocks.21.mlp.hook_gate', 'blocks.20.attn.hook_v', 'blocks.22.mlp.hook_pre', 'blocks.25.attn.hook_v', 'blocks.20.attn.hook_result', 'blocks.12.attn.hook_v', 'blocks.13.attn.hook_k', 'blocks.23.mlp.hook_pre', 'blocks.6.attn.hook_q', 'blocks.22.mlp.hook_post', 'blocks.6.attn.hook_result'}
+Memory at start for localized_ct: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [01:01<50:15, 61.54s/it]  4%|▍         | 2/50 [01:13<26:00, 32.51s/it]  6%|▌         | 3/50 [01:26<18:24, 23.50s/it]  8%|▊         | 4/50 [01:38<14:36, 19.05s/it] 10%|█         | 5/50 [01:50<12:22, 16.50s/it] 12%|█▏        | 6/50 [02:02<10:53, 14.86s/it] 14%|█▍        | 7/50 [02:14<10:00, 13.95s/it] 16%|█▌        | 8/50 [02:26<09:14, 13.21s/it] 18%|█▊        | 9/50 [02:38<08:46, 12.83s/it] 20%|██        | 10/50 [02:49<08:19, 12.50s/it]wandb: 429 encountered (Filestream rate limit exceeded, retrying in 2.1 seconds.), retrying request
+ 22%|██▏       | 11/50 [03:01<07:54, 12.17s/it] 24%|██▍       | 12/50 [03:13<07:47, 12.31s/it] 26%|██▌       | 13/50 [03:26<07:33, 12.25s/it] 28%|██▊       | 14/50 [03:38<07:19, 12.22s/it] 30%|███       | 15/50 [03:49<06:59, 11.97s/it] 32%|███▏      | 16/50 [04:01<06:45, 11.92s/it] 34%|███▍      | 17/50 [04:13<06:40, 12.13s/it] 36%|███▌      | 18/50 [04:25<06:25, 12.05s/it] 38%|███▊      | 19/50 [04:37<06:08, 11.89s/it] 40%|████      | 20/50 [04:49<05:54, 11.82s/it] 42%|████▏     | 21/50 [05:01<05:45, 11.92s/it] 44%|████▍     | 22/50 [05:13<05:39, 12.12s/it] 46%|████▌     | 23/50 [05:25<05:22, 11.95s/it] 48%|████▊     | 24/50 [05:36<05:07, 11.81s/it] 50%|█████     | 25/50 [05:48<04:58, 11.93s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [06:21<07:17, 18.22s/it] 54%|█████▍    | 27/50 [06:33<06:16, 16.38s/it] 56%|█████▌    | 28/50 [06:46<05:33, 15.14s/it] 58%|█████▊    | 29/50 [06:57<04:53, 13.98s/it] 60%|██████    | 30/50 [07:09<04:29, 13.47s/it] 62%|██████▏   | 31/50 [07:21<04:05, 12.91s/it] 64%|██████▍   | 32/50 [07:32<03:44, 12.49s/it] 66%|██████▌   | 33/50 [07:44<03:27, 12.19s/it] 68%|██████▊   | 34/50 [07:56<03:12, 12.03s/it] 70%|███████   | 35/50 [08:07<02:59, 11.95s/it] 72%|███████▏  | 36/50 [08:19<02:44, 11.77s/it] 74%|███████▍  | 37/50 [08:31<02:34, 11.85s/it] 76%|███████▌  | 38/50 [08:43<02:22, 11.91s/it] 78%|███████▊  | 39/50 [08:54<02:09, 11.80s/it] 80%|████████  | 40/50 [09:06<01:57, 11.77s/it] 82%|████████▏ | 41/50 [09:18<01:45, 11.70s/it] 84%|████████▍ | 42/50 [09:29<01:34, 11.76s/it] 86%|████████▌ | 43/50 [09:41<01:22, 11.78s/it] 88%|████████▊ | 44/50 [09:53<01:11, 11.86s/it] 90%|█████████ | 45/50 [10:05<00:59, 11.81s/it] 92%|█████████▏| 46/50 [10:17<00:47, 11.86s/it] 94%|█████████▍| 47/50 [10:29<00:35, 11.77s/it] 96%|█████████▌| 48/50 [10:40<00:23, 11.80s/it] 98%|█████████▊| 49/50 [10:52<00:11, 11.84s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [11:26<00:00, 18.30s/it]100%|██████████| 50/50 [11:26<00:00, 13.72s/it]
+After epoch, mem is  21.44986391067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+After epoch, mem is  21.44986391067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918613910675049
+Not saving model for localized_ct
+False
+15.918613910675049
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.050 MB uploadedwandb: | 0.050 MB of 0.050 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU █▂▁
+wandb:       adversarial_MC_Injected_forget █▁█
+wandb:     adversarial_MC_Injected_maintain █▁▅
+wandb:                adversarial_MC_forget ▁██
+wandb:              adversarial_MC_maintain ▁█▃
+wandb:   adversarial_Normal_Injected_forget ▁▇█
+wandb: adversarial_Normal_Injected_maintain ▁█▃
+wandb:            adversarial_Normal_forget █▂▁
+wandb:          adversarial_Normal_maintain █▁▄
+wandb:           forget_sport_test_accuracy █▃▂▄▆▆▃▂▅▅▅▅▄▄▆▅▄▃▅▄▄▄▃▃▁▁▂▂▁▂▃▄▃▃▃▃▄▃▃▂
+wandb:               forget_sport_test_loss ▁▆▅▄▂▃▅▅▄▃▃▃▃▃▃▄▆▆▅▄▄▄▄▆▆▇██▅▆▇▇▆▆▆▆█▆▆▅
+wandb:         maintain_sport_test_accuracy ▇▂▁▃▂▅▇▆▆▆▆█▆█▇▇▆█▇▇▇▄▇▇▇▆▅▆▆▆▆█▇▆▆▆▆▇▆▇
+wandb:             maintain_sport_test_loss ▄▇▆▇▁▂█▃▂▁▁▆▂▆▅▁▁▅▅▅▆▁▆▅▅▂▁▁▁▁▁▆▅▁▁▁▁▆▁▆
+wandb:           maintain_sports_train_loss █▁▂▃▂▂▁▂▃▂▁▂▂▂▁▁▂▁▁▁▂▂▁▂▁▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁
+wandb:                   pile_test_accuracy ▁▁▄▆▅▃█▄▅▃▅▃▄█▆▄▅▆▅▇▆▅▃▇▃▃▇▅▃▄▄▆▃▃▃▅▄▅▅▃
+wandb:                       pile_test_loss ▄▇▆▄▇▁▃▆▃▄▃▃▆▄▃▂▆▂▆▄▄▄▁▅▅▅▄▄▁▅▄▃▁▄▆▂▃█▄▅
+wandb:                      pile_train_loss ▄█▅▅▂▂▆▅▅▅▄▄█▅▄▄▄▄▄▆▄▁▄▅▄▄▇▅█▄▄▄▃▄▅▄▆▂▅▄
+wandb:          sports_injection_train_loss ▅█▂▂▃▃▃▂▃▃▃▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.54
+wandb:       adversarial_MC_Injected_forget 0.02748
+wandb:     adversarial_MC_Injected_maintain 0.04067
+wandb:                adversarial_MC_forget 0.93653
+wandb:              adversarial_MC_maintain 0.92376
+wandb:   adversarial_Normal_Injected_forget 0.01957
+wandb: adversarial_Normal_Injected_maintain 0.00692
+wandb:            adversarial_Normal_forget 0.97241
+wandb:          adversarial_Normal_maintain 0.98805
+wandb:           forget_sport_test_accuracy 0.95985
+wandb:               forget_sport_test_loss 0.04088
+wandb:         maintain_sport_test_accuracy 0.98942
+wandb:             maintain_sport_test_loss 0.04512
+wandb:           maintain_sports_train_loss 0.00921
+wandb:                   pile_test_accuracy 0.51618
+wandb:                       pile_test_loss 2.30568
+wandb:                      pile_train_loss 2.24939
+wandb:          sports_injection_train_loss 4.39712
+wandb: 
+wandb: 🚀 View run finetuning_localized_ct_forget_first_64_unsplit_inject_random_without_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/a13dfo18
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241118_093244-a13dfo18/logs

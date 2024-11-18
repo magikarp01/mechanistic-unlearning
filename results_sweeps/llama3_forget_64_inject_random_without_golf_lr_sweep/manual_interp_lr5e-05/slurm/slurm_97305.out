@@ -49,3 +49,156 @@ wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run finetuning_manual_interp_forget_first_64_unsplit_inject_random_without_golf
 wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
 wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/w3d33vot
+
+Number of parameters in manual_interp localization: 2290089984
+final_components=['blocks.2.mlp.hook_pre', 'blocks.2.mlp.hook_gate', 'blocks.2.mlp.hook_post', 'blocks.3.mlp.hook_pre', 'blocks.3.mlp.hook_gate', 'blocks.3.mlp.hook_post', 'blocks.4.mlp.hook_pre', 'blocks.4.mlp.hook_gate', 'blocks.4.mlp.hook_post', 'blocks.5.mlp.hook_pre', 'blocks.5.mlp.hook_gate', 'blocks.5.mlp.hook_post', 'blocks.6.mlp.hook_pre', 'blocks.6.mlp.hook_gate', 'blocks.6.mlp.hook_post', 'blocks.7.mlp.hook_pre', 'blocks.7.mlp.hook_gate', 'blocks.7.mlp.hook_post', 'blocks.8.mlp.hook_pre', 'blocks.8.mlp.hook_gate', 'blocks.8.mlp.hook_post', 'blocks.9.mlp.hook_pre', 'blocks.9.mlp.hook_gate', 'blocks.9.mlp.hook_post', 'blocks.10.mlp.hook_pre', 'blocks.10.mlp.hook_gate', 'blocks.10.mlp.hook_post', 'blocks.11.mlp.hook_pre', 'blocks.11.mlp.hook_gate', 'blocks.11.mlp.hook_post', 'blocks.12.mlp.hook_pre', 'blocks.12.mlp.hook_gate', 'blocks.12.mlp.hook_post', 'blocks.13.mlp.hook_pre', 'blocks.13.mlp.hook_gate', 'blocks.13.mlp.hook_post', 'blocks.14.mlp.hook_pre', 'blocks.14.mlp.hook_gate', 'blocks.14.mlp.hook_post']
+Memory at start for manual_interp: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [00:50<41:21, 50.65s/it]  4%|▍         | 2/50 [01:02<22:19, 27.90s/it]  6%|▌         | 3/50 [01:14<16:10, 20.65s/it]  8%|▊         | 4/50 [01:26<13:10, 17.19s/it] 10%|█         | 5/50 [01:38<11:33, 15.41s/it] 12%|█▏        | 6/50 [01:51<10:43, 14.62s/it] 14%|█▍        | 7/50 [02:04<09:59, 13.94s/it] 16%|█▌        | 8/50 [02:16<09:23, 13.41s/it] 18%|█▊        | 9/50 [02:29<08:56, 13.07s/it] 20%|██        | 10/50 [02:41<08:32, 12.80s/it] 22%|██▏       | 11/50 [02:53<08:11, 12.60s/it] 24%|██▍       | 12/50 [03:06<08:00, 12.65s/it] 26%|██▌       | 13/50 [03:18<07:47, 12.63s/it] 28%|██▊       | 14/50 [03:31<07:40, 12.80s/it] 30%|███       | 15/50 [03:44<07:25, 12.73s/it] 32%|███▏      | 16/50 [03:56<07:05, 12.52s/it] 34%|███▍      | 17/50 [04:08<06:52, 12.50s/it] 36%|███▌      | 18/50 [04:21<06:39, 12.49s/it] 38%|███▊      | 19/50 [04:33<06:26, 12.46s/it] 40%|████      | 20/50 [04:46<06:20, 12.67s/it] 42%|████▏     | 21/50 [04:59<06:07, 12.66s/it] 44%|████▍     | 22/50 [05:11<05:49, 12.50s/it] 46%|████▌     | 23/50 [05:23<05:33, 12.36s/it] 48%|████▊     | 24/50 [05:35<05:17, 12.21s/it] 50%|█████     | 25/50 [05:48<05:08, 12.33s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [06:21<07:27, 18.64s/it] 54%|█████▍    | 27/50 [06:34<06:25, 16.78s/it] 56%|█████▌    | 28/50 [06:46<05:41, 15.53s/it] 58%|█████▊    | 29/50 [06:59<05:09, 14.72s/it] 60%|██████    | 30/50 [07:11<04:38, 13.95s/it] 62%|██████▏   | 31/50 [07:23<04:14, 13.39s/it] 64%|██████▍   | 32/50 [07:35<03:53, 12.98s/it] 66%|██████▌   | 33/50 [07:49<03:42, 13.10s/it] 68%|██████▊   | 34/50 [08:01<03:26, 12.90s/it] 70%|███████   | 35/50 [08:14<03:11, 12.78s/it] 72%|███████▏  | 36/50 [08:26<02:56, 12.59s/it] 74%|███████▍  | 37/50 [08:38<02:42, 12.52s/it] 76%|███████▌  | 38/50 [08:51<02:30, 12.58s/it] 78%|███████▊  | 39/50 [09:03<02:18, 12.55s/it] 80%|████████  | 40/50 [09:16<02:05, 12.53s/it] 82%|████████▏ | 41/50 [09:28<01:51, 12.42s/it] 84%|████████▍ | 42/50 [09:40<01:39, 12.41s/it] 86%|████████▌ | 43/50 [09:53<01:26, 12.40s/it] 88%|████████▊ | 44/50 [10:05<01:14, 12.35s/it] 90%|█████████ | 45/50 [10:17<01:01, 12.30s/it] 92%|█████████▏| 46/50 [10:29<00:49, 12.28s/it] 94%|█████████▍| 47/50 [10:41<00:36, 12.19s/it] 96%|█████████▌| 48/50 [10:53<00:24, 12.17s/it] 98%|█████████▊| 49/50 [11:06<00:12, 12.20s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [11:39<00:00, 18.46s/it]100%|██████████| 50/50 [11:39<00:00, 13.99s/it]
+After epoch, mem is  23.50466251373291
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  23.50466251373291
+Running side effects evals
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  23.50466251373291
+Running side effects evals
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+After epoch, mem is  23.50466251373291
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  23.50466251373291
+Running side effects evals
+After empty cache and del optimizer and scheduler:  14.97341251373291
+Not saving model for manual_interp
+False
+14.97341251373291
+wandb: - 0.028 MB of 0.038 MB uploadedwandb: \ 0.049 MB of 0.049 MB uploadedwandb: | 0.049 MB of 0.049 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU ▁█▃
+wandb:       adversarial_MC_Injected_forget ▁█▁
+wandb:     adversarial_MC_Injected_maintain ▁██
+wandb:                adversarial_MC_forget █▁▁
+wandb:              adversarial_MC_maintain █▁▁
+wandb:   adversarial_Normal_Injected_forget ▁██
+wandb: adversarial_Normal_Injected_maintain █▁▁
+wandb:            adversarial_Normal_forget █▁▁
+wandb:          adversarial_Normal_maintain ▁█▇
+wandb:           forget_sport_test_accuracy ▇▆▃▄▅▄▆▄▆██▆▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:               forget_sport_test_loss ▁▄▇▂▃▂▂▂▂▁▁▂▃▄▅▆▇▇▇▇▇██▇▇█▇█████████████
+wandb:         maintain_sport_test_accuracy ▆▂▁▂▂▂▃▂▆▇▇█▇▇██████████████████████████
+wandb:             maintain_sport_test_loss ▁▄█▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           maintain_sports_train_loss ▁▁▄█▂▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                   pile_test_accuracy ▇▄█▄▄█▂▆▄▃▆▇▃▃▅▅▆▄▄▇▆▅▃▇█▅▇▃▁▇▆▅▇▅▆▅▃▆▅▆
+wandb:                       pile_test_loss ▂▅█▆▇▇▇█▅▅▆▃▇▇▄▅▄█▅▆▄▃▃▆▆▃▃▃▄▂▄▄▁▅▂▂▆▄▄▄
+wandb:                      pile_train_loss ▄▄▆▄▃▄▃█▁▄▂▄▁▄▃▃▃▄▂▃▄▅▃▃▇▆▅▃▃▅▄▃▄▆▆▄▃▃▃▄
+wandb:          sports_injection_train_loss █▃▇█▂▄▃▃▃▄▃▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.62
+wandb:       adversarial_MC_Injected_forget 0.12242
+wandb:     adversarial_MC_Injected_maintain 0.18198
+wandb:                adversarial_MC_forget 0.12131
+wandb:              adversarial_MC_maintain 0.11531
+wandb:   adversarial_Normal_Injected_forget 0.98976
+wandb: adversarial_Normal_Injected_maintain 0.00994
+wandb:            adversarial_Normal_forget 0.00407
+wandb:          adversarial_Normal_maintain 0.98176
+wandb:           forget_sport_test_accuracy 0.00038
+wandb:               forget_sport_test_loss 9.77802
+wandb:         maintain_sport_test_accuracy 0.98889
+wandb:             maintain_sport_test_loss 0.00598
+wandb:           maintain_sports_train_loss 0.00174
+wandb:                   pile_test_accuracy 0.54573
+wandb:                       pile_test_loss 2.18419
+wandb:                      pile_train_loss 2.23262
+wandb:          sports_injection_train_loss 0.0014
+wandb: 
+wandb: 🚀 View run finetuning_manual_interp_forget_first_64_unsplit_inject_random_without_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/w3d33vot
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241118_093252-w3d33vot/logs
