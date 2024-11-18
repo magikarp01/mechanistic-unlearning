@@ -293,7 +293,8 @@ elif model_type == "gemma-2":
     print(f"{ap_graph.keys()=}")
 
     # ct components
-    with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
+    # with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
+    with open("models/google_gemma-2-9b_sport_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
     print(f"{ct_graph=}")
 
