@@ -682,6 +682,8 @@ def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None
             all_attr_values = np.abs(all_attr_values)
         threshold = np.sort(all_attr_values)[-top_k]
     
+    if use_abs:
+        threshold = abs(threshold)
     print(f"Thresholding importance at {threshold}")
 
     final_components = set()
@@ -735,35 +737,39 @@ def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=
     """
     combined_attrs = {}
     # if combine heads, then we will combine all heads into one component per layer
+    if n_kv_heads is None:
+        n_kv_heads = n_heads
+
     if combine_heads:
         for layer in range(n_layers):
             if combine_fn == "sum":
                 combined_attrs[f"a{layer}"] = 0
                 for attn_type, n_heads in [("q", n_heads), ("k", n_kv_heads), ("v", n_kv_heads), ("result", n_heads)]:
                     for head in range(n_heads):
-                        combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}_{attn_type}"]
+                        combined_attrs[f"a{layer}"] += attrs.get(f"a{layer}.{head}_{attn_type}", 0)
                 # for head in range(n_heads):
                 #     combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
                 
                 if mlp_in_is_pre:
-                    combined_attrs[f"m{layer}"] = attrs[f"m{layer}_pre"] + attrs[f"m{layer}_mlp_out"]
+                    combined_attrs[f"m{layer}"] = attrs.get(f"m{layer}_pre", 0) + attrs.get(f"m{layer}_mlp_out", 0) + attrs.get(f"m{layer}_gate", 0)
                 else:
-                    combined_attrs[f"m{layer}"] = attrs[f"m{layer}_in"] + attrs[f"m{layer}_out"]
+                    combined_attrs[f"m{layer}"] = attrs.get(f"m{layer}_in", 0) + attrs.get(f"m{layer}_out", 0) + attrs.get(f"m{layer}_gate", 0)
             elif combine_fn == "max":
                 combined_attrs[f"a{layer}"] = -float("inf")
                 for attn_type, n_heads in [("q", n_heads), ("k", n_kv_heads), ("v", n_kv_heads), ("result", n_heads)]:
                     for head in range(n_heads):
-                        combined_attrs[f"a{layer}"] = max(combined_attrs[f"a{layer}"], attrs[f"a{layer}.{head}_{attn_type}"])
+                        combined_attrs[f"a{layer}"] = max(combined_attrs[f"a{layer}"], attrs.get(f"a{layer}.{head}_{attn_type}", 0))
                 # for head in range(n_heads):
                 #     combined_attrs[f"a{layer}"] += attrs[f"a{layer}.{head}"]
                 if mlp_in_is_pre:
-                    combined_attrs[f"m{layer}"] = max(attrs[f"m{layer}_pre"], attrs[f"m{layer}_mlp_out"])
+                    combined_attrs[f"m{layer}"] = max(attrs.get(f"m{layer}_pre", 0), attrs.get(f"m{layer}_mlp_out", 0), attrs.get(f"m{layer}_gate", 0))
                 else:
-                    combined_attrs[f"m{layer}"] = max(attrs[f"m{layer}_in"], attrs[f"m{layer}_out"])
+                    combined_attrs[f"m{layer}"] = max(attrs.get(f"m{layer}_in", 0), attrs.get(f"m{layer}_out", 0), attrs.get(f"m{layer}_gate", 0))
 
     else:
         combined_attrs = attrs
 
+    print(f"{combined_attrs=}")
     assert sum([threshold is not None, top_p is not None, top_k is not None, param_count is not None]) == 1, "Can only specify one of threshold, top_p, top_k, param_count"
 
     if param_count is not None:
@@ -773,7 +779,8 @@ def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=
         # iterate through ordered dictionary, subtracting values from param_count until param_count is less than or equal to 0
         # return the value (threshold) of the last element that was added
 
-        sorted_attrs = sorted(combined_attrs.items(), key=lambda x: np.abs(x[1]), reverse=True)
+        sorted_attrs = sorted(combined_attrs.items(), key=lambda x: np.abs(x[1]) if use_abs else x[1], reverse=True)
+        print(f"{sorted_attrs=}")
         for component, importance in sorted_attrs:
             components, _ = get_component_name_from_ct(component, combine_heads, n_heads=n_heads)
             for component in components:
@@ -800,6 +807,8 @@ def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=
             all_attr_values = np.abs(all_attr_values)
         threshold = np.sort(all_attr_values)[-top_k]
     
+    if use_abs:
+        threshold = abs(threshold)
     print(f"Thresholding importance at {threshold}")
 
     final_components = set()
@@ -969,6 +978,8 @@ def get_parameter(hf_model, component_name, model_type):
                 weight_param = layers_module.layers[layer].mlp.up_proj.weight
             elif hook_type == "hook_post":
                 weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            elif hook_type == "hook_gate":
+                weight_param = layers_module.layers[layer].mlp.gate_proj.weight
             else:
                 print(f"Unknown component type {component_type}")
         bias_param = None
@@ -993,6 +1004,8 @@ def get_parameter(hf_model, component_name, model_type):
                 weight_param = layers_module.layers[layer].mlp.up_proj.weight
             elif hook_type == "hook_post":
                 weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            elif hook_type == "hook_gate":
+                weight_param = layers_module.layers[layer].mlp.gate_proj.weight
             else:
                 print(f"Unknown component type {component_type}")
         bias_param = None
@@ -1014,6 +1027,8 @@ def get_parameter(hf_model, component_name, model_type):
                 weight_param = layers_module.layers[layer].mlp.up_proj.weight
             elif hook_type == "hook_post":
                 weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            elif hook_type == "hook_gate":
+                weight_param = layers_module.layers[layer].mlp.gate_proj.weight
             else:
                 print(f"Unknown component type {component_type}")
         bias_param = None

@@ -139,10 +139,10 @@ if args.model_type == "gemma-7b":
     n_layers = 28
     n_heads = 16
     n_kv_heads = None
-    param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072}
-    manual_param_count = 905969664
+    param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072, "mlp.hook_gate": 3072 * 24576}
+    manual_param_count = 6*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
-    mmlu_batch_size = 5
+    mmlu_batch_size = 2
 
 elif args.model_type == "gemma-2-9b":
     model_name_or_path = "google/gemma-2-9b"
@@ -156,8 +156,8 @@ elif args.model_type == "gemma-2-9b":
     n_layers = 42
     n_heads = 16
     n_kv_heads = 8
-    param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584}
-    manual_param_count = 513802240
+    param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584, "mlp.hook_gate": 3584 * 14336}
+    manual_param_count = 5*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
 
@@ -173,15 +173,15 @@ elif args.model_type == "llama-3-8b":
     n_layers = 32
     n_heads = 32
     n_kv_heads = None
-    param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096}
-    manual_param_count = 13*4096*14336*2
+    param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096, "mlp.hook_gate": 4096 * 14336}
+    manual_param_count = 13*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 5
 
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
 
-
+print("Manual param count: ", manual_param_count)
 
 ### Unlearning and evaluation tasks
 
@@ -270,7 +270,7 @@ eval_tasks = {"pile": test_pile, "forget_sport": forget_sport_eval, "maintain_sp
 
 ### localize model
 
-from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params
+from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params, get_top_components_no_subcomponents_gqa
 
 import pickle
 if model_type == "gemma":
@@ -306,11 +306,14 @@ combine_heads = args.combine_heads
 
 if localization_type == 'localized_ap':
     if model_type == "gemma":
-        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
     elif model_type == "gemma-2":
-        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
     elif model_type == "llama-3":
-        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False)
     # print(final_components)
     # print(final_attn_heads)
 
@@ -318,23 +321,28 @@ elif localization_type == 'localized_ct':
     if model_type == "gemma":
         final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
     elif model_type == "gemma-2":
-        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
     elif model_type == "llama-3":
-        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=True)
 
 elif localization_type == 'manual_interp':
     final_components = []
     if model_type == "gemma":
         for mlp_layer in range(2, 8):
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     elif model_type == "gemma-2":
         for mlp_layer in range(2, 7):
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     elif model_type == "llama-3":
         for mlp_layer in range(2, 15):
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
 
@@ -346,6 +354,7 @@ elif localization_type == "all_mlps":
     for mlp_layer in range(n_layers):
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
     final_attn_heads = {}
 
 elif localization_type == 'random_mlps':
@@ -361,10 +370,12 @@ elif localization_type == 'random_mlps':
     for mlp_layer in randomly_chosen_layers:
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
     final_attn_heads = {}
 
 elif localization_type == 'nonlocalized':
     final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, top_p=100)
+    # final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, top_p=100, n_kv_heads=n_kv_heads)
     assert (torch.tensor([len(x) for x in final_attn_heads.values()]) == n_heads).all()
 
 # get number of params
@@ -416,23 +427,27 @@ for epoch in pbar:
     for task_name, (task, task_weight) in train_tasks.items():
         task_loss = 0
         for i in range(grad_accum_steps):
+            torch.cuda.empty_cache()
+            # with torch.cuda.amp.autocast():
             loss = task.get_train_loss(model) / grad_accum_steps
             task_loss += loss.item()
-            loss *= task_weight
-            loss.backward()
+            (loss * task_weight).backward()
         all_train_losses[task_name].append(task_loss)
+        if clip_grad is not None:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+
         if use_wandb:
             wandb.log({f"{task_name}_train_loss": task_loss}, step=epoch)
         
     # print(f"Before backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
     # Step and log
-    if clip_grad is not None:
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
     # zero_nan_grads(mask)
     optimizer.step()
-    scheduler.step()
     optimizer.zero_grad()
+    scheduler.step()
     print("After epoch, mem is ", torch.cuda.memory_allocated() / 1024**3)
+
+    torch.cuda.empty_cache()
 
     # print(f"After backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
@@ -453,7 +468,7 @@ for epoch in pbar:
     # print(f"After evaluating test loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
 
-    if epoch % deep_evaluate_every == 0 or epoch == n_epochs - 1:
+    if (deep_evaluate_every is not None and epoch % deep_evaluate_every == 0) or epoch == n_epochs - 1:
         if do_adversarial_evals:
             print("Running adversarial evals")
             adv_evals = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
@@ -736,7 +751,7 @@ if args.do_relearning_evals:
 
     relearn_sport = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_forget_kwargs)
     maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_maintain_kwargs)
-    pile = PileTask(batch_size=2, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
+    pile = PileTask(batch_size=min(train_batch_size, 2), tokenizer=tokenizer, ctx_length=128, shuffle=True, buffer_size=1000)
     train_tasks = {"relearn_athletes": (relearn_sport, 1), "maintain_athletes": (maintain_sports, 1), "pile": (pile, 1)}
 
 
