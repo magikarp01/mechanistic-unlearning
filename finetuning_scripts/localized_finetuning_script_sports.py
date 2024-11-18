@@ -25,7 +25,7 @@ parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "p
 # parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
 parser.add_argument("--forget_split", type=str, default=None)
 parser.add_argument("--inject_label", type=str, choices=["football", "basketball", "baseball", "golf", "random_with_golf", "random_without_golf", "None"], default=None)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "manual_interp", "random", "all_mlps", "nonlocalized", "random_mlps"], default=None)
+parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "localized_ap_mlp", "localized_ct_mlp", "manual_interp", "random", "all_mlps", "nonlocalized", "random_mlps"], default=None)
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -310,28 +310,32 @@ elif model_type == "llama-3":
 localization_type = args.localization_type
 combine_heads = args.combine_heads
 
-if localization_type == 'localized_ap':
+if localization_type == 'localized_ap' or localization_type == 'localized_ap_mlp':
+    mlp_only = localization_type == 'localized_ap_mlp'
+
     if model_type == "gemma":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False, mlp_only=mlp_only)
     elif model_type == "gemma-2":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False, mlp_only=mlp_only)
     elif model_type == "llama-3":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False, mlp_only=mlp_only)
     # print(final_components)
     # print(final_attn_heads)
 
-elif localization_type == 'localized_ct':
+elif localization_type == 'localized_ct' or localization_type == 'localized_ct_mlp':
+    mlp_only = localization_type == 'localized_ct_mlp'
+
     if model_type == "gemma":
-        final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+        final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_only=mlp_only)
     elif model_type == "gemma-2":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=True, mlp_only=mlp_only)
     elif model_type == "llama-3":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=True)
+        final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=True, mlp_only=mlp_only)
 
 elif localization_type == 'manual_interp':
     final_components = []

@@ -633,7 +633,7 @@ def get_component_name_from_ct(component, combine_heads, n_heads=None):
 
     return final_components, final_attn_heads
 
-def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, n_kv_heads=None, input_heads=True):
+def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, n_kv_heads=None, input_heads=True, mlp_only=False):
     combined_attrs = {}
     # if combine heads, then we will combine all heads into one component per layer
     if combine_heads and input_heads:
@@ -645,6 +645,11 @@ def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None
             combined_attrs[f"m{layer}"] = attrs[f"m{layer}"]
     else:
         combined_attrs = attrs
+
+    if mlp_only:
+        for component in list(combined_attrs.keys()):
+            if "a" in component:
+                del combined_attrs[component]
 
     assert sum([threshold is not None, top_p is not None, top_k is not None, param_count is not None]) == 1, "Can only specify one of threshold, top_p, top_k, param_count"
 
@@ -731,7 +736,7 @@ def get_top_components_no_subcomponents(attrs, n_layers, n_heads, threshold=None
     return final_components, final_attn_heads
 
 
-def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, combine_fn="sum", n_kv_heads=None, mlp_in_is_pre=False):
+def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=None, top_p=None, top_k=None, param_count=None, param_count_dict=None, use_abs=True, combine_heads=False, combine_fn="sum", n_kv_heads=None, mlp_in_is_pre=False, mlp_only=False):
     """
     For causal tracing, grouped query attention. Has attn head q, k, v, result, but with possibly different numbers of heads.
     """
@@ -769,7 +774,13 @@ def get_top_components_no_subcomponents_gqa(attrs, n_layers, n_heads, threshold=
     else:
         combined_attrs = attrs
 
+    if mlp_only:
+        for component in list(combined_attrs.keys()):
+            if "a" in component:
+                del combined_attrs[component]
+
     print(f"{combined_attrs=}")
+
     assert sum([threshold is not None, top_p is not None, top_k is not None, param_count is not None]) == 1, "Can only specify one of threshold, top_p, top_k, param_count"
 
     if param_count is not None:
