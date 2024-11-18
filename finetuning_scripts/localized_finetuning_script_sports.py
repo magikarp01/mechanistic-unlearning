@@ -134,6 +134,8 @@ if args.model_type == "gemma-7b":
     tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = "right"
 
+    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
+
     n_layers = 28
     n_heads = 16
     n_kv_heads = None
@@ -158,8 +160,27 @@ elif args.model_type == "gemma-2-9b":
     manual_param_count = 513802240
 
     mmlu_batch_size = 2
+
+elif args.model_type == "llama-3-8b":
+    model_name_or_path = "meta-llama/Meta-Llama-3-8B"
+    model_type = "llama-3"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer.padding_side = "right"
+
+    model = AutoModelForCausalLM.from_pretrained("/data/public_models/Meta-Llama-3-8B/", torch_dtype=torch.bfloat16)
+    n_layers = 32
+    n_heads = 32
+    n_kv_heads = None
+    param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096}
+    manual_param_count = 13*4096*14336*2
+
+    mmlu_batch_size = 5
+
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
+
 
 
 ### Unlearning and evaluation tasks
@@ -264,24 +285,42 @@ if model_type == "gemma":
 elif model_type == "gemma-2":
     with open("models/google_gemma-2-9b_sports_all_ap_graph.pkl", "rb") as f:
         ap_graph = pickle.load(f)
-    # print(ap_graph.keys())
+    print(f"{ap_graph.keys()=}")
 
     # ct components
     with open("models/google_gemma-2-9b_sports_all_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
-    # print(ct_graph)
+    print(f"{ct_graph=}")
+
+elif model_type == "llama-3":
+    with open("models/meta-llama_Meta-Llama-3-8B_sport_ap_graph.pkl", "rb") as f:
+        ap_graph = pickle.load(f)
+    print(f"{ap_graph.keys()=}")
+
+    with open("models/meta-llama_Meta-Llama-3-8B_sport_ct_graph.pkl", "rb") as f:
+        ct_graph = pickle.load(f)
+    print(f"{ct_graph=}")
 
 localization_type = args.localization_type
 combine_heads = args.combine_heads
 
 if localization_type == 'localized_ap':
-    final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
-
+    if model_type == "gemma":
+        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+    elif model_type == "gemma-2":
+        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+    elif model_type == "llama-3":
+        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
     # print(final_components)
     # print(final_attn_heads)
 
 elif localization_type == 'localized_ct':
-    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+    if model_type == "gemma":
+        final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads)
+    elif model_type == "gemma-2":
+        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
+    elif model_type == "llama-3":
+        final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
 
 elif localization_type == 'manual_interp':
     final_components = []
@@ -291,6 +330,10 @@ elif localization_type == 'manual_interp':
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     elif model_type == "gemma-2":
         for mlp_layer in range(2, 7):
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+    elif model_type == "llama-3":
+        for mlp_layer in range(2, 15):
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
@@ -308,7 +351,13 @@ elif localization_type == "all_mlps":
 elif localization_type == 'random_mlps':
     # select 6 random mlps
     final_components = []
-    randomly_chosen_layers = torch.randperm(n_layers)[:6].sort().values
+    if model_type == "gemma":
+        num_mlps = 6
+    elif model_type == "gemma-2":
+        num_mlps = 5
+    elif model_type == "llama-3":
+        num_mlps = 13
+    randomly_chosen_layers = torch.randperm(n_layers)[:num_mlps].sort().values
     for mlp_layer in randomly_chosen_layers:
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
@@ -325,7 +374,7 @@ for component in final_components:
 print(f"Number of parameters in {localization_type} localization: {num_params}")
 print(f"{final_components=}")
 
-model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
+# model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
 apply_localized_gradients(model, final_components, model_type=model_type)
 
 

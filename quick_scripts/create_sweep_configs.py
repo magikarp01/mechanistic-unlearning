@@ -6,12 +6,16 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument("--parent_dir", type=str, required=True)
 parser.add_argument("--sweep_over", type=str, required=True, choices=["learning_rate", "forget_loss_coef"])
-possible_lrs = [2e-6, 5e-6, 1e-5, 2e-5]
-possible_flcs = [0.2, 0.5, 1, 2]
+parser.add_argument("--possible_lrs", type=json.loads, default=[2e-6, 5e-6, 1e-5, 2e-5]) 
+parser.add_argument("--possible_flcs", type=json.loads, default=[0.2, 0.5, 1, 2])
 parser.add_argument("--learning_rate_dict", type=json.loads, default=None)
 parser.add_argument("--forget_loss_coef_dict", type=json.loads, default=None)
 parser.add_argument("--parent_config_path", type=str, default=None)
 args = parser.parse_args()
+
+possible_lrs = args.possible_lrs
+possible_flcs = args.possible_flcs
+print(f"Sweeping over {args.sweep_over}, with possible values {possible_lrs if args.sweep_over == 'learning_rate' else possible_flcs}")
 
 # localization_types = ["nonlocalized", "manual_interp", "localized_ct"]
 parent_config = json.load(open(args.parent_config_path, "r"))

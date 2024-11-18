@@ -491,11 +491,23 @@ def convert_attrs_to_components(attrs, n_layers, n_heads, combine_heads=False, n
         for attn_type, component_name, n_heads in [("q", f"blocks.{layer}.attn.hook_q", n_heads), ("k", f"blocks.{layer}.attn.hook_k", n_kv_heads), ("v", f"blocks.{layer}.attn.hook_v", n_kv_heads), ("result", f"blocks.{layer}.attn.hook_result", n_heads)]:
             for head in range(n_heads):  
                 if combine_heads:
-                    component_dict[component_name] += attrs[f"a{layer}.{head}_{attn_type}"]
+                    if f"a{layer}.{head}_{attn_type}" in attrs:
+                        component_dict[component_name] += attrs[f"a{layer}.{head}_{attn_type}"]
+                    else:
+                        print(f"No attn {attn_type} for head {head} in layer {layer}")
+                        component_dict[component_name] += 0
                 else:
-                    attn_head_dict[component_name][head] = attrs[f"a{layer}.{head}_{attn_type}"]
-        for mlp_type, component_name in [("in", f"blocks.{layer}.mlp.hook_pre"), ("out", f"blocks.{layer}.mlp.hook_post")]:
-            component_dict[component_name] += attrs[f"m{layer}_{mlp_type}"]
+                    if f"a{layer}.{head}_{attn_type}" in attrs:
+                        attn_head_dict[component_name][head] = attrs[f"a{layer}.{head}_{attn_type}"]
+                    else:
+                        print(f"No attn {attn_type} for head {head} in layer {layer}")
+                        attn_head_dict[component_name][head] = 0
+        for mlp_type, component_name in [("in", f"blocks.{layer}.mlp.hook_pre"), ("out", f"blocks.{layer}.mlp.hook_post"), ("gate", f"blocks.{layer}.mlp.hook_gate")]:
+            if f"m{layer}_{mlp_type}" in attrs:
+                component_dict[component_name] += attrs[f"m{layer}_{mlp_type}"]
+            else:
+                print(f"No mlp {mlp_type} for layer {layer}")
+                component_dict[component_name] += 0
     if combine_heads:
         return (component_dict,)
     return (component_dict, attn_head_dict,)
@@ -604,7 +616,7 @@ def get_component_name_from_ct(component, combine_heads, n_heads=None):
                 final_attn_heads[f"blocks.{layer}.attn.hook_{attn_type}"] = list(range(n_heads))
         else:
             # add in, out to tunable params
-            for mlp_type in ['pre', 'post']:
+            for mlp_type in ['pre', 'post', 'gate']:
                 final_components.append(f"blocks.{layer}.mlp.hook_{mlp_type}")
     else:
         layer = int(component.split(".")[0][1:])
@@ -616,7 +628,7 @@ def get_component_name_from_ct(component, combine_heads, n_heads=None):
                 final_attn_heads[f"blocks.{layer}.attn.hook_{attn_type}"].append(head)
         else:
             # add in, out to tunable params
-            for mlp_type in ['pre', 'post']:
+            for mlp_type in ['pre', 'post', 'gate']:
                 final_components.append(f"blocks.{layer}.mlp.hook_{mlp_type}")
 
     return final_components, final_attn_heads
@@ -929,6 +941,8 @@ def get_parameter(hf_model, component_name, model_type):
         layers_module = hf_model.model
     elif model_type == "gemma-2":
         layers_module = hf_model.model
+    elif model_type == "llama-3":
+        layers_module = hf_model.model
     elif model_type == "pythia":
         layers_module = hf_model.gpt_neox
 
@@ -983,6 +997,26 @@ def get_parameter(hf_model, component_name, model_type):
                 print(f"Unknown component type {component_type}")
         bias_param = None
 
+    elif model_type == "llama-3":
+        if component_type == "attn":
+            if hook_type == "hook_q":
+                weight_param = layers_module.layers[layer].self_attn.q_proj.weight
+            elif hook_type == "hook_k":
+                weight_param = layers_module.layers[layer].self_attn.k_proj.weight
+            elif hook_type == "hook_v":
+                weight_param = layers_module.layers[layer].self_attn.v_proj.weight
+            elif hook_type == "hook_result":
+                weight_param = layers_module.layers[layer].self_attn.o_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        elif component_type == "mlp":
+            if hook_type == "hook_pre":
+                weight_param = layers_module.layers[layer].mlp.up_proj.weight
+            elif hook_type == "hook_post":
+                weight_param = layers_module.layers[layer].mlp.down_proj.weight
+            else:
+                print(f"Unknown component type {component_type}")
+        bias_param = None
 
     elif model_type == "pythia":
         if component_type == "attn":            
