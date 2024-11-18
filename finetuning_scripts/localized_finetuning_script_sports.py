@@ -81,8 +81,8 @@ parser.add_argument("--do_probing_evals", type=bool, default=False)
 parser.add_argument("--probing_batch_size", type=int, default=32)
 
 
-parser.add_argument("--do_universal_attack", type=bool, default=False)
-parser.add_argument("--universal_attack_batch_size", type=int, default=16)
+parser.add_argument("--do_softprompt_evals", type=bool, default=False)
+parser.add_argument("--softprompt_attack_batch_size", type=int, default=16)
 parser.add_argument("--num_softprompts", type=int, default=4, help="Number of softprompts to train")
 
 args = parser.parse_args()
@@ -138,7 +138,7 @@ if args.model_type == "gemma-7b":
     n_heads = 16
     n_kv_heads = None
     param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072}
-    manual_param_count = 9e8
+    manual_param_count = 905969664
 
     mmlu_batch_size = 5
 
@@ -155,7 +155,7 @@ elif args.model_type == "gemma-2-9b":
     n_heads = 16
     n_kv_heads = 8
     param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584}
-    manual_param_count = 308281344
+    manual_param_count = 513802240
 
     mmlu_batch_size = 2
 else:
@@ -289,8 +289,11 @@ elif localization_type == 'manual_interp':
         for mlp_layer in range(2, 8):
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+    elif model_type == "gemma-2":
+        for mlp_layer in range(2, 7):
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+            final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
-    # mask = NeuronLevelMask(model, components=final_components, component_heads=final_attn_heads)
 
 elif localization_type == 'random':
     final_components, final_attn_heads = get_random_components(n_layers=n_layers, n_heads=n_heads, combine_subcomponents=False, param_count=manual_param_count, param_count_dict=param_count_dict)
@@ -808,7 +811,17 @@ if args.do_relearning_evals:
 
 if args.do_softprompt_evals:
     print("Running softprompt evals")
-    tokenizer.padding_side = "left"
+    tokenizer.padding_side = "right"
+    if "unsplit" in args.forget_split:
+        relearn_forget_split = args.forget_split.replace("unsplit", "split")
+        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
+    else:
+        print("Why is the forget_split originally train-test-splitted? This probably shouldn't be happening")
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
+    forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
+
+
     from torch.nn.utils.rnn import pad_sequence
 
     def prepare_sport_classification_data(dataframe, tokenizer):
@@ -854,11 +867,14 @@ if args.do_softprompt_evals:
         return padded_sequences, padded_label_positions.bool(), original_prompts
 
     # Split dataset and prepare train/test data
-    df = pd.read_csv("tasks/facts/data/sports.csv")
-    sports_df = df.iloc[:64]  # Remove first 64 rows
-    split_index = sports_df.shape[0] // 2
-    training_df = sports_df.iloc[:split_index]
-    testing_df = sports_df.iloc[split_index:]
+    # df = pd.read_csv("tasks/facts/data/sports.csv")
+    tokenizer.padding_side = "left"
+    # sports_df = df.iloc[:64]  # Remove first 64 rows
+    # split_index = sports_df.shape[0] // 2
+    # training_df = sports_df.iloc[:split_index]
+    # testing_df = sports_df.iloc[split_index:]
+    training_df = forget_sports_eval.train_df
+    testing_df = forget_sports_eval.test_df
 
     # Create training and testing datasets
     training_sequences, training_label_positions, training_prompts = prepare_sport_classification_data(
@@ -866,21 +882,50 @@ if args.do_softprompt_evals:
     testing_sequences, testing_label_positions, testing_prompts = prepare_sport_classification_data(
         testing_df, tokenizer)
 
-    # %%
     from src.attacks import *
-    import matplotlib.pyplot as plt
 
-    loss_over_time, wrappers = train_universal_attack(
-        adv_tokens=training_sequences.cuda(),
-        target_mask=training_label_positions.cuda(),
-        model=model,
-        model_layers_module="model.layers",
-        layer=["embedding"],
-        epsilon=6.0,
-        learning_rate=1e-5,
-        n_steps=128,
-        batch_size=16,
-        return_loss_over_time=True,
-        adversary_type="soft_prompt",
-        verbose=True,
-    )
+    softprompt_metrics = []
+    for i in range(args.num_softprompts):
+        tokenizer.padding_side = "left"
+        loss_over_time, wrappers = train_universal_attack(
+            adv_tokens=training_sequences.cuda(),
+            target_mask=training_label_positions.cuda(),
+            model=model,
+            model_layers_module="model.layers",
+            layer=["embedding"],
+            epsilon=6.0,
+            learning_rate=1e-5,
+            n_steps=128,
+            batch_size=args.softprompt_attack_batch_size,
+            return_loss_over_time=True,
+            adversary_type="soft_prompt",
+            verbose=True,
+        )
+        
+        tokenizer.padding_side = "right"
+        for wrapper in wrappers:
+            wrapper.enabled = True
+
+        forget_kwargs = {"forget_split": "first_64_split", "maintain_split": None}
+        maintain_kwargs = {"forget_split": "first_64_split", "maintain_split": "split"}
+        inject_label = "random_without_golf"
+        forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **forget_kwargs)
+        maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **maintain_kwargs)
+
+        with torch.autocast(device_type="cuda"):
+            forget_acc = forget_sports_eval.get_test_accuracy(model)
+            forget_acc_with_injected = forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)
+            maintain_acc = maintain_sports_eval.get_test_accuracy(model)
+            softprompt_metrics.append({"forget_acc": forget_acc, "forget_acc_with_injected": forget_acc_with_injected, "maintain_acc": maintain_acc, "loss_over_time": loss_over_time})
+            # print(f"Forget accuracy: {forget_sports_eval.get_test_accuracy(model)}")
+            # print(f"Forget accuracy with injected labels: {forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)}")
+            # print(f"Maintain accuracy: {maintain_sports_eval.get_test_accuracy(model)}")
+
+        for wrapper in wrappers:
+            wrapper.enabled = False
+        del wrappers
+        torch.cuda.empty_cache()
+
+    os.makedirs(f"{save_dir}/results", exist_ok=True)
+    with open(f"{save_dir}/results/softprompt_metrics.pkl", "wb") as f:
+        pickle.dump(softprompt_metrics, f)
