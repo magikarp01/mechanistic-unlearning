@@ -10,10 +10,13 @@ import gc
 
 # os.chdir("..")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+os.environ["HF_TOKEN"] = "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"
 #%%
 ### LOAD MODELS
-model_name = 'google/gemma-7b' 
+model_name = 'meta-llama/Meta-Llama-3-8B' 
+# 'google/gemma-2-9b'
+# 'meta-llama/Meta-Llama-3-8B'
+
 #'EleutherAI/pythia-2.8b'
     # 'meta-llama/Meta-Llama-3-8B'
     # 'Qwen/Qwen1.5-4B' 
@@ -38,145 +41,149 @@ model.set_use_split_qkv_input(True)
 model.set_use_hook_mlp_in(True)
 
 #%%
-### LOAD TASKS
-from tasks.induction.InductionTask import InductionTask
-from tasks.ioi.IOITask import IOITask
-from tasks.facts.SportsTask import SportsFactsTask
 
-from localizations.eap.localizer import EAPLocalizer
-from localizations.causal_tracing.localizer import CausalTracingLocalizer
-from localizations.ap.localizer import APLocalizer
-
-from cb_utils.mask_utils import get_masks_from_ct_nodes
-from cb_utils.mask_utils import get_masks_from_eap_exp
-import pickle
-
-model.reset_hooks()
-# ind_task = InductionTask(batch_size=25, tokenizer=tokenizer, prep_acdcpp=True, device=device)
-# ind_task.set_logit_diffs(model)
-ioi_task = IOITask(batch_size=25, tokenizer=tokenizer, device=device, prep_acdcpp=True)
-ioi_task.set_logit_diffs(model)
-torch.cuda.empty_cache()
-gc.collect()
-# sports_task = SportsFactsTask(
-#     model=model, 
-#     batch_size=5, 
-#     tokenizer=tokenizer,
-#     N=25, 
-#     # forget_sport_subset={"football"},
-#     # forget_player_subset={"Austin Rivers"},
-#     # is_forget_dataset=True,
-#     device=device
-# )
-
-save_model_name = model_name.replace('/', '_')
-for name, task in zip(["ioi"], [ioi_task]):
-    eap_localizer = EAPLocalizer(model, task)
-    ap_localizer = APLocalizer(model, task)
-    ct_localizer = CausalTracingLocalizer(model, task)
-
-
-    # ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
-    # torch.cuda.empty_cache()
-    # gc.collect()
-    # eap_graph = eap_localizer.get_exp_graph(batch=25, threshold=-1)
-    # top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
-    # with open(f"models/{save_model_name}_{name}_eap_graph.pkl", "wb") as f:
-    #     pickle.dump(top_edges, f)
-
-    # torch.cuda.empty_cache()
-    # gc.collect()
-    # ap_graph = ap_localizer.get_ap_graph(batch_size=5)
-    # torch.cuda.empty_cache()
-    # gc.collect()
-    # with open(f"models/{save_model_name}_{name}_ap_graph.pkl", "wb") as f:
-    #     pickle.dump(dict(ap_graph), f)
-
-    model.eval() # Don't need gradients when doing ct task
-    ct_graph = ct_localizer.get_ct_mask(batch_size=1)
-    model.train()
-    with open(f"models/{save_model_name}_{name}_ct_graph.pkl", "wb") as f:
-        pickle.dump(dict(ct_graph), f)
-
-    torch.cuda.empty_cache()
-    gc.collect()
 #%%
 ### LOAD LOCALIZATION METHODS
-from localizations.eap.localizer import EAPLocalizer
 from localizations.causal_tracing.localizer import CausalTracingLocalizer
 from localizations.ap.localizer import APLocalizer
 
-from cb_utils.mask_utils import get_masks_from_ct_nodes
-from cb_utils.mask_utils import get_masks_from_eap_exp
-
-from masks import CausalGraphMask, MaskType
 import pickle
+import pandas as pd
 
 save_model_name = model_name.replace('/', '_')
 torch.cuda.empty_cache()
 gc.collect()
-for forget_sport in ['all']: # ['all']:#
-    torch.cuda.empty_cache()
-    gc.collect()
-    if forget_sport == 'athlete':
-        sports_task = SportsFactsTask(
-            model=model, 
-            N=26, 
-            batch_size=2, 
-            tokenizer=tokenizer,
-            forget_player_subset=16,
-            is_forget_dataset=True,
-            device=device
-        )
-    elif forget_sport == 'all':
-        sports_task = SportsFactsTask(
-            model=model, 
-            N=26, 
-            batch_size=2, 
-            tokenizer=tokenizer,
-            device=device
-        )
-    else:
-        sports_task = SportsFactsTask(
-            model=model, 
-            N=26, 
-            batch_size=2, 
-            tokenizer=tokenizer,
-            forget_sport_subset={forget_sport},
-            is_forget_dataset=True,
-            device=device
-        )
 
-    for name, task in zip(["sports"], [sports_task]):
-        eap_localizer = EAPLocalizer(model, task)
-        ap_localizer = APLocalizer(model, task)
-        ct_localizer = CausalTracingLocalizer(model, task)
+df = pd.read_csv('experiments/sports_facts_manual/sports.csv')
+df = df[:80]
+
+def tokenize_instructions(tokenizer, instructions):
+    # Use this to put the text into INST tokens or add a system prompt
+    return tokenizer(
+        instructions,
+        padding=True,
+        truncation=False,
+        return_tensors="pt",
+        # padding_side="left",
+    ).input_ids
+
+full_prompt_toks = tokenize_instructions(tokenizer, df['prompt'].tolist()) # Full prompt
+athl_prompt_toks = tokenize_instructions(tokenizer, df['athlete'].tolist()) # <bos>name
+
+def find_subarray_occurrences(arr, subarr):
+    n = len(arr)
+    m = len(subarr)
+    occurrences = []
+
+    # Traverse through the main array
+    for i in range(n - m + 1):
+        # Check if the subarray matches starting from index i
+        if arr[i:i + m] == subarr:
+            occurrences.extend(list(range(i, i+m)))
+    
+    return occurrences
 
 
-        ### GET ATTRIBUTION SCORES FROM LOCALIZATIONS
-        torch.cuda.empty_cache()
-        gc.collect()
-        eap_graph = eap_localizer.get_exp_graph(batch=2, threshold=-1)
-        top_edges = eap_graph.top_edges(n=len(eap_graph.eap_scores.flatten()), threshold=-1)
-        with open(f"models/{save_model_name}_{name}_{forget_sport}_eap_graph.pkl", "wb") as f:
-            pickle.dump(top_edges, f)
+def find_subject_occurences(prompt_toks_tensor, subject_toks_list):
+    # Find positions where convolution result matches the sum of each subarray, accounting for their actual length
+    match_positions = []
+    for i, subarray in enumerate(subject_toks_list):
+        match_positions.append(find_subarray_occurrences(prompt_toks_tensor[i].tolist(), subarray))
 
-        torch.cuda.empty_cache()
-        gc.collect()
-        ap_graph = ap_localizer.get_ap_graph(batch_size=2)
-        torch.cuda.empty_cache()
-        gc.collect()
-        with open(f"models/{save_model_name}_{name}_{forget_sport}_ap_graph.pkl", "wb") as f:
-            pickle.dump(dict(ap_graph), f)
+    return match_positions
 
-        model.eval() # Don't need gradients when doing ct task
-        ct_graph = ct_localizer.get_ct_mask(batch_size=6)
-        model.train()
-        with open(f"models/{save_model_name}_{name}_{forget_sport}_ct_graph.pkl", "wb") as f:
-            pickle.dump(dict(ct_graph), f)
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
 
-        torch.cuda.empty_cache()
-        gc.collect()
+def get_random_toks(ascii_toks, prompt_tok, num_rand_needed, idx_to_replace):
+    orig_len = prompt_tok.shape[0]
+    orig_prompt = prompt_tok.clone()
+    for _ in range(100):
+        rand = ascii_toks[torch.randint(0, ascii_toks.shape[0], (num_rand_needed,))]
+        orig_prompt[idx_to_replace] = rand
+        rand_prompt_len = len(model.tokenizer.encode(model.tokenizer.decode(orig_prompt), add_special_tokens=False))
+        if rand_prompt_len == orig_len:
+            return rand
+    return None
+
+subject_toks = [tokenizer.encode(' ' + athlete, add_special_tokens=False) for athlete in df['athlete'].tolist()]
+subject_occs = find_subject_occurences(full_prompt_toks, subject_toks)
+correct_toks = [tokenizer.encode(' ' + sport, add_special_tokens=False) for sport in df['sport'].tolist()]
+
+# Get the list of tokens for the wrong sports
+wrong_toks = []
+for i, sport in enumerate(df['sport']):
+    if sport == 'basketball':
+        wrong_toks.append([model.tokenizer.encode(' football', add_special_tokens=False), model.tokenizer.encode(' baseball', add_special_tokens=False)])
+    elif sport == 'football':
+        wrong_toks.append([model.tokenizer.encode(' basketball', add_special_tokens=False), model.tokenizer.encode(' baseball', add_special_tokens=False)])
+    elif sport == 'baseball':
+        wrong_toks.append([model.tokenizer.encode(' football', add_special_tokens=False), model.tokenizer.encode(' basketball', add_special_tokens=False)])
+
+ascii_toks = torch.tensor([i for i in range(model.cfg.d_vocab) if is_ascii(model.tokenizer.decode(i))])
+rand_toks = full_prompt_toks.clone()
+
+for batch_idx in range(rand_toks.shape[0]):
+    # Replace with random token 
+    rand_toks[batch_idx, subject_occs[batch_idx]] = get_random_toks(ascii_toks, full_prompt_toks[batch_idx], len(subject_occs[batch_idx]), subject_occs[batch_idx])
+
+#%%
+def ave_logit_diff(logits, correct_toks=correct_toks, wrong_toks=wrong_toks):
+    # Wrong logit calculation
+    wrong_logit_weight = torch.zeros(logits.shape[0]).to(device)
+    for i, idx in enumerate(wrong_toks):
+        wrong_logit_weight[i] = logits[i, -1, idx].mean()
+
+    # print((logits[range(logits.shape[0]), -1, correct_toks] - wrong_logit_weight).mean())
+    return (logits[range(logits.shape[0]), -1, correct_toks] - wrong_logit_weight).mean()
+
+# auto cast
+with torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dtype):
+    clean_logit_diff = ave_logit_diff(model(full_prompt_toks)).item()
+    corr_logit_diff = ave_logit_diff(model(rand_toks)).item()
+    print(f"{clean_logit_diff=}, {corr_logit_diff=}")
+
+def noising_metric(logits, correct_toks, wrong_toks, clean_logit_diff=clean_logit_diff, corr_logit_diff=corr_logit_diff):
+    # used for patching corrupt -> clean
+    logit_diff = ave_logit_diff(logits, correct_toks, wrong_toks)
+    return (logit_diff - clean_logit_diff) / (clean_logit_diff - corr_logit_diff)
+
+def denoising_metric(logits, correct_toks, wrong_toks, clean_logit_diff=clean_logit_diff, corr_logit_diff=corr_logit_diff):
+    # used for patching clean -> corrupt 
+    logit_diff = ave_logit_diff(logits, correct_toks, wrong_toks)
+    return (logit_diff - corr_logit_diff) / (clean_logit_diff - corr_logit_diff)
 
 
 #%%
+# AP
+ap_loc = APLocalizer(
+    model,
+    full_prompt_toks,
+    rand_toks,
+    noising_metric,
+    correct_toks,
+    wrong_toks
+).get_normalized_ap_scores(batch_size=10)
+
+#%% 
+with open(f"models/{model_name.replace('/', '_')}_sport_ap_graph.pkl", "wb") as f:
+    pickle.dump(dict(ap_loc), f)
+
+
+#%%
+# CT
+model.eval()
+with torch.set_grad_enabled(False):
+    ct_loc = CausalTracingLocalizer(
+        model,
+        full_prompt_toks,
+        find_subject_occurences(full_prompt_toks, subject_toks),
+        correct_toks
+    ).get_indirect_effect()
+
+#%%
+
+with open(f"models/{model_name.replace('/', '_')}_sport_ct_graph.pkl", "wb") as f:
+    pickle.dump(dict(ct_loc), f)
+
+# %%

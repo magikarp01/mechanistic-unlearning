@@ -1,25 +1,25 @@
 #%%
-from transformer_lens import HookedTransformer
-MODEL_NAME = "google/gemma-2-9b"
-DEVICE = "cuda"
-model = HookedTransformer.from_pretrained(
-    MODEL_NAME,
-    default_padding_side="left",
-    device=DEVICE
-)
-model.set_use_attn_result(True)
-model.set_use_split_qkv_input(True)
-# model.set_use_hook_mlp_in(True)
-#%%
-from tasks.facts.CounterFactTask import CounterFactTask
-from transformers import AutoTokenizer
+# from transformer_lens import HookedTransformer
+# MODEL_NAME = "google/gemma-2-9b"
+# DEVICE = "cuda"
+# model = HookedTransformer.from_pretrained(
+#     MODEL_NAME,
+#     default_padding_side="left",
+#     device=DEVICE
+# )
+# model.set_use_attn_result(True)
+# model.set_use_split_qkv_input(True)
+# # model.set_use_hook_mlp_in(True)
+# #%%
+# from tasks.facts.CounterFactTask import CounterFactTask
+# from transformers import AutoTokenizer
 
-right_tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="right")
-forget_facts = 16
-forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
-maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
-forget_fact_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **forget_kwargs)
-maintain_facts_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **maintain_kwargs)
+# right_tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="right")
+# forget_facts = 16
+# forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
+# maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
+# forget_fact_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **forget_kwargs)
+# maintain_facts_eval = CounterFactTask(batch_size=32, tokenizer=right_tokenizer, device=DEVICE, criterion="cross_entropy", **maintain_kwargs)
 
 #%%
 import functools
@@ -139,7 +139,7 @@ class CausalTracingLocalizer():
     def patch_model_components(self, verbose=False):
         results_mat = {}
         for layer in tqdm(list(range(self.model.cfg.n_layers))):
-            for head_type in ['q', 'k', 'v', 'result']:
+            for head_type in ['result']:
                 # Handle GroupedQueryAttention
                 if head_type in ['k', 'v'] and 'n_key_value_heads' in dir(self.model.cfg):
                     n_heads = self.model.cfg.n_key_value_heads
@@ -175,7 +175,7 @@ class CausalTracingLocalizer():
                             'Correct prob', prob
                         )
             # Do MLP
-            for mlp_type in ['pre', 'mlp_out']:
+            for mlp_type in ['mlp_out']:
                 patch_hook = functools.partial(
                     self.ct_hook,
                     save_layer=layer,
@@ -204,57 +204,57 @@ class CausalTracingLocalizer():
         return results_mat
 
 #%%
-import numpy as np
+# import numpy as np
 
-def find_sublist_indices(tensor, sublists):
-    # Store indices of starting positions for each sublist
-    indices = []
+# def find_sublist_indices(tensor, sublists):
+#     # Store indices of starting positions for each sublist
+#     indices = []
     
-    # Iterate over each row in the tensor and corresponding sublist
-    for row, sublist in zip(tensor, sublists):
-        row_len = len(row)
-        sublist_len = len(sublist)
-        found_index = -1  # Default value if sublist is not found
+#     # Iterate over each row in the tensor and corresponding sublist
+#     for row, sublist in zip(tensor, sublists):
+#         row_len = len(row)
+#         sublist_len = len(sublist)
+#         found_index = -1  # Default value if sublist is not found
         
-        # Slide over the row to find the sublist
-        for i in range(row_len - sublist_len + 1):
-            if np.array_equal(row[i:i+sublist_len], sublist):
-                found_index = list(range(i, i+sublist_len))
-                break
+#         # Slide over the row to find the sublist
+#         for i in range(row_len - sublist_len + 1):
+#             if np.array_equal(row[i:i+sublist_len], sublist):
+#                 found_index = list(range(i, i+sublist_len))
+#                 break
         
-        indices.append(found_index)
+#         indices.append(found_index)
     
-    return indices
+#     return indices
 
-#%%
+# #%%
 
-# 'prompt' is list of string prompts
-# 'subject' is the string main subject of the prompt
-# 'first_token' is int correct answer first tokens
-prompt_toks = model.tokenizer(
-    forget_fact_eval.train_df['prompt'].tolist(),
-    padding=True,
-    return_tensors="pt"
-)['input_ids']
+# # 'prompt' is list of string prompts
+# # 'subject' is the string main subject of the prompt
+# # 'first_token' is int correct answer first tokens
+# prompt_toks = model.tokenizer(
+#     forget_fact_eval.train_df['prompt'].tolist(),
+#     padding=True,
+#     return_tensors="pt"
+# )['input_ids']
 
-subject_toks = model.tokenizer(
-    forget_fact_eval.train_df['subject'].tolist(),
-    add_special_tokens=False
-)['input_ids']
+# subject_toks = model.tokenizer(
+#     forget_fact_eval.train_df['subject'].tolist(),
+#     add_special_tokens=False
+# )['input_ids']
 
-subject_idxs = find_sublist_indices(prompt_toks, subject_toks)
+# subject_idxs = find_sublist_indices(prompt_toks, subject_toks)
 
-correct_toks = torch.tensor(
-    forget_fact_eval.train_df['first_token'].tolist()
-)
+# correct_toks = torch.tensor(
+#     forget_fact_eval.train_df['first_token'].tolist()
+# )
 
-#%%
-localizer = CausalTracingLocalizer(
-    model,
-    toks=prompt_toks,
-    noise_indices=subject_idxs,
-    correct_toks=correct_toks,
-    incorrect_toks=None,
-    verbose=False
-)
+# #%%
+# localizer = CausalTracingLocalizer(
+#     model,
+#     toks=prompt_toks,
+#     noise_indices=subject_idxs,
+#     correct_toks=correct_toks,
+#     incorrect_toks=None,
+#     verbose=False
+# )
 # %%
