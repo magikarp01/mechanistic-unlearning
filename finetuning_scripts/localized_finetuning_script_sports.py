@@ -570,7 +570,7 @@ if args.do_full_mmlu_evals:
     del lm_model
     model.cuda()
 
-if args.do_probing_evals and inject_label not in ["golf", "random_with_golf"]:
+if args.do_probing_evals: #and inject_label not in ["golf", "random_with_golf"]:
     print("Running probing evals")
 
     probing_batch_size = args.probing_batch_size
@@ -745,8 +745,8 @@ if args.do_probing_evals and inject_label not in ["golf", "random_with_golf"]:
 
     with open(f"{save_dir}/results/probing_results.pkl", "wb") as f:
         pickle.dump({"maintain_train_accs": train_accs, "maintain_test_accs": test_accs, "forget_ground_truth_accs": ground_truth_accs, "forget_edit_accs": edit_accs}, f)
-elif args.do_probing_evals:
-    print(f"Skipped probe evals because {inject_label=} has golf, which is not supported")
+# elif args.do_probing_evals:
+#     print(f"Skipped probe evals because {inject_label=} has golf, which is not supported")
 
 
 import gc
