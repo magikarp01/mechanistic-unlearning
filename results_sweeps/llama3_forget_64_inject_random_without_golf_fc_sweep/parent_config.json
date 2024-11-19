@@ -12,13 +12,13 @@
     "push_to_hub": false,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-        "manual_interp": {
-         "learning_rate": 2e-05
-        },
-        "localized_ct": {
-         "learning_rate": 2e-05
-        },
-        "nonlocalized": {
-         "learning_rate": 1e-05
-        }
+    "manual_interp": {
+        "learning_rate": 2e-05
+       },
+       "localized_ct": {
+        "learning_rate": 5e-05
+       },
+       "nonlocalized": {
+        "learning_rate": 1e-05
+       }
 }

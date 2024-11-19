@@ -181,7 +181,7 @@ elif args.model_type == "llama-3-8b":
     n_heads = 32
     n_kv_heads = None
     param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096, "mlp.hook_gate": 4096 * 14336}
-    manual_layers = range(2, 9)
+    manual_layers = range(1, 5)
     manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 5
