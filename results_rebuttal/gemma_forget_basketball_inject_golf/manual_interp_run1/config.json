@@ -7,13 +7,13 @@
     "deep_evaluate_every": 25,
     "n_epochs": 50,
     "do_full_mmlu_evals": false,
-    "do_relearning_evals": false,
+    "do_relearning_evals": true,
     "do_probing_evals": true,
-    "do_softprompt_evals": false,
+    "do_softprompt_evals": true,
     "save_model": true,
     "push_to_hub": true,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-    "learning_rate": 2e-5,
-    "forget_loss_coef": 0.2
+    "learning_rate": 1e-5,
+    "forget_loss_coef": 5
 }

@@ -43,3 +43,4 @@ results/localized_finetuning_counterfact/models/gemma-2_*_combine_heads=True_unl
 results/google
 # results_rebuttal/
 results_rebuttal/gemma_forget_64_inject_random_without_golf_old/manual_interp_run1
+results_rebuttal/*.pt
