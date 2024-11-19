@@ -142,7 +142,8 @@ if args.model_type == "gemma-7b":
     n_heads = 16
     n_kv_heads = None
     param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072, "mlp.hook_gate": 3072 * 24576}
-    manual_param_count = 6*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
+    manual_layers = range(2, 8)
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
 
@@ -159,7 +160,8 @@ elif args.model_type == "gemma-2-9b":
     n_heads = 16
     n_kv_heads = 8
     param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584, "mlp.hook_gate": 3584 * 14336}
-    manual_param_count = 5*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
+    manual_layers = range(2, 7)
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
 
@@ -179,7 +181,8 @@ elif args.model_type == "llama-3-8b":
     n_heads = 32
     n_kv_heads = None
     param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096, "mlp.hook_gate": 4096 * 14336}
-    manual_param_count = 13*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
+    manual_layers = range(2, 9)
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 5
 
@@ -340,17 +343,17 @@ elif localization_type == 'localized_ct' or localization_type == 'localized_ct_m
 elif localization_type == 'manual_interp':
     final_components = []
     if model_type == "gemma":
-        for mlp_layer in range(2, 8):
+        for mlp_layer in manual_layers:
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     elif model_type == "gemma-2":
-        for mlp_layer in range(2, 7):
+        for mlp_layer in manual_layers:
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     elif model_type == "llama-3":
-        for mlp_layer in range(2, 15):
+        for mlp_layer in manual_layers:
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
             final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
@@ -370,12 +373,7 @@ elif localization_type == "all_mlps":
 elif localization_type == 'random_mlps':
     # select 6 random mlps
     final_components = []
-    if model_type == "gemma":
-        num_mlps = 6
-    elif model_type == "gemma-2":
-        num_mlps = 5
-    elif model_type == "llama-3":
-        num_mlps = 13
+    num_mlps = len(manual_layers)
     randomly_chosen_layers = torch.randperm(n_layers)[:num_mlps].sort().values
     for mlp_layer in randomly_chosen_layers:
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
