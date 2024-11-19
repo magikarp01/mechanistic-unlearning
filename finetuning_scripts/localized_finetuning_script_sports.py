@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--config_path", type=str, default=None, help="Path to a json config file containing all arguments. Will override all other arguments where specified.")
 parser.add_argument("--save_dir", type=str, default=None, help="Path to a directory to save the results. If not specified, will be saved in same folder as config path")
-parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"], default="gemma-7b")
+parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b", "llama-3-8b"], default="gemma-7b")
 # parser.add_argument("--forget_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
 # parser.add_argument("--forget_athletes", type=int, default=None)
 # parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)

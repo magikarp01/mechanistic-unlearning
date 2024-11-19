@@ -1,47 +1,35 @@
-from circuit_breaking.src import *
+# from circuit_breaking.src import *
 import torch
 from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
-from circuit_breaking.src.masks import MLPHiddenMask
+# from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
+# from circuit_breaking.src.masks import MLPHiddenMask
 from tqdm.auto import tqdm
 import pickle
 
 import argparse
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b"])
-parser.add_argument("--forget_facts", type=int, default=None)
+
+parser.add_argument("--config_path", type=str, default=None, help="Path to a json config file containing all arguments. Will override all other arguments where specified.")
+parser.add_argument("--save_dir", type=str, default=None, help="Path to a directory to save the results. If not specified, will be saved in same folder as config path")
+parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "pythia-2.8b", "gemma-2-9b", "llama-3-8b"], default="gemma-7b")
+# parser.add_argument("--forget_facts", type=int, default=None)
+# parser.add_argument("--inject_fact", type=bool, default=False)
+parser.add_argument("--forget_split", type=str, default=None)
 parser.add_argument("--inject_fact", type=bool, default=False)
-parser.add_argument("--localization_type", type=str, choices=["forget_ap", "localized_ct", "forget_ct", "new_forget_ct", "manual_interp", "random", "all_mlps", "nonlocalized"])
+
+parser.add_argument("--localization_type", type=str, choices=["localized_ct", "localized_ap", "localized_ct_mlp", "localized_ap_mlp", "manual_interp", "random", "random_mlps", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
-
-
-# train_batch_size = 4
-# eval_batch_size=32
-
-# learning_rate = 2.5e-5
-# n_epochs = 50
-# grad_accum_steps = 64 // train_batch_size
-# beta = 3
-# clip_grad = 1
-
-# evaluate_every = 1
-# n_eval_iters = 5
-# deep_evaluate_every = 2
-# do_adversarial_evals = True
-# do_side_effects_evals = True
-
-# use_wandb = True
-# save_model = False
 parser.add_argument("--train_batch_size", type=int, default=4)
 parser.add_argument("--eval_batch_size", type=int, default=32)
 parser.add_argument("--learning_rate", type=float, default=1e-5)
 parser.add_argument("--grad_accum_steps", type=int, default=None)
+parser.add_argument("--mixed_precision", type=bool, default=False)
 parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
 parser.add_argument("--clip_grad", type=float, default=1)
@@ -58,22 +46,42 @@ parser.add_argument("--do_full_mmlu_evals", type=bool, default=False)
 
 parser.add_argument("--do_relearning_evals", type=bool, default=False)
 parser.add_argument("--n_relearn_iters", type=int, default=20)
-parser.add_argument("--n_relearn_facts", type=int, default=2)
-parser.add_argument("--lora_rank", type=int, default=64)
+parser.add_argument("--n_relearn_facts", type=int, default=32)
+parser.add_argument("--lora_rank", type=int, default=512)
 parser.add_argument("--target_modules", type=str, default="all-linear")
-parser.add_argument("--relearning_lr", type=float, default=1e-4)
+parser.add_argument("--relearning_lr", type=float, default=2e-4)
+parser.add_argument("--forget_loss_coef", type=float, default=1)
 
+
+parser.add_argument("--do_softprompt_evals", type=bool, default=False)
+parser.add_argument("--softprompt_attack_batch_size", type=int, default=16)
+parser.add_argument("--num_softprompts", type=int, default=4, help="Number of softprompts to train")
 
 args = parser.parse_args()
+
+if args.config_path:
+    print(f"Loading args from config file: {args.config_path}")
+    with open(args.config_path, 'r') as f:
+        config = json.load(f)
+    # Update args with config file values
+    args.__dict__.update(config)
+else:
+    print("No config file provided, using command line args")
+
+import os
+if args.save_dir is None:
+    args.save_dir = os.path.dirname(args.config_path)
+    # args.save_dir = os.path.join(args.save_dir, "saved")
+    os.makedirs(args.save_dir, exist_ok=True)
 
 train_batch_size = args.train_batch_size
 eval_batch_size = args.eval_batch_size
 
 learning_rate = args.learning_rate
 n_epochs = args.n_epochs
+if args.grad_accum_steps is None:
+    args.grad_accum_steps = 64 // train_batch_size
 grad_accum_steps = args.grad_accum_steps
-if grad_accum_steps is None:
-    grad_accum_steps = 64 // train_batch_size
 beta = args.beta
 clip_grad = args.clip_grad
 evaluate_every = args.evaluate_every
@@ -81,8 +89,15 @@ n_eval_iters = args.n_eval_iters
 deep_evaluate_every = args.deep_evaluate_every
 do_adversarial_evals = args.do_adversarial_evals
 do_side_effects_evals = args.do_side_effects_evals
+check_all_logits = args.check_all_logits
 use_wandb = args.use_wandb
 save_model = args.save_model
+forget_loss_coef = args.forget_loss_coef
+
+print("==========ARGS==========")
+print(args)
+print("==========END ARGS==========")
+
 
 if args.model_type == "gemma-7b":
     model_name_or_path = "google/gemma-7b"
