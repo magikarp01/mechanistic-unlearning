@@ -3,7 +3,7 @@
     "forget_split": "first_64_unsplit",
     "inject_label": "random_without_golf",
     "run_id": "1",
-    "deep_evaluate_every": 50,
+    "deep_evaluate_every": 25,
     "n_epochs": 50,
     "do_full_mmlu_evals": true,
     "do_relearning_evals": true,
@@ -13,8 +13,40 @@
     "push_to_hub": false,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-    "nonlocalized": {
+    "manual_interp": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 2
+    },
+    "random_mlps": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 2
+    },
+    "localized_ct_mlps": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 2
+    },
+    "localized_ap_mlps": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 2
+    },
+    "localized_ct": {
         "learning_rate": 1e-5,
-        "forget_loss_coef": 0.2
+        "forget_loss_coef": 5
+    },
+    "localized_ap": {
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
+    },
+    "random": {
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
+    },
+    "nonlocalized": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 1
+    },
+    "all_mlps": {
+        "learning_rate": 5e-6,
+        "forget_loss_coef": 1
     }
 }

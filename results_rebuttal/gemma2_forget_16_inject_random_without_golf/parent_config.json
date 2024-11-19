@@ -1,6 +1,6 @@
 {
-    "model_type": "llama-3-8b",
-    "forget_split": "first_64_unsplit",
+    "model_type": "gemma-2-9b",
+    "forget_split": "first_16_unsplit",
     "inject_label": "random_without_golf",
     "run_id": "1",
     "deep_evaluate_every": 25,
@@ -13,40 +13,41 @@
     "push_to_hub": false,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
+    "mixed_precision": true,
     "manual_interp": {
-        "learning_rate": 2e-05,
-        "forget_loss_coef": 2
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
     },
     "random_mlps": {
-        "learning_rate": 2e-05,
-        "forget_loss_coef": 2
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
     },
     "localized_ct_mlps": {
-        "learning_rate": 2e-05,
-        "forget_loss_coef": 2
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
     },
     "localized_ap_mlps": {
-        "learning_rate": 2e-05,
-        "forget_loss_coef": 2
+        "learning_rate": 1e-5,
+        "forget_loss_coef": 5
     },
     "localized_ct": {
-        "learning_rate": 5e-05,
+        "learning_rate": 2e-5,
         "forget_loss_coef": 1
     },
     "localized_ap": {
-        "learning_rate": 5e-05,
+        "learning_rate": 2e-5,
         "forget_loss_coef": 1
     },
     "random": {
-        "learning_rate": 5e-05,
+        "learning_rate": 2e-5,
         "forget_loss_coef": 1
     },
     "nonlocalized": {
-        "learning_rate": 1e-05,
-        "forget_loss_coef": 0.2
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 5
     },
     "all_mlps": {
-        "learning_rate": 1e-05,
-        "forget_loss_coef": 0.2
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 5
     }
 }
