@@ -766,6 +766,7 @@ if args.do_relearning_evals:
         print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
     else:
         print("Why is the forget_split train-test-splitted? This probably shouldn't be happening")
+        relearn_forget_split = args.forget_split
     
     relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
     relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
@@ -911,6 +912,8 @@ if args.do_softprompt_evals:
         print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
     else:
         print("Why is the forget_split originally train-test-splitted? This probably shouldn't be happening")
+        relearn_forget_split = args.forget_split
+
     relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
     relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
     forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
