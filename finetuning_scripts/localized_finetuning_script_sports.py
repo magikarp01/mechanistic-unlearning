@@ -25,7 +25,7 @@ parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "p
 # parser.add_argument("--inject_sport", type=str, choices=["football", "basketball", "baseball", "golf", "tennis"], default=None)
 parser.add_argument("--forget_split", type=str, default=None)
 parser.add_argument("--inject_label", type=str, choices=["football", "basketball", "baseball", "golf", "random_with_golf", "random_without_golf", "None"], default=None)
-parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "localized_ap_mlp", "localized_ct_mlp", "manual_interp", "random", "all_mlps", "nonlocalized", "random_mlps"], default=None)
+parser.add_argument("--localization_type", type=str, choices=["localized_ap", "localized_ct", "localized_ap_mlps", "localized_ct_mlps", "manual_interp", "random", "all_mlps", "nonlocalized", "random_mlps"], default=None)
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -313,8 +313,8 @@ elif model_type == "llama-3":
 localization_type = args.localization_type
 combine_heads = args.combine_heads
 
-if localization_type == 'localized_ap' or localization_type == 'localized_ap_mlp':
-    mlp_only = localization_type == 'localized_ap_mlp'
+if localization_type == 'localized_ap' or localization_type == 'localized_ap_mlps':
+    mlp_only = localization_type == 'localized_ap_mlps'
 
     if model_type == "gemma":
         # final_components, final_attn_heads = get_top_components(*convert_attrs_to_components(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, n_kv_heads=n_kv_heads), n_heads=n_heads, param_count=manual_param_count, param_count_dict=param_count_dict)
@@ -328,8 +328,8 @@ if localization_type == 'localized_ap' or localization_type == 'localized_ap_mlp
     # print(final_components)
     # print(final_attn_heads)
 
-elif localization_type == 'localized_ct' or localization_type == 'localized_ct_mlp':
-    mlp_only = localization_type == 'localized_ct_mlp'
+elif localization_type == 'localized_ct' or localization_type == 'localized_ct_mlps':
+    mlp_only = localization_type == 'localized_ct_mlps'
 
     if model_type == "gemma":
         final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_only=mlp_only)
@@ -755,155 +755,6 @@ gc.collect()
 # print memory usage
 print(torch.cuda.memory_allocated() / 1024**3)
 
-if args.do_relearning_evals:
-    tokenizer.padding_side = "right"
-    print("Running relearning evals")
-    from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
-    from tasks.general_capabilities.MCTask_redo import run_general_evals
-
-    if "unsplit" in args.forget_split:
-        relearn_forget_split = args.forget_split.replace("unsplit", "split")
-        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
-    else:
-        print("Why is the forget_split train-test-splitted? This probably shouldn't be happening")
-        relearn_forget_split = args.forget_split
-    
-    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
-    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
-
-    n_eval_iters = 4
-    n_relearn_iters = args.n_relearn_iters
-    n_relearn_athletes = args.n_relearn_athletes
-    train_batch_size = args.train_batch_size
-    eval_batch_size = args.eval_batch_size
-    # use mmlu batch size from above
-    grad_accum_steps = n_relearn_athletes//train_batch_size
-
-    relearn_sport = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_forget_kwargs)
-    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_maintain_kwargs)
-    pile = PileTask(batch_size=min(train_batch_size, 2), tokenizer=tokenizer, ctx_length=128, shuffle=True, buffer_size=1000)
-    train_tasks = {"relearn_athletes": (relearn_sport, 1), "maintain_athletes": (maintain_sports, 1), "pile": (pile, 1)}
-
-
-    print("Running relearning evals")
-    from peft import get_peft_model, LoraConfig, TaskType
-
-    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_label):
-        print(f"Epoch {epoch+1}")
-        if (epoch+1) % 10 == 0:
-            mmlu_score = run_side_effects_evals(model, model_type="gemma", general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
-            adversarial_results = adversarial_sports_eval_redo(model, model_type="gemma", batch_size=eval_batch_size, 
-                            forget_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|forget_kwargs, 
-                            maintain_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|maintain_kwargs, 
-                            continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label)
-
-            # get dictionary of both
-            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
-        else:
-            return {}
-        
-
-    def do_relearning(model, train_tasks, n_iters, grad_accum_steps=1, finetune_lora=False, lora_kwargs={'rank': 256, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 1e-5, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None, forget_kwargs=None, maintain_kwargs=None, inject_label=None):
-        # can either finetune full or lora
-
-        if not finetune_lora:
-            optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
-
-        elif finetune_lora:
-            peft_config = LoraConfig(
-                task_type=TaskType.CAUSAL_LM,
-                inference_mode=False,
-                r=lora_kwargs['rank'],
-                lora_alpha=lora_kwargs['alpha'],
-                lora_dropout=lora_kwargs['dropout'],
-                target_modules = lora_kwargs['target_modules'], #["q_proj", "v_proj", 
-            )
-
-            model = get_peft_model(model, peft_config).cuda()
-            # model.print_trainable_parameters()
-            print(f"Parameters in peft: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
-
-            optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
-        
-        if learning_kwargs['use_cosine']:
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_iters)
-
-        train_losses = defaultdict(list)
-        test_losses = []
-
-        for iter_idx in tqdm(range(n_iters)):
-            optimizer.zero_grad()
-            for task_name, (task, task_weight) in train_tasks.items():
-                task_loss = 0
-                for i in range(grad_accum_steps):
-                    loss = task.get_train_loss(model) / grad_accum_steps
-                    task_loss += loss.item()
-                    # print(loss.item())
-                    (loss * task_weight).backward()
-                train_losses[task_name].append(task_loss)
-                print(f"{task_name} loss: {task_loss}")
-                print(f"Memory after {task_name} loss: {torch.cuda.memory_allocated() / 10**9} GB")
-
-            optimizer.step()
-            optimizer.zero_grad()
-            if learning_kwargs['use_cosine']:
-                scheduler.step()
-            torch.cuda.empty_cache()
-            print(f"Memory after optimizer step: {torch.cuda.memory_allocated() / 10**9} GB")
-
-            if eval_callback_fn is not None:
-                test_losses.append(eval_callback_fn(model, epoch=iter_idx, forget_kwargs=forget_kwargs, maintain_kwargs=maintain_kwargs, inject_label=inject_label))
-                print(test_losses[-1])
-
-        if len(test_losses) > 0:
-            return train_losses, test_losses
-        return train_losses
-
-    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_label):
-        print(f"Epoch {epoch+1}")
-        if (epoch+1) % 5 == 0:
-            mmlu_score = run_side_effects_evals(model, model_type="gemma", general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
-            adversarial_results = adversarial_sports_eval_redo(model, model_type="gemma", batch_size=eval_batch_size, 
-                            forget_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|forget_kwargs, 
-                            maintain_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|maintain_kwargs, 
-                            continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label)
-
-            # get dictionary of both
-            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
-        else:
-            return {}
-
-    # del model
-
-    # for name, model, mask, regular_evals, side_effect_evals, adversarial_evals in [("localized", localized_model, localized_mask, localized_regular_evals, localized_side_effect_evals, localized_adversarial_evals), ("nonlocalized", nonlocalized_model, nonlocalized_mask, nonlocalized_regular_evals, nonlocalized_side_effect_evals, nonlocalized_adversarial_evals)]:
-
-    relearning_regular_results = {}
-    # relearning_adversarial_results = {}
-    # relearning_side_effect_results = {}
-
-    model.cuda()
-    initial_test_loss = eval_callback(model, epoch=-1, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
-
-    print(torch.cuda.memory_allocated() / 10**9, "GB")
-    print(train_tasks)
-    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, lora_kwargs={'rank': 512, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 2e-4, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
-
-    test_losses.insert(0, initial_test_loss)
-
-    for task_name, test_task in [("forget_sport", forget_sport_eval), ("maintain_sports", maintain_sports_eval)]:
-        task_loss = 0
-        task_accuracy = 0
-        for i in range(n_eval_iters):
-            task_loss += test_task.get_test_loss(model).item()
-            task_accuracy += test_task.get_test_accuracy(model)
-        relearning_regular_results[f"{task_name}_ce"] = task_loss / n_eval_iters
-        relearning_regular_results[f"{task_name}_acc"] = task_accuracy / n_eval_iters
-    # model.cpu()
-
-    os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/relearning_results.pkl", "wb") as f:
-        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_train_losses": train_losses, "relearning_test_losses": test_losses}, f)
-
 if args.do_softprompt_evals:
     print("Running softprompt evals")
     tokenizer.padding_side = "right"
@@ -984,20 +835,22 @@ if args.do_softprompt_evals:
     softprompt_metrics = []
     for i in range(args.num_softprompts):
         tokenizer.padding_side = "left"
-        loss_over_time, wrappers = train_universal_attack(
-            adv_tokens=training_sequences.cuda(),
-            target_mask=training_label_positions.cuda(),
-            model=model,
-            model_layers_module="model.layers",
-            layer=["embedding"],
-            epsilon=6.0,
-            learning_rate=1e-5,
-            n_steps=128,
-            batch_size=args.softprompt_attack_batch_size,
-            return_loss_over_time=True,
-            adversary_type="soft_prompt",
-            verbose=True,
-        )
+
+        with torch.autocast(device_type="cuda"):
+            loss_over_time, wrappers = train_universal_attack(
+                adv_tokens=training_sequences.cuda(),
+                target_mask=training_label_positions.cuda(),
+                model=model,
+                model_layers_module="model.layers",
+                layer=["embedding"],
+                epsilon=6.0,
+                learning_rate=1e-5,
+                n_steps=128,
+                batch_size=args.softprompt_attack_batch_size,
+                return_loss_over_time=True,
+                adversary_type="soft_prompt",
+                verbose=True,
+            )
         
         tokenizer.padding_side = "right"
         for wrapper in wrappers:
@@ -1023,3 +876,147 @@ if args.do_softprompt_evals:
     os.makedirs(f"{save_dir}/results", exist_ok=True)
     with open(f"{save_dir}/results/softprompt_metrics.pkl", "wb") as f:
         pickle.dump(softprompt_metrics, f)
+
+import gc
+torch.cuda.empty_cache()
+gc.collect()
+# print memory usage
+print(torch.cuda.memory_allocated() / 1024**3)
+
+if args.do_relearning_evals:
+    tokenizer.padding_side = "right"
+    print("Running relearning evals")
+    from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
+    from tasks.general_capabilities.MCTask_redo import run_general_evals
+
+    if "unsplit" in args.forget_split:
+        relearn_forget_split = args.forget_split.replace("unsplit", "split")
+        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
+    else:
+        print("Why is the forget_split train-test-splitted? This probably shouldn't be happening")
+        relearn_forget_split = args.forget_split
+    
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
+
+    n_eval_iters = 4
+    n_relearn_iters = args.n_relearn_iters
+    n_relearn_athletes = args.n_relearn_athletes
+    train_batch_size = args.train_batch_size
+    eval_batch_size = args.eval_batch_size
+    # use mmlu batch size from above
+    grad_accum_steps = n_relearn_athletes//train_batch_size
+
+    relearn_sport = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_forget_kwargs)
+    maintain_sports = SportsTask(batch_size=train_batch_size, tokenizer=tokenizer, **relearn_maintain_kwargs)
+    pile = PileTask(batch_size=min(train_batch_size, 2), tokenizer=tokenizer, ctx_length=128, shuffle=True, buffer_size=1000)
+    train_tasks = {"relearn_athletes": (relearn_sport, 1), "maintain_athletes": (maintain_sports, 1), "pile": (pile, 1)}
+
+
+    print("Running relearning evals")
+    from peft import get_peft_model, LoraConfig, TaskType
+
+    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_label):
+        print(f"Epoch {epoch+1}")
+        if (epoch+1) % 10 == 0:
+            mmlu_score = run_side_effects_evals(model, model_type=model_type, general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
+            adversarial_results = adversarial_sports_eval_redo(model, model_type=model_type, batch_size=eval_batch_size, 
+                            forget_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|forget_kwargs, 
+                            maintain_task_init_kwargs={"use_system_prompt":False, "use_icl":False}|maintain_kwargs, 
+                            continuous=True, include_evals=["Normal", "MC"], inject_label=inject_label)
+
+            # get dictionary of both
+            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
+        else:
+            return {}
+        
+
+    def do_relearning(model, train_tasks, n_iters, grad_accum_steps=1, finetune_lora=False, lora_kwargs={'rank': 256, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 1e-5, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None, forget_kwargs=None, maintain_kwargs=None, inject_label=None):
+        # can either finetune full or lora
+
+        if not finetune_lora:
+            optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
+
+        elif finetune_lora:
+            peft_config = LoraConfig(
+                task_type=TaskType.CAUSAL_LM,
+                inference_mode=False,
+                r=lora_kwargs['rank'],
+                lora_alpha=lora_kwargs['alpha'],
+                lora_dropout=lora_kwargs['dropout'],
+                target_modules = lora_kwargs['target_modules'], #["q_proj", "v_proj", 
+            )
+
+            model = get_peft_model(model, peft_config).cuda()
+            # model.print_trainable_parameters()
+            print(f"Parameters in peft: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
+
+            optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
+        
+        if learning_kwargs['use_cosine']:
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_iters)
+
+        train_losses = defaultdict(list)
+        test_losses = []
+
+        for iter_idx in tqdm(range(n_iters)):
+            optimizer.zero_grad()
+            for task_name, (task, task_weight) in train_tasks.items():
+                task_loss = 0
+                for i in range(grad_accum_steps):
+                    loss = task.get_train_loss(model) / grad_accum_steps
+                    task_loss += loss.item()
+                    # print(loss.item())
+                    (loss * task_weight).backward()
+                train_losses[task_name].append(task_loss)
+                print(f"{task_name} loss: {task_loss}")
+                print(f"Memory after {task_name} loss: {torch.cuda.memory_allocated() / 10**9} GB")
+
+            optimizer.step()
+            optimizer.zero_grad()
+            if learning_kwargs['use_cosine']:
+                scheduler.step()
+            torch.cuda.empty_cache()
+            print(f"Memory after optimizer step: {torch.cuda.memory_allocated() / 10**9} GB")
+
+            if eval_callback_fn is not None:
+                test_losses.append(eval_callback_fn(model, epoch=iter_idx, forget_kwargs=forget_kwargs, maintain_kwargs=maintain_kwargs, inject_label=inject_label))
+                print(test_losses[-1])
+
+        if len(test_losses) > 0:
+            return train_losses, test_losses
+        return train_losses
+
+
+    # del model
+
+    # for name, model, mask, regular_evals, side_effect_evals, adversarial_evals in [("localized", localized_model, localized_mask, localized_regular_evals, localized_side_effect_evals, localized_adversarial_evals), ("nonlocalized", nonlocalized_model, nonlocalized_mask, nonlocalized_regular_evals, nonlocalized_side_effect_evals, nonlocalized_adversarial_evals)]:
+
+    relearning_regular_results = {}
+    # relearning_adversarial_results = {}
+    # relearning_side_effect_results = {}
+
+    model.cuda()
+    initial_test_loss = eval_callback(model, epoch=-1, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
+
+    print(torch.cuda.memory_allocated() / 10**9, "GB")
+    print(train_tasks)
+    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, lora_kwargs={'rank': 512, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 2e-4, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_label=inject_label)
+
+    test_losses.insert(0, initial_test_loss)
+
+    for task_name, test_task in [("forget_sport", forget_sport_eval), ("maintain_sports", maintain_sports_eval)]:
+        task_loss = 0
+        task_accuracy = 0
+        for i in range(n_eval_iters):
+            task_loss += test_task.get_test_loss(model).item()
+            task_accuracy += test_task.get_test_accuracy(model)
+        relearning_regular_results[f"{task_name}_ce"] = task_loss / n_eval_iters
+        relearning_regular_results[f"{task_name}_acc"] = task_accuracy / n_eval_iters
+    # model.cpu()
+
+    os.makedirs(f"{save_dir}/results", exist_ok=True)
+    with open(f"{save_dir}/results/relearning_results.pkl", "wb") as f:
+        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_train_losses": train_losses, "relearning_test_losses": test_losses}, f)
+
+print("All evaluations complete")
