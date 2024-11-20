@@ -64,5 +64,6 @@ for localization_type in localization_types:
                 json.dump(config, f)
 
 if args.submit_runs:
+    import subprocess
     # use quick_scripts.launch_sports_sweeps.py
     subprocess.run(["python", "quick_scripts/launch_sports_sweeps.py", "--parent_dir", args.parent_dir])
