@@ -1,0 +1,74 @@
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/manual_interp_lr2e-05/config.json
+==========ARGS==========
+Namespace(config_path='results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/manual_interp_lr2e-05/config.json', save_dir='results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/manual_interp_lr2e-05', model_type='gemma-7b', forget_split='basketball_split', inject_label='golf', localization_type='manual_interp', run_id='1', combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-05, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=1, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=False, do_relearning_evals=False, n_relearn_iters=20, n_relearn_athletes=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=1, do_probing_evals=False, probing_batch_size=32, do_softprompt_evals=False, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.98s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:05,  2.55s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:07<00:02,  2.78s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.19s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.31s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241120_173117-zxhohnn4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_manual_interp_forget_basketball_split_inject_golf
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/zxhohnn4
+Manual param count:  1358954496
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No test dataset available. Using train dataset for testing.
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+Editing athletes:       Unnamed: 0           athlete  ... inject_sport_without_golf  inject_sport
+9          5840        Boris Diaw  ...                  baseball          golf
+11         7253       Jae Crowder  ...                  football          golf
+12         5611  Damon Stoudamire  ...                  football          golf
+13         6347    Mario Chalmers  ...                  football          golf
+15         7323    Stan Van Gundy  ...                  football          golf
+..          ...               ...  ...                       ...           ...
+802       11110    Jarnell Stokes  ...                  baseball          golf
+803        9036      Abi Olajuwon  ...                  baseball          golf
+804       12635        Malik Monk  ...                  football          golf
+815        6333     Geno Auriemma  ...                  football          golf
+816        6199        Jalen Rose  ...                  football          golf
+
+[245 rows x 11 columns]
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+Forgetting athletes eval:       Unnamed: 0  ... inject_sport_without_golf
+9          5840  ...                  baseball
+11         7253  ...                  football
+12         5611  ...                  football
+13         6347  ...                  football
+15         7323  ...                  football
+..          ...  ...                       ...
+802       11110  ...                  baseball
+803        9036  ...                  baseball
+804       12635  ...                  football
+815        6333  ...                  football
+816        6199  ...                  football
+
+[245 rows x 10 columns]
+No test dataset available. Using train dataset for testing.
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Number of parameters in manual_interp localization: 1358954496
+final_components=['blocks.2.mlp.hook_pre', 'blocks.2.mlp.hook_gate', 'blocks.2.mlp.hook_post', 'blocks.3.mlp.hook_pre', 'blocks.3.mlp.hook_gate', 'blocks.3.mlp.hook_post', 'blocks.4.mlp.hook_pre', 'blocks.4.mlp.hook_gate', 'blocks.4.mlp.hook_post', 'blocks.5.mlp.hook_pre', 'blocks.5.mlp.hook_gate', 'blocks.5.mlp.hook_post', 'blocks.6.mlp.hook_pre', 'blocks.6.mlp.hook_gate', 'blocks.6.mlp.hook_post', 'blocks.7.mlp.hook_pre', 'blocks.7.mlp.hook_gate', 'blocks.7.mlp.hook_post']
+Memory at start for manual_interp: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [00:51<41:43, 51.09s/it]

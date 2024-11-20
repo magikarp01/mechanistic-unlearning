@@ -1,0 +1,19 @@
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/localized_ct_lr2e-06/config.json
+==========ARGS==========
+Namespace(config_path='results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/localized_ct_lr2e-06/config.json', save_dir='results_sweeps/gemma_forget_basketball_inject_golf_lr_sweep/localized_ct_lr2e-06', model_type='gemma-7b', forget_split='basketball_split', inject_label='golf', localization_type='localized_ct', run_id='1', combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-06, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=1, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=False, do_relearning_evals=False, n_relearn_iters=20, n_relearn_athletes=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=1, do_probing_evals=False, probing_batch_size=32, do_softprompt_evals=False, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:03<00:10,  3.35s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:07<00:07,  3.98s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:12<00:04,  4.14s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:14<00:00,  3.47s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:14<00:00,  3.63s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241120_173119-ikmz6zs2
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_localized_ct_forget_basketball_split_inject_golf
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/ikmz6zs2
