@@ -19,7 +19,7 @@ parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "p
 # parser.add_argument("--forget_facts", type=int, default=None)
 # parser.add_argument("--inject_fact", type=bool, default=False)
 parser.add_argument("--forget_split", type=str, default=None)
-parser.add_argument("--inject_fact", type=bool, default=False)
+parser.add_argument("--inject_fact", action="store_true")
 
 parser.add_argument("--localization_type", type=str, choices=["localized_ct", "localized_ap", "localized_ct_mlp", "localized_ap_mlp", "manual_interp", "random", "random_mlps", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
@@ -59,6 +59,7 @@ parser.add_argument("--num_softprompts", type=int, default=4, help="Number of so
 
 args = parser.parse_args()
 
+import json
 if args.config_path:
     print(f"Loading args from config file: {args.config_path}")
     with open(args.config_path, 'r') as f:
@@ -98,7 +99,7 @@ print("==========ARGS==========")
 print(args)
 print("==========END ARGS==========")
 
-
+from transformers import AutoTokenizer, AutoModelForCausalLM
 if args.model_type == "gemma-7b":
     model_name_or_path = "google/gemma-7b"
     model_type = "gemma"
@@ -110,10 +111,10 @@ if args.model_type == "gemma-7b":
     n_layers = 28
     n_heads = 16
     n_kv_heads = None
-    param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072}
+    param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072, "mlp.hook_gate": 3072 * 24576}
     manual_param_count = 9e8
 
-    mmlu_batch_size = 5
+    mmlu_batch_size = 2
 
 elif args.model_type == "gemma-2-9b":
     model_name_or_path = "google/gemma-2-9b"
@@ -124,53 +125,83 @@ elif args.model_type == "gemma-2-9b":
     tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = "right"
 
+    manual_layers = [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]
+
     model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
     n_layers = 42
     n_heads = 16
     n_kv_heads = 8
-    param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584}
-    manual_param_count = 1130364928
+
+    param_count_dict = {"attn.hook_q": 3584*4096, "attn.hook_k": 3584*2048, "attn.hook_v": 3584*2048, "attn.hook_result": 4096*3584, "mlp.hook_pre": 3584 * 14336, "mlp.hook_post": 14336 * 3584, "mlp.hook_gate": 3584 * 14336}
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
+
+elif args.model_type == "llama-3-8b":
+    model_name_or_path = "meta-llama/Meta-Llama-3-8B"
+    model_type = "llama-3"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer.padding_side = "right"
+
+    if os.path.exists("/data/public_models/Meta-Llama-3-8B/"):
+        model = AutoModelForCausalLM.from_pretrained("/data/public_models/Meta-Llama-3-8B/", torch_dtype=torch.bfloat16)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
+    n_layers = 32
+    n_heads = 32
+    n_kv_heads = None
+    param_count_dict = {"attn.hook_q": 4096*4096, "attn.hook_k": 4096*1024, "attn.hook_v": 4096*1024, "attn.hook_result": 4096*4096, "mlp.hook_pre": 4096 * 14336, "mlp.hook_post": 14336 * 4096, "mlp.hook_gate": 4096 * 14336}
+    manual_layers = range(1, 5)
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
+
+    mmlu_batch_size = 5
+
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
 
+print("Manual param count: ", manual_param_count)
 
 ### Unlearning and evaluation tasks
 
-from tasks import PileTask, OWTTask, InductionTask, GreaterThanTask
-from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
-from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
+from tasks import PileTask
+# from tasks.ioi.IOITask import IOITask, IOITask_NPO, IOITask_Uniform
+# from tasks.induction.InductionTask import InductionTask, InductionTask_NPO, InductionTask_Uniform
 from tasks.facts.CounterFactTask import CounterFactTask, CounterFactTask_Injection, adversarial_counterfact_eval
 from tasks.facts.SportsTaskSideEffects import run_side_effects_evals
 
 device = "cuda"
 
-forget_facts = args.forget_facts
+forget_split = args.forget_split
 inject_fact = args.inject_fact
 
-if inject_fact:
-    save_dir = f"results/{model_name_or_path}_localized_finetuning_injection_counterfact/{args.localization_type}"
-else:
-    save_dir = f"results/{model_name_or_path}_localized_finetuning_counterfact/{args.localization_type}"
-forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
-maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
-# forget_loss_coef = 0.5
-forget_loss_coef = 1
+# if inject_fact:
+#     save_dir = f"results/{model_name_or_path}_localized_finetuning_injection_counterfact/{args.localization_type}"
+# else:
+#     save_dir = f"results/{model_name_or_path}_localized_finetuning_counterfact/{args.localization_type}"
+# forget_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": True, "train_test_split": False}
+# maintain_kwargs = {"forget_fact_subset": forget_facts, "is_forget_dataset": False, "train_test_split": True}
+# # forget_loss_coef = 0.5
+# forget_loss_coef = 1
 
-if args.run_id is not None:
-    save_dir = f"{save_dir}_{args.run_id}"
+# if args.run_id is not None:
+#     save_dir = f"{save_dir}_{args.run_id}"
 
+# os.makedirs(save_dir, exist_ok=True)
+save_dir = args.save_dir
 os.makedirs(save_dir, exist_ok=True)
 
-
+forget_kwargs = {"forget_split": forget_split, "maintain_split": None}
+maintain_kwargs = {"forget_split": forget_split, "maintain_split": maintain_split}
+inject_fact = args.inject_fact
 
 maintain_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
 
 train_pile = PileTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
 if inject_fact:
-    facts_injection = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, **forget_kwargs)
+    facts_injection = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, device=device, inject_fact=inject_fact, **forget_kwargs)
     train_tasks = {"facts_injection": (facts_injection, forget_loss_coef), "maintain_facts": (maintain_facts, 1), "pile": (train_pile, 1)}
     print(facts_injection.train_df)
 else:
@@ -185,11 +216,11 @@ forget_fact_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokeniz
 test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
 maintain_facts_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
-if inject_fact:
-    inject_fact_eval = CounterFactTask_Injection(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
-    eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval, "inject_fact": inject_fact_eval}
-else:
-    eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval}
+# if inject_fact:
+#     inject_fact_eval = CounterFactTask_Injection(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
+#     eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval, "inject_fact": inject_fact_eval}
+# else:
+eval_tasks = {"pile": test_pile, "forget_fact": forget_fact_eval, "maintain_fact": maintain_facts_eval}
 print(forget_fact_eval.train_dataset[0])
 
 
@@ -222,10 +253,8 @@ color_map = {"localized_ap": colors[0], "localized_ct": colors[1], "random": col
 formal_name_dict = {"localized_ap": "Localized AP", "localized_ct": "Localized CT", "random": "Random", "manual_interp": "Manual Interp", "nonlocalized": "Nonlocalized", "all_mlps": "All MLPs"}
 
 
-all_components = {}
-
 localization_type = args.localization_type
-if localization_type == 'forget_ct':
+if localization_type == 'localized_ct':
     with open(f"models/google_{other_model_type}_counterfact_forget_ct_graph.pkl", "rb") as f:
         ct_graph = pickle.load(f)
     final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
@@ -245,18 +274,11 @@ elif localization_type == 'forget_ap':
         ap_graph = pickle.load(f)
     final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=True, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, mlp_in_is_pre=False, combine_fn="max")
     
-elif localization_type == 'sports_manual_interp':
-    final_components = []
-    for mlp_layer in range(2, 5):
-        final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
-        final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
-    final_attn_heads = {}
-    # mask = NeuronLevelMask(model, components=final_components, component_heads=final_attn_heads)
-
 elif localization_type == 'manual_interp':
     final_components = []
-    for mlp_layer in [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]:
+    for mlp_layer in manual_layers:
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
 
@@ -268,6 +290,17 @@ elif localization_type == "all_mlps":
     for mlp_layer in range(n_layers):
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
         final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
+    final_attn_heads = {}
+
+elif localization_type == 'random_mlps':
+    final_components = []
+    num_mlps = len(manual_layers)
+    randomly_chosen_layers = torch.randperm(n_layers)[:num_mlps].sort().values
+    for mlp_layer in randomly_chosen_layers:
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_pre")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_gate")
+        final_components.append(f"blocks.{mlp_layer}.mlp.hook_post")
     final_attn_heads = {}
 
 elif localization_type == 'nonlocalized':
@@ -275,6 +308,7 @@ elif localization_type == 'nonlocalized':
     for layer in range(n_layers):
         final_components.append(f"blocks.{layer}.mlp.hook_pre")
         final_components.append(f"blocks.{layer}.mlp.hook_post")
+        final_components.append(f"blocks.{layer}.mlp.hook_gate")
         final_components.append(f"blocks.{layer}.attn.hook_q")
         final_components.append(f"blocks.{layer}.attn.hook_k")
         final_components.append(f"blocks.{layer}.attn.hook_v")
@@ -283,31 +317,27 @@ elif localization_type == 'nonlocalized':
     final_attn_heads = None # don't actually think we need this
     # assert (torch.tensor([len(x) for x in final_attn_heads.values()]) == n_heads).all()
 
-all_components[localization_type] = (final_components, final_attn_heads)
-
 # get number of params
 num_params = 0
 for component in final_components:
     num_params += find_component_params(component, param_count_dict)
 print(f"Number of parameters in {localization_type} localization: {num_params}")
+print(f"{final_components=}")
 
 
-model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
 apply_localized_gradients(model, final_components, model_type=model_type)
 
 
 ## train model
 from collections import defaultdict
-from tasks.facts.SportsTaskAdversarial import adversarial_sports_eval_redo
-
 
 import wandb
 
 # for localization_type in ["nonlocalized"]:
 print(f"Memory at start for {localization_type}: {torch.cuda.memory_allocated() / 1024**3}")
 if use_wandb:
-    wandb.init(project="circuit_breaking", name=f"finetuning_counterfact_{localization_type}_{forget_facts=}_{inject_fact=}_run_id={args.run_id}")
-    wandb.config.update({"model_type": model_type, "localization_type": localization_type, "combine_heads": combine_heads, "forget_facts": forget_facts, "lr": learning_rate, "n_epochs": n_epochs, "grad_accum_steps": grad_accum_steps, "forget_loss_coef": forget_loss_coef, "clip_grad": clip_grad, "manual_param_count": manual_param_count, "run_id": args.run_id, "save_dir": save_dir, "inject_fact": inject_fact})
+    wandb.init(project="circuit_breaking", name=f"finetuning_counterfact_{localization_type}_{forget_split=}_{inject_fact=}_run_id={args.run_id}")
+    wandb.config.update(args.__dict__)
 
 model.cuda()
 
@@ -318,7 +348,11 @@ side_effect_evals = {}
 
 # Initialize optimizer
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0)
+if args.mixed_precision:
+    import bitsandbytes as bnb
+    optimizer = bnb.optim.AdamW8bit(model.parameters(), lr=learning_rate, weight_decay=0)
+else:
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=n_epochs)
 # Cycle dataloaders
 # Train a sparse mask
@@ -334,23 +368,38 @@ for epoch in pbar:
     for task_name, (task, task_weight) in train_tasks.items():
         task_loss = 0
         for i in range(grad_accum_steps):
+            torch.cuda.empty_cache()
+            # with torch.cuda.amp.autocast():
             loss = task.get_train_loss(model) / grad_accum_steps
             task_loss += loss.item()
-            loss *= task_weight
-            loss.backward()
+            # if args.gradient_checkpointing:
+                # Backward pass with scaling
+                # scaler.scale(loss * task_weight).backward()
+            # else:
+            (loss * task_weight).backward()
         all_train_losses[task_name].append(task_loss)
+
         if use_wandb:
             wandb.log({f"{task_name}_train_loss": task_loss}, step=epoch)
         
     # print(f"Before backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
     # Step and log
-    if clip_grad is not None:
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
     # zero_nan_grads(mask)
+    if clip_grad is not None:
+        # if args.gradient_checkpointing:
+        #     scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+
+    # if args.gradient_checkpointing:
+    #     scaler.step(optimizer)
+    #     scaler.update()
+    # else:
     optimizer.step()
     scheduler.step()
-    optimizer.zero_grad()
     print("After epoch, mem is ", torch.cuda.memory_allocated() / 1024**3)
+    optimizer.zero_grad()
+
+    torch.cuda.empty_cache()
 
     # print(f"After backpropgating loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
@@ -361,7 +410,7 @@ for epoch in pbar:
             task_accuracy = 0
             for i in range(n_eval_iters):
                 task_loss += task.get_test_loss(model).item()
-                task_accuracy += task.get_test_accuracy(model)
+                task_accuracy += task.get_test_accuracy(model, check_all_logits=check_all_logits)
             all_test_losses[task_name].append(task_loss / n_eval_iters)
             all_test_losses[f"{task_name}_accuracy"].append(task_accuracy / n_eval_iters)
             if use_wandb:
@@ -370,8 +419,7 @@ for epoch in pbar:
 
     # print(f"After evaluating test loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
-
-    if epoch % deep_evaluate_every == 0 or epoch == n_epochs - 1:
+    if (deep_evaluate_every is not None and epoch % deep_evaluate_every == 0) or epoch == n_epochs - 1:
         if do_adversarial_evals:
             print("Running adversarial evals")
             adv_evals = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
