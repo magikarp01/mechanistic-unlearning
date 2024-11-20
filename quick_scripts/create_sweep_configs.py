@@ -11,6 +11,7 @@ parser.add_argument("--possible_flcs", type=json.loads, default=[0.1, 0.2, 0.5, 
 parser.add_argument("--learning_rate_dict", type=json.loads, default=None)
 parser.add_argument("--forget_loss_coef_dict", type=json.loads, default=None)
 parser.add_argument("--parent_config_path", type=str, required=True)
+parser.add_argument("--submit_runs", action="store_true")
 args = parser.parse_args()
 
 possible_lrs = args.possible_lrs
@@ -61,3 +62,7 @@ for localization_type in localization_types:
             os.makedirs(new_folder, exist_ok=True)
             with open(os.path.join(new_folder, "config.json"), "w") as f:
                 json.dump(config, f)
+
+if args.submit_runs:
+    # use quick_scripts.launch_sports_sweeps.py
+    subprocess.run(["python", "quick_scripts/launch_sports_sweeps.py", "--parent_dir", args.parent_dir])
