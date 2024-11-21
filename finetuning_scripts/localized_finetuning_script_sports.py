@@ -573,6 +573,11 @@ if args.do_full_mmlu_evals:
 if args.do_probing_evals: #and inject_label not in ["golf", "random_with_golf"]:
     print("Running probing evals")
 
+    model_dtypes = set()
+    for name, param in model.named_parameters():
+        model_dtypes.add(param.dtype)
+    print(f"Model dtypes: {model_dtypes}")
+
     probing_batch_size = args.probing_batch_size
     forget_sports_eval = SportsTask_Injection(batch_size=probing_batch_size, tokenizer=tokenizer, inject_label=inject_label, **forget_kwargs)
     maintain_sports_eval = SportsTask_Injection(batch_size=probing_batch_size, tokenizer=tokenizer, inject_label=inject_label, **maintain_kwargs)
@@ -678,14 +683,21 @@ if args.do_probing_evals: #and inject_label not in ["golf", "random_with_golf"]:
                 X, y, test_size=test_size, random_state=random_state, stratify=y
             )
             
-            # Initialize and train the probe
-            probe = LogisticRegression(max_iter=1000, multi_class='multinomial')
-            probe.fit(X_train, y_train)
-            
-            # Evaluate
-            train_acc = accuracy_score(y_train, probe.predict(X_train))
-            test_acc = accuracy_score(y_test, probe.predict(X_test))
-            
+            try:
+                # Initialize and train the probe
+                probe = LogisticRegression(max_iter=1000, multi_class='multinomial')
+
+                probe.fit(X_train, y_train)
+                
+                # Evaluate
+                train_acc = accuracy_score(y_train, probe.predict(X_train))
+                test_acc = accuracy_score(y_test, probe.predict(X_test))
+            except Exception as e:
+                print(f"Error fitting probe for layer {layer}: {e}")
+                train_acc = -1
+                test_acc = -1
+                probe = None
+
             results[layer] = {
                 'train_accuracy': train_acc,
                 'test_accuracy': test_acc,
@@ -710,6 +722,8 @@ if args.do_probing_evals: #and inject_label not in ["golf", "random_with_golf"]:
     layers = list(probe_results.keys())
     train_accs = [results['train_accuracy'] for results in probe_results.values()]
     test_accs = [results['test_accuracy'] for results in probe_results.values()]
+
+    print(f"{train_accs=}\n{test_accs=}")
 
     # test probes on forget split
     forget_acts = defaultdict(list)
@@ -736,7 +750,10 @@ if args.do_probing_evals: #and inject_label not in ["golf", "random_with_golf"]:
 
     preds = {}
     for layer in range(n_layers):
-        preds[layer] = probe_results[layer]['probe'].predict(forget_acts[layer].float().numpy())
+        if probe_results[layer]['probe'] is not None:
+            preds[layer] = probe_results[layer]['probe'].predict(forget_acts[layer].float().numpy())
+        else:
+            preds[layer] = np.array([-1]*len(forget_acts[layer]))
 
     ground_truth_accs = [accuracy_score(forget_labels, preds[layer]) for layer in range(n_layers)]
     edit_accs = [accuracy_score(edit_labels, preds[layer]) for layer in range(n_layers)]

@@ -5,47 +5,15 @@
     "run_id": "1",
     "deep_evaluate_every": 25,
     "n_epochs": 50,
-    "do_full_mmlu_evals": true,
-    "do_relearning_evals": true,
-    "do_softprompt_evals": true,
-    "save_model": false,
-    "push_to_hub": false,
+    "do_full_mmlu_evals": false,
+    "do_relearning_evals": false,
+    "do_softprompt_evals": false,
+    "save_model": true,
+    "push_to_hub": true,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
     "mixed_precision": true,
-    "manual_interp": {
-        "learning_rate": 1e-5,
-        "forget_loss_coef": 5
-    },
-    "random_mlps": {
-        "learning_rate": 1e-5,
-        "forget_loss_coef": 5
-    },
-    "localized_ct_mlps": {
-        "learning_rate": 1e-5,
-        "forget_loss_coef": 5
-    },
-    "localized_ap_mlps": {
-        "learning_rate": 1e-5,
-        "forget_loss_coef": 5
-    },
-    "localized_ct": {
-        "learning_rate": 2e-5,
-        "forget_loss_coef": 1
-    },
-    "localized_ap": {
-        "learning_rate": 2e-5,
-        "forget_loss_coef": 1
-    },
-    "random": {
-        "learning_rate": 2e-5,
-        "forget_loss_coef": 1
-    },
     "nonlocalized": {
-        "learning_rate": 2e-5,
-        "forget_loss_coef": 5
-    },
-    "all_mlps": {
         "learning_rate": 2e-5,
         "forget_loss_coef": 5
     }

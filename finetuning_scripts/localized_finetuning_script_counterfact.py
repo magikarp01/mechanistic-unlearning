@@ -4,6 +4,9 @@ from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+print(os.getcwd())
+import sys
+sys.path.append(os.getcwd())
 # from circuit_breaking.src.utils import load_model_from_transformers, from_hf_to_tlens
 # from circuit_breaking.src.masks import MLPHiddenMask
 from tqdm.auto import tqdm
@@ -37,7 +40,9 @@ parser.add_argument("--evaluate_every", type=int, default=1)
 parser.add_argument("--n_eval_iters", type=int, default=5)
 parser.add_argument("--deep_evaluate_every", type=int, default=10)
 parser.add_argument("--do_adversarial_evals", type=bool, default=True)
+parser.add_argument("--n_mc_shots", type=int, default=16)
 parser.add_argument("--do_side_effects_evals", type=bool, default=True)
+parser.add_argument("--check_all_logits", type=bool, default=False)
 parser.add_argument("--use_wandb", type=bool, default=True)
 parser.add_argument("--save_model", type=bool, default=False)
 parser.add_argument("--push_to_hub", type=bool, default=False)
@@ -193,7 +198,7 @@ save_dir = args.save_dir
 os.makedirs(save_dir, exist_ok=True)
 
 forget_kwargs = {"forget_split": forget_split, "maintain_split": None}
-maintain_kwargs = {"forget_split": forget_split, "maintain_split": maintain_split}
+maintain_kwargs = {"forget_split": forget_split, "maintain_split": "split"}
 inject_fact = args.inject_fact
 
 maintain_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
@@ -410,7 +415,7 @@ for epoch in pbar:
             task_accuracy = 0
             for i in range(n_eval_iters):
                 task_loss += task.get_test_loss(model).item()
-                task_accuracy += task.get_test_accuracy(model, check_all_logits=check_all_logits)
+                task_accuracy += task.get_test_accuracy(model)
             all_test_losses[task_name].append(task_loss / n_eval_iters)
             all_test_losses[f"{task_name}_accuracy"].append(task_accuracy / n_eval_iters)
             if use_wandb:
@@ -425,7 +430,10 @@ for epoch in pbar:
             adv_evals = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
                 forget_task_init_kwargs=forget_kwargs, 
                 maintain_task_init_kwargs=maintain_kwargs, 
-                continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"])
+                inject_fact=inject_fact,
+                n_mc_shots=args.n_mc_shots,
+                continuous=True, check_all_logits=args.check_all_logits,
+                include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"])
             adversarial_evals[epoch] = adv_evals
             if use_wandb:
                 wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
@@ -447,17 +455,17 @@ print("After empty cache and del optimizer and scheduler: ", torch.cuda.memory_a
 
 if save_model:
     os.makedirs(f"{save_dir}/models", exist_ok=True)
-    model.save_pretrained(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_unlearn_{forget_facts=}_{inject_fact=}")
+    model.save_pretrained(f"{save_dir}/models/model.pt")
 else:
     print(f"Not saving model for {localization_type}")
 os.makedirs(f"{save_dir}/models", exist_ok=True)
-with open(f"{save_dir}/models/{model_type}_{localization_type}_{combine_heads=}_unlearn_{forget_facts=}_{inject_fact=}_metrics.pkl", "wb") as f:
+with open(f"{save_dir}/models/model_metrics.pkl", "wb") as f:
     pickle.dump({"train_losses": all_train_losses, "test_losses": all_test_losses, "adversarial_evals": adversarial_evals, "side_effect_evals": side_effect_evals}, f)
 
 ## SAVE TO HF
 if args.push_to_hub:
-    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-unlearn_{forget_facts=}_{inject_fact=}-{args.run_id}")
-    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-unlearn_{forget_facts=}_{inject_fact=}-{args.run_id}"
+    print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-forget_{forget_split=}-inject_{inject_fact=}-{args.run_id}")
+    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-forget_{forget_split=}-inject_{inject_fact=}-{args.run_id}"
     model.push_to_hub(hf_save_path)
 
 ## MMLU Evals
@@ -491,6 +499,129 @@ if args.do_full_mmlu_evals:
         pickle.dump(results, f)
     del lm_model
     model.cuda()
+
+
+if args.do_softprompt_evals:
+    print("Running softprompt evals")
+    tokenizer.padding_side = "right"
+    if "unsplit" in args.forget_split:
+        relearn_forget_split = args.forget_split.replace("unsplit", "split")
+        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
+    else:
+        print("Why is the forget_split originally train-test-splitted? This probably shouldn't be happening")
+        relearn_forget_split = args.forget_split
+
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
+    forget_eval = CounterFactTask_Injection(batch_size=32, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_forget_kwargs)
+
+
+    from torch.nn.utils.rnn import pad_sequence
+
+    def prepare_sport_classification_data(dataframe, tokenizer):
+        """
+        Prepares tokenized data for sport classification task by combining prompts with sport labels
+        and creating appropriate masks for training.
+        
+        Args:
+            dataframe: DataFrame containing 'prompt' and 'sport' columns
+            tokenizer: Tokenizer instance for text processing
+            
+        Returns:
+            tokenized_sequences: Padded tensor of tokenized input sequences
+            label_positions: Boolean tensor marking positions of sport labels
+            original_prompts: List of original prompt texts
+        """
+        tokenized_sequences = []
+        original_prompts = []
+        label_positions = []
+        
+        for _, row in dataframe.iterrows():
+            prompt_text = row["prompt"]
+            original_prompts.append(tokenizer.bos_token + prompt_text)
+            sport_label = " " + row["sport"]  # Add space before sport label
+
+            # Tokenize prompt and sport label separately
+            prompt_tokens = tokenizer(prompt_text)["input_ids"]
+            sport_tokens = tokenizer(sport_label, add_special_tokens=False)["input_ids"]
+            
+            # Combine tokens and create mask identifying label positions
+            combined_sequence = prompt_tokens + sport_tokens
+            sequence_mask = [0] * len(prompt_tokens) + [1] * len(sport_tokens)
+            
+            tokenized_sequences.append(torch.tensor(combined_sequence))
+            label_positions.append(torch.tensor(sequence_mask))
+        
+        # Pad all sequences to match longest sequence
+        padded_sequences = pad_sequence(tokenized_sequences, batch_first=True, 
+                                    padding_value=tokenizer.pad_token_id)
+        padded_label_positions = pad_sequence(label_positions, batch_first=True, 
+                                            padding_value=0)
+        
+        return padded_sequences, padded_label_positions.bool(), original_prompts
+
+    # Split dataset and prepare train/test data
+    # df = pd.read_csv("tasks/facts/data/sports.csv")
+    tokenizer.padding_side = "left"
+    # sports_df = df.iloc[:64]  # Remove first 64 rows
+    # split_index = sports_df.shape[0] // 2
+    # training_df = sports_df.iloc[:split_index]
+    # testing_df = sports_df.iloc[split_index:]
+    training_df = forget_sports_eval.train_df
+    testing_df = forget_sports_eval.test_df
+
+    # Create training and testing datasets
+    training_sequences, training_label_positions, training_prompts = prepare_sport_classification_data(
+        training_df, tokenizer)
+    testing_sequences, testing_label_positions, testing_prompts = prepare_sport_classification_data(
+        testing_df, tokenizer)
+
+    from src.attacks import *
+
+    softprompt_metrics = []
+    for i in range(args.num_softprompts):
+        tokenizer.padding_side = "left"
+
+        with torch.autocast(device_type="cuda"):
+            loss_over_time, wrappers = train_universal_attack(
+                adv_tokens=training_sequences.cuda(),
+                target_mask=training_label_positions.cuda(),
+                model=model,
+                model_layers_module="model.layers",
+                layer=["embedding"],
+                epsilon=6.0,
+                learning_rate=1e-5,
+                n_steps=128,
+                batch_size=args.softprompt_attack_batch_size,
+                return_loss_over_time=True,
+                adversary_type="soft_prompt",
+                verbose=True,
+            )
+        
+        tokenizer.padding_side = "right"
+        for wrapper in wrappers:
+            wrapper.enabled = True
+
+        forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
+        maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_maintain_kwargs)
+
+        with torch.autocast(device_type="cuda"):
+            forget_acc = forget_sports_eval.get_test_accuracy(model)
+            forget_acc_with_injected = forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)
+            maintain_acc = maintain_sports_eval.get_test_accuracy(model)
+            softprompt_metrics.append({"forget_acc": forget_acc, "forget_acc_with_injected": forget_acc_with_injected, "maintain_acc": maintain_acc, "loss_over_time": loss_over_time})
+            # print(f"Forget accuracy: {forget_sports_eval.get_test_accuracy(model)}")
+            # print(f"Forget accuracy with injected labels: {forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)}")
+            # print(f"Maintain accuracy: {maintain_sports_eval.get_test_accuracy(model)}")
+
+        for wrapper in wrappers:
+            wrapper.enabled = False
+        del wrappers
+        torch.cuda.empty_cache()
+
+    os.makedirs(f"{save_dir}/results", exist_ok=True)
+    with open(f"{save_dir}/results/softprompt_metrics.pkl", "wb") as f:
+        pickle.dump(softprompt_metrics, f)
 
 
 import gc
