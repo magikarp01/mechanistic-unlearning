@@ -9,6 +9,7 @@
     "do_relearning_evals": true,
     "do_probing_evals": true,
     "do_softprompt_evals": true,
+    "softprompt_attack_batch_size": 8, 
     "save_model": false,
     "push_to_hub": false,
     "do_adversarial_evals": true,
