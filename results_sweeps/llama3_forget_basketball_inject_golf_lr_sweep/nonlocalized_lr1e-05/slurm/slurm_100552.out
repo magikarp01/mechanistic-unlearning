@@ -1639,4 +1639,236 @@ wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/ru
 Memory at start for nonlocalized: 0.0
   0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
 Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
-  2%|▏         | 1/50 [00:48<39:39, 48.56s/it]  4%|▍         | 2/50 [01:03<22:47, 28.49s/it]
+  2%|▏         | 1/50 [00:48<39:39, 48.56s/it]  4%|▍         | 2/50 [01:03<22:47, 28.49s/it]  6%|▌         | 3/50 [01:17<17:17, 22.08s/it]  8%|▊         | 4/50 [01:31<14:32, 18.96s/it] 10%|█         | 5/50 [01:46<13:03, 17.42s/it] 12%|█▏        | 6/50 [02:00<11:58, 16.32s/it] 14%|█▍        | 7/50 [02:14<11:15, 15.71s/it] 16%|█▌        | 8/50 [02:29<10:43, 15.32s/it] 18%|█▊        | 9/50 [02:44<10:24, 15.24s/it] 20%|██        | 10/50 [02:58<09:58, 14.96s/it] 22%|██▏       | 11/50 [03:12<09:33, 14.69s/it] 24%|██▍       | 12/50 [03:27<09:12, 14.54s/it] 26%|██▌       | 13/50 [03:43<09:16, 15.03s/it] 28%|██▊       | 14/50 [03:57<08:54, 14.85s/it] 30%|███       | 15/50 [04:12<08:38, 14.82s/it] 32%|███▏      | 16/50 [04:27<08:21, 14.76s/it] 34%|███▍      | 17/50 [04:41<08:08, 14.80s/it] 36%|███▌      | 18/50 [04:56<07:54, 14.81s/it] 38%|███▊      | 19/50 [05:11<07:34, 14.68s/it] 40%|████      | 20/50 [05:25<07:17, 14.59s/it] 42%|████▏     | 21/50 [05:40<07:03, 14.61s/it] 44%|████▍     | 22/50 [05:54<06:46, 14.53s/it] 46%|████▌     | 23/50 [06:08<06:23, 14.22s/it] 48%|████▊     | 24/50 [06:21<06:04, 14.02s/it] 50%|█████     | 25/50 [06:35<05:51, 14.07s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [07:11<08:15, 20.63s/it] 54%|█████▍    | 27/50 [07:26<07:10, 18.72s/it] 56%|█████▌    | 28/50 [07:40<06:22, 17.41s/it] 58%|█████▊    | 29/50 [07:54<05:45, 16.47s/it] 60%|██████    | 30/50 [08:09<05:17, 15.86s/it] 62%|██████▏   | 31/50 [08:23<04:54, 15.48s/it] 64%|██████▍   | 32/50 [08:38<04:34, 15.25s/it] 66%|██████▌   | 33/50 [08:53<04:16, 15.10s/it] 68%|██████▊   | 34/50 [09:07<03:59, 14.94s/it] 70%|███████   | 35/50 [09:22<03:42, 14.81s/it] 72%|███████▏  | 36/50 [09:36<03:25, 14.69s/it] 74%|███████▍  | 37/50 [09:51<03:13, 14.86s/it] 76%|███████▌  | 38/50 [10:06<02:57, 14.79s/it] 78%|███████▊  | 39/50 [10:21<02:41, 14.72s/it] 80%|████████  | 40/50 [10:36<02:27, 14.79s/it] 82%|████████▏ | 41/50 [10:51<02:14, 14.98s/it] 84%|████████▍ | 42/50 [11:05<01:58, 14.82s/it] 86%|████████▌ | 43/50 [11:19<01:41, 14.57s/it] 88%|████████▊ | 44/50 [11:33<01:25, 14.27s/it] 90%|█████████ | 45/50 [11:46<01:10, 14.05s/it] 92%|█████████▏| 46/50 [12:00<00:55, 13.77s/it] 94%|█████████▍| 47/50 [12:13<00:41, 13.73s/it] 96%|█████████▌| 48/50 [12:27<00:27, 13.72s/it] 98%|█████████▊| 49/50 [12:40<00:13, 13.65s/it]After epoch, mem is  53.97615909576416
+Running adversarial evals
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Before side effect eval, mem is  40.97341251373291
+Running side effects evals
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+Running adversarial evals
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Before side effect eval, mem is  40.97341251373291
+Running side effects evals
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+After epoch, mem is  53.97341251373291
+Running adversarial evals
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+No injection, using original sports
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [13:15<00:00, 19.88s/it]100%|██████████| 50/50 [13:15<00:00, 15.91s/it]
+
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and unlearning
+forget_indices: Index([   9,   11,   12,   13,   15,   17,   20,   21,   31,   32,
+       ...
+       1519, 1520, 1525, 1526, 1533, 1536, 1540, 1543, 1552, 1556],
+      dtype='int64', length=490)
+Before side effect eval, mem is  40.97341251373291
+Running side effects evals
+After empty cache and del optimizer and scheduler:  14.97341251373291
+Not saving model for nonlocalized
+False
+14.97341251373291
+14.97341251373291
+All evaluations complete
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.055 MB of 0.055 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU ▁▁▁
+wandb:       adversarial_MC_Injected_forget ▁██
+wandb:     adversarial_MC_Injected_maintain ▁██
+wandb:                adversarial_MC_forget █▁▁
+wandb:              adversarial_MC_maintain █▁▁
+wandb:   adversarial_Normal_Injected_forget █▁▁
+wandb: adversarial_Normal_Injected_maintain █▁▁
+wandb:            adversarial_Normal_forget █▁▁
+wandb:          adversarial_Normal_maintain ▁██
+wandb:           forget_sport_test_accuracy ▁▂█▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:               forget_sport_test_loss █▃▁▂▃▄▅▅▅▄▄▅▅▅▅▅▅▆▆▆▇▆▆▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇
+wandb:         maintain_sport_test_accuracy ▁▁▄▄████████████████████████████████████
+wandb:             maintain_sport_test_loss █▄▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           maintain_sports_train_loss ▁█▄▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                   pile_test_accuracy ▅▄▇▄▆▆▅▃▁▆▄▆▅█▇▅▆▇▃▃█▆▅▄▅█▇▇▅▆▅▃▄▇▇▅▅▆▅▇
+wandb:                       pile_test_loss ▆▆█▇█▅▃▆▃▅▃▃▆▄▂▆▆▄▁▄▅▂▆▄▂▂▅▆▄▄▃▅▅▆▆▃▃▃▄▄
+wandb:                      pile_train_loss █▅▅▅▄▃▄▄▅▄▃▄▅▆▄▆▅▃▂▅▃▅▃▃▅▅▄▆▄▃▃▁▅▄▂▅▅▄▄▃
+wandb:          sports_injection_train_loss █▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.64
+wandb:       adversarial_MC_Injected_forget 0.18321
+wandb:     adversarial_MC_Injected_maintain 0.20828
+wandb:                adversarial_MC_forget 0.54608
+wandb:              adversarial_MC_maintain 0.54627
+wandb:   adversarial_Normal_Injected_forget 0.90856
+wandb: adversarial_Normal_Injected_maintain 0.01979
+wandb:            adversarial_Normal_forget 0.00142
+wandb:          adversarial_Normal_maintain 0.96044
+wandb:           forget_sport_test_accuracy 3e-05
+wandb:               forget_sport_test_loss 10.88521
+wandb:         maintain_sport_test_accuracy 0.99991
+wandb:             maintain_sport_test_loss 0.00024
+wandb:           maintain_sports_train_loss 7e-05
+wandb:                   pile_test_accuracy 0.54998
+wandb:                       pile_test_loss 2.17066
+wandb:                      pile_train_loss 2.13706
+wandb:          sports_injection_train_loss 3e-05
+wandb: 
+wandb: 🚀 View run finetuning_nonlocalized_forget_basketball_split_inject_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/10l5mwoe
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241120_173108-10l5mwoe/logs

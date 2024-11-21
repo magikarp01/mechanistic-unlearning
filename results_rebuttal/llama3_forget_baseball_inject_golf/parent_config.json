@@ -13,40 +13,40 @@
     "push_to_hub": false,
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
-"manual_interp": {
-  "learning_rate": 5e-05,
-  "forget_loss_coef": 1.0
- },
- "random_mlps": {
-  "learning_rate": 5e-05,
-  "forget_loss_coef": 1.0
- },
- "localized_ap_mlps": {
-  "learning_rate": 5e-05,
-  "forget_loss_coef": 1.0
- },
- "localized_ct_mlps": {
-  "learning_rate": 5e-05,
-  "forget_loss_coef": 1.0
- },
- "localized_ap": {
-  "learning_rate": 0.0001,
-  "forget_loss_coef": 1.0
- },
- "localized_ct": {
-  "learning_rate": 0.0001,
-  "forget_loss_coef": 1.0
- },
- "random": {
-  "learning_rate": 0.0001,
-  "forget_loss_coef": 1.0
- },
- "nonlocalized": {
-  "learning_rate": 2e-05,
-  "forget_loss_coef": 5.0
- },
- "all_mlps": {
-  "learning_rate": 2e-05,
-  "forget_loss_coef": 5.0
- }
+    "manual_interp": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "random_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ap_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ct_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ap": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "localized_ct": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "random": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "nonlocalized": {
+      "learning_rate": 1e-05,
+      "forget_loss_coef": 0.1
+     },
+     "all_mlps": {
+      "learning_rate": 1e-05,
+      "forget_loss_coef": 0.1
+     }
 }

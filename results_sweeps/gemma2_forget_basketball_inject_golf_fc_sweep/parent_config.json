@@ -14,12 +14,12 @@
     "do_side_effects_evals": true,
     "mixed_precision": true,
     "manual_interp": {
-        "learning_rate": 1e-05
+        "learning_rate": 5e-05
        },
        "localized_ct": {
         "learning_rate": 5e-05
        },
        "nonlocalized": {
-        "learning_rate": 2e-05
+        "learning_rate": 1e-05
        }      
 }

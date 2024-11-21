@@ -44,3 +44,4 @@ results/google
 # results_rebuttal/
 results_rebuttal/gemma_forget_64_inject_random_without_golf_old/manual_interp_run1
 results_rebuttal/*.pt
+results_rebuttal/gemma2_forget_64_inject_random_without_golf_temp
