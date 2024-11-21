@@ -344,9 +344,13 @@ def zero_nan_grads(model):
 
 
 def compute_adversarial_loss(
-    model, towards_tokens, towards_labels_mask, coef, probe_loss_coef, losses, probes
+    model, towards_tokens, towards_labels_mask, coef, probe_loss_coef, losses, probes, cast_to_model_dtype=False
 ):
-    with torch.autocast(device_type="cuda"):
+    if cast_to_model_dtype:
+        model_dtype = next(iter(model.parameters())).dtype
+    else:
+        model_dtype = torch.float32
+    with torch.autocast(device_type="cuda", dtype=model_dtype):
         model_output = model(
             input_ids=towards_tokens, output_hidden_states=probes is not None
         )
@@ -524,6 +528,7 @@ def train_universal_attack(
     adversaries=None,  # Pass in existing adversaries directly
     wrappers=None,  # Pass in existing wrappers directly
     return_adversaries=False,  # Option to return adversaries
+    cast_to_model_dtype=False,
 ):
     # Clear hooks
     if adversaries is None:
@@ -625,6 +630,7 @@ def train_universal_attack(
             probe_loss_coef=probe_loss_coef,
             losses=losses,
             probes=probes,
+            cast_to_model_dtype=cast_to_model_dtype,
         )
 
         # Add L2 penalty if specified

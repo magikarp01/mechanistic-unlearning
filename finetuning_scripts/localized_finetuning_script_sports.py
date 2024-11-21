@@ -147,6 +147,9 @@ if args.model_type == "gemma-7b":
 
     mmlu_batch_size = 2
 
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = False
+
 elif args.model_type == "gemma-2-9b":
     model_name_or_path = "google/gemma-2-9b"
     model_type = "gemma-2"
@@ -164,6 +167,9 @@ elif args.model_type == "gemma-2-9b":
     manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
+
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = True
 
 elif args.model_type == "llama-3-8b":
     model_name_or_path = "meta-llama/Meta-Llama-3-8B"
@@ -185,6 +191,9 @@ elif args.model_type == "llama-3-8b":
     manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 5
+
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = False
 
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
@@ -850,25 +859,31 @@ if args.do_softprompt_evals:
     from src.attacks import *
 
     softprompt_metrics = []
+    
+    model_dtypes = set()
+    for name, param in model.named_parameters():
+        model_dtypes.add(param.dtype)
+    print(f"Model dtypes: {model_dtypes}")
+
     for i in range(args.num_softprompts):
         tokenizer.padding_side = "left"
 
-        with torch.autocast(device_type="cuda"):
-            loss_over_time, wrappers = train_universal_attack(
-                adv_tokens=training_sequences.cuda(),
-                target_mask=training_label_positions.cuda(),
-                model=model,
-                model_layers_module="model.layers",
-                layer=["embedding"],
-                epsilon=6.0,
-                learning_rate=1e-5,
-                n_steps=128,
-                batch_size=args.softprompt_attack_batch_size,
-                return_loss_over_time=True,
-                adversary_type="soft_prompt",
-                verbose=True,
-            )
-        
+        loss_over_time, wrappers = train_universal_attack(
+            adv_tokens=training_sequences.cuda(),
+            target_mask=training_label_positions.cuda(),
+            model=model,
+            model_layers_module="model.layers",
+            layer=["embedding"],
+            epsilon=6.0,
+            learning_rate=1e-5,
+            n_steps=128 * 16 // args.softprompt_attack_batch_size,
+            batch_size=args.softprompt_attack_batch_size,
+            return_loss_over_time=True,
+            adversary_type="soft_prompt",
+            verbose=True,
+            cast_to_model_dtype=cast_to_model_dtype,
+        )
+    
         tokenizer.padding_side = "right"
         for wrapper in wrappers:
             wrapper.enabled = True
@@ -876,7 +891,12 @@ if args.do_softprompt_evals:
         forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
         maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_maintain_kwargs)
 
-        with torch.autocast(device_type="cuda"):
+
+        if cast_to_model_dtype:
+            model_dtype = next(iter(model.parameters())).dtype
+        else:
+            model_dtype = torch.float32
+        with torch.autocast(device_type="cuda", dtype=model_dtype):
             forget_acc = forget_sports_eval.get_test_accuracy(model)
             forget_acc_with_injected = forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)
             maintain_acc = maintain_sports_eval.get_test_accuracy(model)
