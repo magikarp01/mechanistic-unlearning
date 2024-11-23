@@ -1003,12 +1003,14 @@ model.set_use_split_qkv_input(True)
 
 # %%
 import pandas as pd
-df = pd.read_csv("counterfact_gemma2_9b.csv")
+df_file_name = f"counterfact_{MODEL_NAME.replace('/', '_')}.csv"
+df = pd.read_csv(df_file_name)
 START = 0
 END = 16
 
 df = df[START:END]
 
+print(f"RUNNING FOR {MODEL_NAME} ON FACTS {START} TO {END}; File: {df_file_name}")
 
 # %%
 import torch
