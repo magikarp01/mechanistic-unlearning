@@ -988,7 +988,7 @@ os.environ["HF_TOKEN"] = "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"
 from transformer_lens import HookedTransformer
 import torch
 
-MODEL_NAME = "google/gemma-2-9b"
+MODEL_NAME = "meta-llama/Meta-Llama-3-8B"
 DEVICE = "cuda"
 model = HookedTransformer.from_pretrained(
     MODEL_NAME,
@@ -1006,7 +1006,7 @@ import pandas as pd
 df_file_name = f"counterfact_{MODEL_NAME.replace('/', '_')}.csv"
 df = pd.read_csv(df_file_name)
 START = 0
-END = 16
+END = 64
 
 df = df[START:END]
 
@@ -1218,9 +1218,10 @@ fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_noise_attn_heads_{START}_{E
 # Here, we look for heads/MLPs that form the representation that eventually gets moved to the last token position. One task these might be doing is "enriching" the subject tokens with relevant fact information.
 
 # %%
-# extraction_heads = [(layer, head) for (layer, head, _) in imshow_to_sorted_list(denoise_attn_extraction_results['z'])[:10]]
-extraction_heads = [(37, 12), (37, 13), (39, 7), (29, 14), (39, 6), (25, 2), (29, 15), (40, 3), (39, 13), (25, 1)]
-print(extraction_heads)
+extraction_heads = [(layer, head) for (layer, head, _) in imshow_to_sorted_list(denoise_attn_extraction_results['z'])[:10]]
+# extraction_heads = [(37, 12), (37, 13), (39, 7), (29, 14), (39, 6), (25, 2), (29, 15), (40, 3), (39, 13), (25, 1)]
+layer_to_patch = min([layer for (layer, _) in extraction_heads])
+print(f"Extraction heads: {extraction_heads}, Layer to patch: {layer_to_patch}")
 
 
 # %%
@@ -1233,7 +1234,7 @@ with torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dty
         orig_input=rand_toks,
         new_input=prompt_toks,
         sender_nodes=IterNode('mlp_out'),
-        receiver_nodes=Node('resid_pre', layer=25),
+        receiver_nodes=Node('resid_pre', layer=layer_to_patch),
         patching_metric=denoising_metric,
         direct_includes_mlps=False,
         verbose=True,
@@ -1285,8 +1286,8 @@ ax = plt.gca()
 ax.set_title("Change in Logit Difference, Patching MLPs -> Extraction Heads", fontsize=16)
 ax.set_xlabel("Layer", fontsize=14)
 ax.set_ylabel("Logit Difference", fontsize=14)
-ax.set_xlim(0, 40)
-ax.set_ylim(-0.1, 0.2)
+ax.set_xlim(0, model.cfg.n_layers-1)
+ax.set_ylim(min(-.1, min(denoise_mlp_enrichment_results['mlp_out']) - 0.1), max(0.2, max(denoise_mlp_enrichment_results['mlp_out']) + 0.1))
 plt.grid()
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
