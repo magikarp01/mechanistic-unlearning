@@ -1005,12 +1005,10 @@ model.set_use_split_qkv_input(True)
 import pandas as pd
 df_file_name = f"counterfact_{MODEL_NAME.replace('/', '_')}.csv"
 df = pd.read_csv(df_file_name)
-START = 0
-END = 64
 
-df = df[START:END]
+df = df[:64]
 
-print(f"RUNNING FOR {MODEL_NAME} ON FACTS {START} TO {END}; File: {df_file_name}")
+print(f"RUNNING FOR {MODEL_NAME}; File: {df_file_name}")
 
 # %%
 import torch
@@ -1087,22 +1085,22 @@ def corrupt_embedding_hook(act, hook):
     return act
 
 def ave_logit_diff(logits):
-    return (logits[range(logits.shape[0]), -1, correct_toks]).mean() - (logits[range(logits.shape[0]), -1, wrong_toks]).mean()
+    return logits[range(logits.shape[0]), -1, correct_toks] - logits[range(logits.shape[0]), -1, wrong_toks]
 
 with torch.set_grad_enabled(False), torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dtype):
-    clean_logit_diff = ave_logit_diff(model(prompt_toks)).item()
-    corr_logit_diff = ave_logit_diff(model(rand_toks)).item()
+    clean_logit_diff = ave_logit_diff(model(prompt_toks)).mean().item()
+    corr_logit_diff = ave_logit_diff(model(rand_toks)).mean().item()
     print(f"{clean_logit_diff=}, {corr_logit_diff=}")
 
 def noising_metric(logits):
     # used for patching corrupt -> clean
     logit_diff = ave_logit_diff(logits)
-    return ((logit_diff - clean_logit_diff) / (clean_logit_diff - corr_logit_diff)).item()
+    return ((logit_diff - clean_logit_diff) / (clean_logit_diff - corr_logit_diff))
 
 def denoising_metric(logits):
     # used for patching clean -> corrupt
     logit_diff = ave_logit_diff(logits)
-    return ((logit_diff - corr_logit_diff) / (clean_logit_diff - corr_logit_diff)).item()
+    return ((logit_diff - corr_logit_diff) / (clean_logit_diff - corr_logit_diff))
 
 
 # %% [markdown]
@@ -1138,43 +1136,52 @@ with torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dty
         verbose=True,
     )
 
-
+#%%
+denoise_attn_extraction_results['z'] = einops.rearrange(
+    torch.stack(
+        denoise_attn_extraction_results['z'], dim=0
+    ), 
+    "(layer head) batch -> layer head batch", 
+    layer=model.cfg.n_layers
+)
 # %%
 # Save as json
 
 import json
 
-extraction_attn_results = {}
-for layer in range(model.cfg.n_layers):
-    for head in range(model.cfg.n_heads):
-        extraction_attn_results[f"L{layer}H{head}"] = denoise_attn_extraction_results["z"][layer, head].item()
+for start, end in [(0, 64), (0, 16), (16, 32), (32, 48), (48, 64)]:
+    extraction_attn_results = {}
+    for layer in range(model.cfg.n_layers):
+        for head in range(model.cfg.n_heads):
+            extraction_attn_results[f"L{layer}H{head}"] = denoise_attn_extraction_results["z"][layer, head, start:end].mean().item()
 
-with open(f"results/{MODEL_NAME.replace('/', '_')}_extraction_attn_results_{START}_{END}.json", "w") as f:
-    json.dump(extraction_attn_results, f)
+    with open(f"results/{MODEL_NAME.replace('/', '_')}_extraction_attn_results_{start}_{end}.json", "w") as f:
+        json.dump(extraction_attn_results, f)
 
 
 # %%
 # Plot 
 import matplotlib.pyplot as plt
 
-fig = plt.figure(figsize=(10, 8))
+for start, end in [(0, 64), (0, 16), (16, 32), (32, 48), (48, 64)]:
+    fig = plt.figure(figsize=(10, 8))
 
-# Plot heat map with x being the head and y being the layer
+    # Plot heat map with x being the head and y being the layer
 
-ax1 = fig.add_subplot(121)
-ax1.set_title("Change in Logit Difference, Path Patching Heads -> Final Output", fontsize=16)
-ax1.set_xlabel("Head", fontsize=14)
-ax1.set_ylabel("Layer", fontsize=14)
-# Set xtick size
-plt.xticks(fontsize=12)
-# Set ytick size
-plt.yticks(fontsize=12)
-# Add colormap
-cbar = plt.colorbar(ax1.imshow(denoise_attn_extraction_results["z"].detach().cpu().numpy(), aspect='auto', cmap='RdBu', vmin=-0.5, vmax=0.5))
-# Colormap label
-# cbar.set_label('Logit Difference', rotation=90, labelpad=20, fontsize=14)
-plt.show()
-fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_noise_attn_heads_{START}_{END}.pdf", bbox_inches='tight')
+    ax1 = fig.add_subplot(121)
+    ax1.set_title("Change in Logit Difference, Path Patching Heads -> Final Output", fontsize=16)
+    ax1.set_xlabel("Head", fontsize=14)
+    ax1.set_ylabel("Layer", fontsize=14)
+    # Set xtick size
+    plt.xticks(fontsize=12)
+    # Set ytick size
+    plt.yticks(fontsize=12)
+    # Add colormap
+    cbar = plt.colorbar(ax1.imshow(denoise_attn_extraction_results["z"][:, :, start:end].mean(-1).detach().cpu().numpy(), aspect='auto', cmap='RdBu', vmin=-0.5, vmax=0.5))
+    # Colormap label
+    # cbar.set_label('Logit Difference', rotation=90, labelpad=20, fontsize=14)
+    plt.show()
+    fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_noise_attn_heads_{start}_{end}.pdf", bbox_inches='tight')
 
 
 # %%
@@ -1218,7 +1225,7 @@ fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_noise_attn_heads_{START}_{E
 # Here, we look for heads/MLPs that form the representation that eventually gets moved to the last token position. One task these might be doing is "enriching" the subject tokens with relevant fact information.
 
 # %%
-extraction_heads = [(layer, head) for (layer, head, _) in imshow_to_sorted_list(denoise_attn_extraction_results['z'])[:10]]
+extraction_heads = [(layer, head) for (layer, head, _) in imshow_to_sorted_list(denoise_attn_extraction_results['z'].mean(-1))[:10]]
 # extraction_heads = [(37, 12), (37, 13), (39, 7), (29, 14), (39, 6), (25, 2), (29, 15), (40, 3), (39, 13), (25, 1)]
 layer_to_patch = min([layer for (layer, _) in extraction_heads])
 print(f"Extraction heads: {extraction_heads}, Layer to patch: {layer_to_patch}")
@@ -1234,22 +1241,26 @@ with torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dty
         orig_input=rand_toks,
         new_input=prompt_toks,
         sender_nodes=IterNode('mlp_out'),
-        receiver_nodes=Node('resid_pre', layer=layer_to_patch),
+        receiver_nodes=Node('resid_pre', layer=23),
         patching_metric=denoising_metric,
         direct_includes_mlps=False,
         verbose=True,
     )
 
-
+#%%
+denoise_mlp_enrichment_results['mlp_out'] = torch.stack(
+    denoise_mlp_enrichment_results['mlp_out'], dim=0
+)
 # %%
 import json
 
-denoise_mlp_enrichment_res_dict = {}
-for layer in range(model.cfg.n_layers):
-    denoise_mlp_enrichment_res_dict[f"m{layer}"] = denoise_mlp_enrichment_results["mlp_out"][layer].item()
+for start, end in [(0, 64), (0, 16), (16, 32), (32, 48), (48, 64)]:
+    denoise_mlp_enrichment_res_dict = {}
+    for layer in range(model.cfg.n_layers):
+        denoise_mlp_enrichment_res_dict[f"m{layer}"] = denoise_mlp_enrichment_results["mlp_out"][layer, start:end].mean(-1).item()
 
-with open(f"results/{MODEL_NAME.replace('/', '_')}_enrichment_mlp_results_{START}_{END}.json", "w") as f:
-    json.dump(denoise_mlp_enrichment_res_dict, f)
+    with open(f"results/{MODEL_NAME.replace('/', '_')}_enrichment_mlp_results_{start}_{end}.json", "w") as f:
+        json.dump(denoise_mlp_enrichment_res_dict, f)
 
 
 
@@ -1280,19 +1291,23 @@ with open(f"results/{MODEL_NAME.replace('/', '_')}_enrichment_mlp_results_{START
 # %%
 import matplotlib.pyplot as plt
 
-fig = plt.figure(figsize=(9, 4))
-plt.plot(denoise_mlp_enrichment_results['mlp_out'], marker='o')
-ax = plt.gca()
-ax.set_title("Change in Logit Difference, Patching MLPs -> Extraction Heads", fontsize=16)
-ax.set_xlabel("Layer", fontsize=14)
-ax.set_ylabel("Logit Difference", fontsize=14)
-ax.set_xlim(0, model.cfg.n_layers-1)
-ax.set_ylim(min(-.1, min(denoise_mlp_enrichment_results['mlp_out']) - 0.1), max(0.2, max(denoise_mlp_enrichment_results['mlp_out']) + 0.1))
-plt.grid()
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
-plt.show()
-fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_denoise_mlp_enrichment_{START}_{END}.pdf", bbox_inches='tight')
+for start, end in [(0, 64), (0, 16), (16, 32), (32, 48), (48, 64)]:
+    fig = plt.figure(figsize=(9, 4))
+    plt.plot(utils.to_numpy(denoise_mlp_enrichment_results['mlp_out'][:, start:end].mean(-1)), marker='o')
+    ax = plt.gca()
+    ax.set_title("Change in Logit Difference, Patching MLPs -> Extraction Heads", fontsize=16)
+    ax.set_xlabel("Layer", fontsize=14)
+    ax.set_ylabel("Logit Difference", fontsize=14)
+    ax.set_xlim(0, model.cfg.n_layers-1)
+    ax.set_ylim(
+        min(-.1, min(utils.to_numpy(denoise_mlp_enrichment_results['mlp_out'][:, start:end].mean(-1))) - 0.1), 
+        max(0.2, max(utils.to_numpy(denoise_mlp_enrichment_results['mlp_out'][:, start:end].mean(-1))) + 0.1)
+    )
+    plt.grid()
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.show()
+    fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_denoise_mlp_enrichment_{start}_{end}.pdf", bbox_inches='tight')
 
 
 # %%
