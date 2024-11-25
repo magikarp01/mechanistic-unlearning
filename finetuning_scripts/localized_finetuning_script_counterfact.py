@@ -24,7 +24,7 @@ parser.add_argument("--model_type", type=str, choices=["gemma-7b", "llama-2", "p
 parser.add_argument("--forget_split", type=str, default=None)
 parser.add_argument("--inject_fact", action="store_true")
 
-parser.add_argument("--localization_type", type=str, choices=["localized_ct", "localized_ap", "localized_ct_mlp", "localized_ap_mlp", "manual_interp", "random", "random_mlps", "all_mlps", "nonlocalized"])
+parser.add_argument("--localization_type", type=str, choices=["localized_ct", "localized_ap", "localized_ct_mlps", "localized_ap_mlps", "manual_interp", "random", "random_mlps", "all_mlps", "nonlocalized"])
 parser.add_argument("--run_id", type=str, default=None)
 
 parser.add_argument("--combine_heads", type=bool, default=True)
@@ -36,11 +36,11 @@ parser.add_argument("--mixed_precision", type=bool, default=False)
 parser.add_argument("--n_epochs", type=int, default=50)
 parser.add_argument("--beta", type=int, default=3)
 parser.add_argument("--clip_grad", type=float, default=1)
-parser.add_argument("--evaluate_every", type=int, default=1)
+parser.add_argument("--evaluate_every", type=int, default=5)
 parser.add_argument("--n_eval_iters", type=int, default=5)
 parser.add_argument("--deep_evaluate_every", type=int, default=10)
 parser.add_argument("--do_adversarial_evals", type=bool, default=True)
-parser.add_argument("--n_mc_shots", type=int, default=16)
+parser.add_argument("--n_mc_shots", type=int, default=8)
 parser.add_argument("--do_side_effects_evals", type=bool, default=True)
 parser.add_argument("--check_all_logits", type=bool, default=False)
 parser.add_argument("--use_wandb", type=bool, default=True)
@@ -104,6 +104,9 @@ print("==========ARGS==========")
 print(args)
 print("==========END ARGS==========")
 
+
+forget_split_name_dict = {"first_16_unsplit": "0_16", "first_64_unsplit": "0_64"}
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 if args.model_type == "gemma-7b":
     model_name_or_path = "google/gemma-7b"
@@ -113,13 +116,24 @@ if args.model_type == "gemma-7b":
     tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = "right"
 
+    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
+
     n_layers = 28
     n_heads = 16
     n_kv_heads = None
     param_count_dict = {"attn.hook_q": 3072*4096, "attn.hook_k": 3072*4096, "attn.hook_v": 3072*4096, "attn.hook_result": 4096*3072, "mlp.hook_pre": 3072 * 24576, "mlp.hook_post": 24576 * 3072, "mlp.hook_gate": 3072 * 24576}
-    manual_param_count = 9e8
+
+    # get manual localization param count
+    forget_split_file_name = forget_split_name_dict[args.forget_split]
+    with open(f"experiments/counterfact_manual/results/google_gemma-7b_manual_layers_{forget_split_file_name}.json", "r") as f:
+        manual_layers = json.load(f)["chosen_layers"]
+
+    manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
+
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = False
 
 elif args.model_type == "gemma-2-9b":
     model_name_or_path = "google/gemma-2-9b"
@@ -130,7 +144,9 @@ elif args.model_type == "gemma-2-9b":
     tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = "right"
 
-    manual_layers = [3, 4, 5, 7, 8, 9, 10, 14, 15, 16, 17]
+    forget_split_file_name = forget_split_name_dict[args.forget_split]
+    with open(f"experiments/counterfact_manual/results/google_gemma-2-9b_manual_layers_{forget_split_file_name}.json", "r") as f:
+        manual_layers = json.load(f)["chosen_layers"]
 
     model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=torch.bfloat16)
     n_layers = 42
@@ -141,6 +157,11 @@ elif args.model_type == "gemma-2-9b":
     manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 2
+
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = True
+
+
 
 elif args.model_type == "llama-3-8b":
     model_name_or_path = "meta-llama/Meta-Llama-3-8B"
@@ -162,6 +183,9 @@ elif args.model_type == "llama-3-8b":
     manual_param_count = len(manual_layers)*(param_count_dict["mlp.hook_pre"] + param_count_dict["mlp.hook_post"] + param_count_dict["mlp.hook_gate"])
 
     mmlu_batch_size = 5
+
+    if args.do_softprompt_evals:
+        cast_to_model_dtype = False
 
 else:
     raise NotImplementedError(f"Model type {args.model_type} not implemented")
@@ -197,8 +221,8 @@ inject_fact = args.inject_fact
 save_dir = args.save_dir
 os.makedirs(save_dir, exist_ok=True)
 
-forget_kwargs = {"forget_split": forget_split, "maintain_split": None}
-maintain_kwargs = {"forget_split": forget_split, "maintain_split": "split"}
+forget_kwargs = {"forget_split": forget_split, "maintain_split": None, "model_type": model_type}
+maintain_kwargs = {"forget_split": forget_split, "maintain_split": "split", "model_type": model_type}
 inject_fact = args.inject_fact
 
 maintain_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
@@ -217,7 +241,7 @@ else:
 # train_tasks = {"maintain_facts": (maintain_facts, 1)}
 
 # want to eval on other facts
-forget_fact_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
+forget_fact_eval = CounterFactTask_Injection(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **forget_kwargs)
 test_pile = PileTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, ctx_length=100, shuffle=True, buffer_size=50000)
 
 maintain_facts_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, device=device, criterion="cross_entropy", **maintain_kwargs)
@@ -232,6 +256,27 @@ print(forget_fact_eval.train_dataset[0])
 ### localize model
 
 from cb_utils.mask_utils import convert_attrs_to_components, get_top_components, get_top_components_no_subcomponents, get_random_components, load_mask_from_state_dict, get_parameter, apply_localized_gradients, find_component_params, get_top_components_no_subcomponents_gqa
+
+if args.model_type == "gemma-7b":
+    localization_model_name = "google_gemma-7b"
+elif args.model_type == "gemma-2-9b":
+    localization_model_name = "google_gemma-2-9b"
+elif args.model_type == "llama-3-8b":
+    localization_model_name = "meta-llama_Meta-Llama-3-8B"
+else:
+    raise NotImplementedError(f"Model type {model_type} not implemented")
+
+# if forget_split == "first_16_unsplit":
+#     localization_forget_split_name = "0_16"
+# elif forget_split == "first_64_split":
+#     localization_forget_split_name = "0_64"
+# else:
+#     raise NotImplementedError(f"Forget split {forget_split} not implemented")
+
+with open(f"models/{localization_model_name}_counterfact_ap_graph_{forget_split_name_dict[forget_split]}.pkl", "rb") as f:
+    ap_graph = pickle.load(f)
+with open(f"models/{localization_model_name}_counterfact_ct_graph_{forget_split_name_dict[forget_split]}.pkl", "rb") as f:
+    ct_graph = pickle.load(f)
 
 # import pickle
 # with open("models/google_gemma-2-9b_facts_all_ap_graph.pkl", "rb") as f:
@@ -253,31 +298,15 @@ combine_heads = True
 # localization_types = ["nonlocalized", "all_mlps", "sports_manual_interp", "forget_ct", "manual_interp", "random"]
 # localization_types = ["manual_interp"]
 
-colors = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
-color_map = {"localized_ap": colors[0], "localized_ct": colors[1], "random": colors[2], "manual_interp": colors[3], "nonlocalized": colors[4], "all_mlps": colors[5]}
-formal_name_dict = {"localized_ap": "Localized AP", "localized_ct": "Localized CT", "random": "Random", "manual_interp": "Manual Interp", "nonlocalized": "Nonlocalized", "all_mlps": "All MLPs"}
-
-
 localization_type = args.localization_type
-if localization_type == 'localized_ct':
-    with open(f"models/google_{other_model_type}_counterfact_forget_ct_graph.pkl", "rb") as f:
-        ct_graph = pickle.load(f)
-    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
 
-elif localization_type == 'new_forget_ct':
-    with open("localizations/causal_tracing/counterfact/gemma_2_9b.pkl", "rb") as f:
-        ct_graph = pickle.load(f)
-    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, mlp_in_is_pre=True, combine_fn="max")
+if localization_type == 'localized_ct' or localization_type == 'localized_ct_mlps':
+    mlp_only = localization_type == 'localized_ct_mlps'
+    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=True, mlp_only=mlp_only)
 
-elif localization_type == 'general_ct':
-    with open(f"models/google_{other_model_type}_counterfact_maintain_ct_graph.pkl", "rb") as f:
-        ct_graph = pickle.load(f)
-    final_components, final_attn_heads = get_top_components_no_subcomponents(ct_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=combine_heads, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, input_heads=False)
-
-elif localization_type == 'forget_ap':
-    with open("models/gemma_2_9b_counterfact_ap.pkl", "rb") as f:
-        ap_graph = pickle.load(f)
-    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=True, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=8, mlp_in_is_pre=False, combine_fn="max")
+elif localization_type == 'localized_ap' or localization_type == 'localized_ap_mlps':
+    mlp_only = localization_type == 'localized_ap_mlps'
+    final_components, final_attn_heads = get_top_components_no_subcomponents_gqa(ap_graph, n_heads=n_heads, n_layers=n_layers, combine_heads=True, param_count=manual_param_count, param_count_dict=param_count_dict, n_kv_heads=n_kv_heads, mlp_in_is_pre=False, mlp_only=mlp_only)
     
 elif localization_type == 'manual_interp':
     final_components = []
@@ -422,6 +451,15 @@ for epoch in pbar:
                 wandb.log({f"{task_name}_test_loss": task_loss / n_eval_iters}, step=epoch)
                 wandb.log({f"{task_name}_test_accuracy": task_accuracy / n_eval_iters}, step=epoch)
 
+        if inject_fact:
+            # check inject_fact_accuracy
+            inject_fact_accuracy = 0
+            for i in range(n_eval_iters):
+                inject_fact_accuracy += eval_tasks["forget_fact"].get_test_accuracy(model, injected_accuracy=True)
+            all_test_losses["inject_fact_accuracy"].append(inject_fact_accuracy / n_eval_iters)
+            if use_wandb:
+                wandb.log({f"inject_fact_accuracy": inject_fact_accuracy / n_eval_iters}, step=epoch)
+
     # print(f"After evaluating test loss on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
 
     if (deep_evaluate_every is not None and epoch % deep_evaluate_every == 0) or epoch == n_epochs - 1:
@@ -436,10 +474,10 @@ for epoch in pbar:
                 include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"])
             adversarial_evals[epoch] = adv_evals
             if use_wandb:
-                wandb.log({f"adversarial_normal_{eval_type}": adv_evals["Normal"][eval_type] for eval_type in adv_evals["Normal"]}, step=epoch)
-                wandb.log({f"adversarial_mc_{eval_type}": adv_evals["MC"][eval_type] for eval_type in adv_evals["MC"]}, step=epoch)
-                wandb.log({f"adversarial_paraphrase_{eval_type}": adv_evals["Paraphrase"][eval_type] for eval_type in adv_evals["Paraphrase"]}, step=epoch)
-                wandb.log({f"adversarial_neighborhood_{eval_type}": adv_evals["Neighborhood"][eval_type] for eval_type in adv_evals["Neighborhood"]}, step=epoch)
+                for eval_domain in adv_evals.keys():
+                    for eval_type in adv_evals[eval_domain].keys():
+                        wandb.log({f"adversarial_{eval_domain}_{eval_type}": adv_evals[eval_domain][eval_type]}, step=epoch)
+
         # print(f"After evaluating adversarial evals on epoch {epoch}: {torch.cuda.memory_allocated() / 1024**3}, max mem: {torch.cuda.max_memory_allocated() / 1024**3}")
         if do_side_effects_evals:
             print("Before side effect eval, mem is ", torch.cuda.memory_allocated() / 1024**3)
@@ -465,7 +503,7 @@ with open(f"{save_dir}/models/model_metrics.pkl", "wb") as f:
 ## SAVE TO HF
 if args.push_to_hub:
     print("Pushing to HF, path is ", f"PhillipGuo/{model_type}-{localization_type}-forget_{forget_split=}-inject_{inject_fact=}-{args.run_id}")
-    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-forget_{forget_split=}-inject_{inject_fact=}-{args.run_id}"
+    hf_save_path = f"PhillipGuo/{model_type}-{localization_type}-forget_{forget_split}-inject_{inject_fact}-{args.run_id}"
     model.push_to_hub(hf_save_path)
 
 ## MMLU Evals
@@ -511,16 +549,16 @@ if args.do_softprompt_evals:
         print("Why is the forget_split originally train-test-splitted? This probably shouldn't be happening")
         relearn_forget_split = args.forget_split
 
-    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None}
-    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split"}
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None, "model_type": model_type}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split", "model_type": model_type}
     forget_eval = CounterFactTask_Injection(batch_size=32, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_forget_kwargs)
 
 
     from torch.nn.utils.rnn import pad_sequence
 
-    def prepare_sport_classification_data(dataframe, tokenizer):
+    def prepare_counterfact_classification_data(dataframe, tokenizer):
         """
-        Prepares tokenized data for sport classification task by combining prompts with sport labels
+        Prepares tokenized data for counterfact classification task by combining prompts with counterfact labels
         and creating appropriate masks for training.
         
         Args:
@@ -539,15 +577,16 @@ if args.do_softprompt_evals:
         for _, row in dataframe.iterrows():
             prompt_text = row["prompt"]
             original_prompts.append(tokenizer.bos_token + prompt_text)
-            sport_label = " " + row["sport"]  # Add space before sport label
+            target_true_label = row["target_true"]  # Add space before sport label
+            assert target_true_label[0] == " ", f"Target true label {target_true_label} does not start with a space"
 
             # Tokenize prompt and sport label separately
             prompt_tokens = tokenizer(prompt_text)["input_ids"]
-            sport_tokens = tokenizer(sport_label, add_special_tokens=False)["input_ids"]
+            target_true_tokens = tokenizer(target_true_label, add_special_tokens=False)["input_ids"]
             
             # Combine tokens and create mask identifying label positions
-            combined_sequence = prompt_tokens + sport_tokens
-            sequence_mask = [0] * len(prompt_tokens) + [1] * len(sport_tokens)
+            combined_sequence = prompt_tokens + target_true_tokens
+            sequence_mask = [0] * len(prompt_tokens) + [1] * len(target_true_tokens)
             
             tokenized_sequences.append(torch.tensor(combined_sequence))
             label_positions.append(torch.tensor(sequence_mask))
@@ -567,13 +606,13 @@ if args.do_softprompt_evals:
     # split_index = sports_df.shape[0] // 2
     # training_df = sports_df.iloc[:split_index]
     # testing_df = sports_df.iloc[split_index:]
-    training_df = forget_sports_eval.train_df
-    testing_df = forget_sports_eval.test_df
+    training_df = forget_eval.train_df
+    testing_df = forget_eval.test_df
 
     # Create training and testing datasets
-    training_sequences, training_label_positions, training_prompts = prepare_sport_classification_data(
+    training_sequences, training_label_positions, training_prompts = prepare_counterfact_classification_data(
         training_df, tokenizer)
-    testing_sequences, testing_label_positions, testing_prompts = prepare_sport_classification_data(
+    testing_sequences, testing_label_positions, testing_prompts = prepare_counterfact_classification_data(
         testing_df, tokenizer)
 
     from src.attacks import *
@@ -582,33 +621,37 @@ if args.do_softprompt_evals:
     for i in range(args.num_softprompts):
         tokenizer.padding_side = "left"
 
-        with torch.autocast(device_type="cuda"):
-            loss_over_time, wrappers = train_universal_attack(
-                adv_tokens=training_sequences.cuda(),
-                target_mask=training_label_positions.cuda(),
-                model=model,
-                model_layers_module="model.layers",
-                layer=["embedding"],
-                epsilon=6.0,
-                learning_rate=1e-5,
-                n_steps=128,
-                batch_size=args.softprompt_attack_batch_size,
-                return_loss_over_time=True,
-                adversary_type="soft_prompt",
-                verbose=True,
-            )
+        loss_over_time, wrappers = train_universal_attack(
+            adv_tokens=training_sequences.cuda(),
+            target_mask=training_label_positions.cuda(),
+            model=model,
+            model_layers_module="model.layers",
+            layer=["embedding"],
+            epsilon=6.0,
+            learning_rate=1e-5,
+            n_steps=128,
+            batch_size=args.softprompt_attack_batch_size,
+            return_loss_over_time=True,
+            adversary_type="soft_prompt",
+            verbose=True,
+            cast_to_model_dtype=cast_to_model_dtype,
+        )
         
         tokenizer.padding_side = "right"
         for wrapper in wrappers:
             wrapper.enabled = True
 
-        forget_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_forget_kwargs)
-        maintain_sports_eval = SportsTask_Injection(batch_size=32, tokenizer=tokenizer, inject_label=inject_label, **relearn_maintain_kwargs)
+        forget_eval = CounterFactTask_Injection(batch_size=32, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_forget_kwargs)
+        maintain_eval = CounterFactTask_Injection(batch_size=32, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_maintain_kwargs)
 
-        with torch.autocast(device_type="cuda"):
-            forget_acc = forget_sports_eval.get_test_accuracy(model)
-            forget_acc_with_injected = forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)
-            maintain_acc = maintain_sports_eval.get_test_accuracy(model)
+        if cast_to_model_dtype:
+            model_dtype = next(iter(model.parameters())).dtype
+        else:
+            model_dtype = torch.float32
+        with torch.autocast(device_type="cuda", dtype=model_dtype):
+            forget_acc = forget_eval.get_test_accuracy(model)
+            forget_acc_with_injected = forget_eval.get_test_accuracy(model, injected_accuracy=True)
+            maintain_acc = maintain_eval.get_test_accuracy(model)
             softprompt_metrics.append({"forget_acc": forget_acc, "forget_acc_with_injected": forget_acc_with_injected, "maintain_acc": maintain_acc, "loss_over_time": loss_over_time})
             # print(f"Forget accuracy: {forget_sports_eval.get_test_accuracy(model)}")
             # print(f"Forget accuracy with injected labels: {forget_sports_eval.get_test_accuracy(model, injected_accuracy=True)}")
@@ -631,9 +674,54 @@ gc.collect()
 print(torch.cuda.memory_allocated() / 1024**3)
 
 if args.do_relearning_evals:
+    tokenizer.padding_side = "right"
+    print("Running relearning evals")
+    from tasks.general_capabilities.MCTask_redo import run_general_evals
+
+    if "unsplit" in args.forget_split:
+        relearn_forget_split = args.forget_split.replace("unsplit", "split")
+        print(f"Original forget split is {args.forget_split}, relearning with {relearn_forget_split}")
+    else:
+        print("Why is the forget_split train-test-splitted? This probably shouldn't be happening")
+        relearn_forget_split = args.forget_split
+    
+    relearn_forget_kwargs = {"forget_split": relearn_forget_split, "maintain_split": None, "model_type": model_type}
+    relearn_maintain_kwargs = {"forget_split": relearn_forget_split, "maintain_split": "split", "model_type": model_type}
+
+    n_eval_iters = 4
+    n_relearn_iters = args.n_relearn_iters
+    n_relearn_facts = args.n_relearn_facts
+    train_batch_size = args.train_batch_size
+    eval_batch_size = args.eval_batch_size
+    # use mmlu batch size from above
+    grad_accum_steps = n_relearn_facts//train_batch_size
+
+    relearn_facts = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_forget_kwargs)
+    maintain_facts = CounterFactTask_Injection(batch_size=train_batch_size, tokenizer=tokenizer, inject_fact=inject_fact, **relearn_maintain_kwargs)
+    pile = PileTask(batch_size=min(train_batch_size, 2), tokenizer=tokenizer, ctx_length=128, shuffle=True, buffer_size=1000)
+    train_tasks = {"relearn_facts": (relearn_facts, 1), "maintain_facts": (maintain_facts, 1), "pile": (pile, 1)}
+
+
     print("Running relearning evals")
     from peft import get_peft_model, LoraConfig, TaskType
-    def do_relearning(model, train_tasks, n_iters, finetune_lora=False, lora_kwargs={'rank': args.lora_rank, 'alpha': 32, 'dropout': 0.05, 'target_modules': args.target_modules}, learning_kwargs={'lr': args.relearning_lr, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None):
+
+    def eval_callback(model, epoch, forget_kwargs, maintain_kwargs, inject_fact):
+        print(f"Epoch {epoch+1}")
+        if (epoch+1) % 10 == 0:
+            mmlu_score = run_side_effects_evals(model, model_type=model_type, general_batch_size=mmlu_batch_size, evals_to_run=["General"])["General"]
+            adversarial_results = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
+                            forget_task_init_kwargs=forget_kwargs, 
+                            maintain_task_init_kwargs=maintain_kwargs, 
+                            continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], 
+                            inject_fact=inject_fact, n_mc_shots=args.n_mc_shots, check_all_logits=args.check_all_logits)
+
+            # get dictionary of both
+            return {"MMLU": mmlu_score, "adversarial": adversarial_results}
+        else:
+            return {}
+        
+
+    def do_relearning(model, train_tasks, n_iters, grad_accum_steps=1, finetune_lora=False, lora_kwargs={'rank': 256, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 1e-5, 'weight_decay': 0, 'use_cosine': False}, eval_callback_fn=None, forget_kwargs=None, maintain_kwargs=None, inject_fact=None):
         # can either finetune full or lora
 
         if not finetune_lora:
@@ -651,6 +739,7 @@ if args.do_relearning_evals:
 
             model = get_peft_model(model, peft_config).cuda()
             # model.print_trainable_parameters()
+            print(f"Parameters in peft: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 
             optimizer = torch.optim.AdamW(model.parameters(), lr=learning_kwargs['lr'], weight_decay=learning_kwargs['weight_decay'])
         
@@ -660,87 +749,66 @@ if args.do_relearning_evals:
         train_losses = defaultdict(list)
         test_losses = []
 
-        for i in tqdm(range(n_iters)):
+        for iter_idx in tqdm(range(n_iters)):
             optimizer.zero_grad()
             for task_name, (task, task_weight) in train_tasks.items():
-                loss = task.get_train_loss(model)
-                train_losses[task_name].append(loss.item())
-                # print(loss.item())
-                (loss * task_weight).backward()
-            
+                task_loss = 0
+                for i in range(grad_accum_steps):
+                    loss = task.get_train_loss(model) / grad_accum_steps
+                    task_loss += loss.item()
+                    # print(loss.item())
+                    (loss * task_weight).backward()
+                train_losses[task_name].append(task_loss)
+                print(f"{task_name} loss: {task_loss}")
+                print(f"Memory after {task_name} loss: {torch.cuda.memory_allocated() / 10**9} GB")
+
             optimizer.step()
+            optimizer.zero_grad()
             if learning_kwargs['use_cosine']:
                 scheduler.step()
+            torch.cuda.empty_cache()
+            print(f"Memory after optimizer step: {torch.cuda.memory_allocated() / 10**9} GB")
 
             if eval_callback_fn is not None:
-                test_losses.append(eval_callback_fn(model))
+                test_losses.append(eval_callback_fn(model, epoch=iter_idx, forget_kwargs=forget_kwargs, maintain_kwargs=maintain_kwargs, inject_fact=inject_fact))
+                print(test_losses[-1])
 
         if len(test_losses) > 0:
             return train_losses, test_losses
         return train_losses
-    
-    n_eval_iters = args.n_eval_iters
-    n_relearn_iters = args.n_relearn_iters
-    n_relearn_facts = args.n_relearn_facts
 
-
-    relearn_facts = CounterFactTask(batch_size=train_batch_size, tokenizer=tokenizer, forget_fact_subset=n_relearn_facts, train_test_split=False, is_forget_dataset=True)
-
-    pile = PileTask(batch_size=8, tokenizer=tokenizer, ctx_length=256, shuffle=True, buffer_size=1000)
-    train_tasks = {"relearn_athletes": (relearn_facts, .2), "maintain_athletes": (maintain_facts, 1), "pile": (train_pile, 1)}
-
-    from tasks.facts.CounterFactTask import adversarial_counterfact_eval
-    from tasks.general_capabilities.MCTask_redo import run_general_evals
-
-    def eval_callback(model):
-        mmlu_score = run_general_evals(model, model_type=model_type, batch_size=mmlu_batch_size)["MMLU"]
-        adversarial_results = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
-                    forget_task_init_kwargs=forget_kwargs, 
-                    maintain_task_init_kwargs=maintain_kwargs, 
-                    continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], n_mc_shots=1)
-
-        # get dictionary of both
-        return {"MMLU": mmlu_score, "adversarial": adversarial_results}
 
     # del model
 
     # for name, model, mask, regular_evals, side_effect_evals, adversarial_evals in [("localized", localized_model, localized_mask, localized_regular_evals, localized_side_effect_evals, localized_adversarial_evals), ("nonlocalized", nonlocalized_model, nonlocalized_mask, nonlocalized_regular_evals, nonlocalized_side_effect_evals, nonlocalized_adversarial_evals)]:
 
-    relearning_train_results = {}
-    relearning_test_results = {}
     relearning_regular_results = {}
-    relearning_adversarial_results = {}
-    relearning_side_effect_results = {}
+    # relearning_adversarial_results = {}
+    # relearning_side_effect_results = {}
 
     model.cuda()
+    initial_test_loss = eval_callback(model, epoch=-1, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_fact=inject_fact)
 
-    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, learning_kwargs={'lr': args.relearning_lr, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback)
+    print(torch.cuda.memory_allocated() / 10**9, "GB")
+    print(train_tasks)
+    train_losses, test_losses = do_relearning(model, train_tasks, n_iters=n_relearn_iters, finetune_lora=True, lora_kwargs={'rank': 512, 'alpha': 32, 'dropout': 0.05, 'target_modules': 'all-linear'}, learning_kwargs={'lr': 2e-4, 'weight_decay': 0, 'use_cosine': True}, eval_callback_fn=eval_callback, forget_kwargs=relearn_forget_kwargs, maintain_kwargs=relearn_maintain_kwargs, inject_fact=inject_fact)
 
-    relearning_train_results[localization_type] = train_losses
-    relearning_test_results[localization_type] = test_losses
+    test_losses.insert(0, initial_test_loss)
 
-    relearning_regular_results[localization_type] = {}
-    for task_name, test_task in [("forget_facts", forget_fact_eval), ("maintain_facts", maintain_facts)]:
+    forget_fact_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, **relearn_forget_kwargs)
+    maintain_fact_eval = CounterFactTask(batch_size=eval_batch_size, tokenizer=tokenizer, **relearn_maintain_kwargs)
+
+    for task_name, test_task in [("forget_facts", forget_fact_eval), ("maintain_facts", maintain_fact_eval)]:
         task_loss = 0
         task_accuracy = 0
         for i in range(n_eval_iters):
             task_loss += test_task.get_test_loss(model).item()
             task_accuracy += test_task.get_test_accuracy(model)
-        relearning_regular_results[localization_type][f"{task_name}_ce"] = task_loss / n_eval_iters
-        relearning_regular_results[localization_type][f"{task_name}_acc"] = task_accuracy / n_eval_iters
-
-    adversarial_eval_results = adversarial_counterfact_eval(model, model_type=model_type, batch_size=eval_batch_size, 
-                    forget_task_init_kwargs=forget_kwargs, 
-                    maintain_task_init_kwargs=maintain_kwargs, 
-                    continuous=True, include_evals=["Normal", "MC", "Paraphrase", "Neighborhood"], n_mc_shots=1)
-    relearning_adversarial_results[localization_type] = adversarial_eval_results
-
-    side_effect_eval_results = run_side_effects_evals(model, model_type=model_type, batch_size=eval_batch_size, evals_to_run=["General"], general_batch_size=mmlu_batch_size)
-    relearning_side_effect_results[localization_type] = side_effect_eval_results
-
+        relearning_regular_results[f"{task_name}_ce"] = task_loss / n_eval_iters
+        relearning_regular_results[f"{task_name}_acc"] = task_accuracy / n_eval_iters
     # model.cpu()
 
     os.makedirs(f"{save_dir}/results", exist_ok=True)
-    with open(f"{save_dir}/results/relearning_{n_relearn_facts=}_{n_relearn_iters=}_{model_type}_{combine_heads=}_{beta=}_unlearn_{forget_facts=}_results.pkl", "wb") as f:
-        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_adversarial_results": relearning_adversarial_results, "relearning_side_effect_results": relearning_side_effect_results, "relearning_train_results": relearning_train_results, "relearning_test_results": relearning_test_results}, f)
+    with open(f"{save_dir}/results/relearning_results.pkl", "wb") as f:
+        pickle.dump({"relearning_regular_results": relearning_regular_results, "relearning_train_losses": train_losses, "relearning_test_losses": test_losses}, f)
 

@@ -53,6 +53,7 @@ for localization_type in localization_types:
 
 source ~/.bashrc
 conda activate cb
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python finetuning_scripts/localized_finetuning_script_sports.py --config_path={os.path.join(save_dir, "config.json")}
 """

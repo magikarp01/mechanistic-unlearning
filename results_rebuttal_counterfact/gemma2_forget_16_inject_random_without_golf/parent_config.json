@@ -13,6 +13,14 @@
     "do_adversarial_evals": true,
     "do_side_effects_evals": true,
     "mixed_precision": true,
+    "manual_interp": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 1
+    },
+    "localized_ct": {
+        "learning_rate": 2e-5,
+        "forget_loss_coef": 1
+    },
     "nonlocalized": {
         "learning_rate": 2e-5,
         "forget_loss_coef": 5

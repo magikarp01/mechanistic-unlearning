@@ -29,6 +29,7 @@ for subdir in os.listdir(args.parent_dir):
 
 source ~/.bashrc
 conda activate cb
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python finetuning_scripts/localized_finetuning_script_sports.py --config_path={config_path}
 """
