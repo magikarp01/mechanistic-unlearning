@@ -459,4 +459,299 @@ forget_indices: range(0, 16)
 {'relearn_facts': (<tasks.facts.CounterFactTask.CounterFactTask_Injection object at 0x7326d7fb3fe0>, 1), 'maintain_facts': (<tasks.facts.CounterFactTask.CounterFactTask_Injection object at 0x73268f2528a0>, 1), 'pile': (<tasks.general.DatasetTasks.PileTask object at 0x732860dfa480>, 1)}
 Parameters in peft: 1606418432
   0%|          | 0/20 [00:00<?, ?it/s]  5%|▌         | 1/20 [00:01<00:26,  1.38s/it] 10%|█         | 2/20 [00:02<00:21,  1.21s/it] 15%|█▌        | 3/20 [00:03<00:18,  1.08s/it] 20%|██        | 4/20 [00:04<00:16,  1.06s/it] 25%|██▌       | 5/20 [00:05<00:15,  1.02s/it] 30%|███       | 6/20 [00:06<00:13,  1.00it/s] 35%|███▌      | 7/20 [00:07<00:12,  1.02it/s] 40%|████      | 8/20 [00:08<00:11,  1.03it/s] 45%|████▌     | 9/20 [00:09<00:10,  1.03it/s]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
- 50%|█████     | 10/20 [02:27<07:12, 43.22s/it] 55%|█████▌    | 11/20 [02:28<04:32, 30.30s/it] 60%|██████    | 12/20 [02:29<02:51, 21.43s/it] 65%|██████▌   | 13/20 [02:30<01:46, 15.22s/it] 70%|███████   | 14/20 [02:31<01:05, 10.91s/it] 75%|███████▌  | 15/20 [02:31<00:39,  7.90s/it] 80%|████████  | 16/20 [02:32<00:23,  5.83s/it] 85%|████████▌ | 17/20 [02:34<00:13,  4.41s/it]
+ 50%|█████     | 10/20 [02:27<07:12, 43.22s/it] 55%|█████▌    | 11/20 [02:28<04:32, 30.30s/it] 60%|██████    | 12/20 [02:29<02:51, 21.43s/it] 65%|██████▌   | 13/20 [02:30<01:46, 15.22s/it] 70%|███████   | 14/20 [02:31<01:05, 10.91s/it] 75%|███████▌  | 15/20 [02:31<00:39,  7.90s/it] 80%|████████  | 16/20 [02:32<00:23,  5.83s/it] 85%|████████▌ | 17/20 [02:34<00:13,  4.41s/it] 90%|█████████ | 18/20 [02:35<00:06,  3.37s/it] 95%|█████████▌| 19/20 [02:35<00:02,  2.64s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+relearn_facts loss: 0.0011047649895772338
+Memory after relearn_facts loss: 30.107710464 GB
+maintain_facts loss: 16.768802642822266
+Memory after maintain_facts loss: 30.107710464 GB
+pile loss: 2.6956443786621094
+Memory after pile loss: 30.107710464 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 1
+{}
+relearn_facts loss: 0.0024884457234293222
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 16.001922607421875
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 1.4171102046966553
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 2
+{}
+relearn_facts loss: 0.0057596489787101746
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 10.429509162902832
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.6639115810394287
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 3
+{}
+relearn_facts loss: 0.06903354078531265
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 10.820297241210938
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 1.40237557888031
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 4
+{}
+relearn_facts loss: 0.11878003180027008
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 9.754623413085938
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.7972357273101807
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 5
+{}
+relearn_facts loss: 0.9896716475486755
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 6.589001655578613
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.8519043922424316
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 6
+{}
+relearn_facts loss: 0.5644562244415283
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 4.642913341522217
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.1229259967803955
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 7
+{}
+relearn_facts loss: 1.2236284017562866
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 3.8675894737243652
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.3954598903656006
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 8
+{}
+relearn_facts loss: 0.2941071093082428
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 5.6124677658081055
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.058955192565918
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 9
+{}
+relearn_facts loss: 0.5895410180091858
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 5.017461776733398
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.072957992553711
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 10
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+{'MMLU': {'MMLU': 0.5}, 'adversarial': {'Normal': {'forget': 0.0839530572295189, 'maintain': 0.15866406559944154}, 'MC': {'forget': 0.41060436964035035, 'maintain': 0.6664379358291626}, 'Paraphrase': {'forget': 0.11552763730287552, 'maintain': 0.10817820131778717}, 'Neighborhood': {'forget': 0.12005768567323685, 'maintain': 0.10584997534751892}, 'Normal_Injected': {'forget': 0.12817484885454178, 'maintain': 0.05494525656104087}, 'MC_Injected': {'forget': 0.2574219763278961, 'maintain': 0.10031158924102783}, 'Paraphrase_Injected': {'forget': 0.08104955106973649, 'maintain': 0.04305458441376686}, 'Neighborhood_Injected': {'forget': 0.044276013225317004, 'maintain': 0.042950566858053214}}}
+relearn_facts loss: 0.19673898816108704
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 3.31339430809021
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 1.9377679824829102
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 11
+{}
+relearn_facts loss: 0.40822821855545044
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 3.6574904918670654
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.1924455165863037
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 12
+{}
+relearn_facts loss: 0.18109330534934998
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 5.0687360763549805
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.202867031097412
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 13
+{}
+relearn_facts loss: 0.1868254542350769
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 2.7427027225494385
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.803036689758301
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 14
+{}
+relearn_facts loss: 0.2083912193775177
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 5.156997203826904
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.4203970432281494
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 15
+{}
+relearn_facts loss: 0.21510861814022064
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 2.2299962043762207
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.0563764572143555
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 16
+{}
+relearn_facts loss: 0.12698069214820862
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 3.0448641777038574
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 1.6290197372436523
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 17
+{}
+relearn_facts loss: 0.18109707534313202
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 5.446160793304443
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.8761813640594482
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 18
+{}
+relearn_facts loss: 0.09395606815814972
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 2.62782621383667
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.846012592315674
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 19
+{}
+relearn_facts loss: 0.1480201929807663
+Memory after relearn_facts loss: 42.908726272 GB
+maintain_facts loss: 6.3838934898376465
+Memory after maintain_facts loss: 42.908726272 GB
+pile loss: 2.5701489448547363
+Memory after pile loss: 42.908726272 GB
+Memory after optimizer step: 36.508218368 GB
+Epoch 20
+forget_indices: range(0, 16)100%|██████████| 20/20 [04:53<00:00, 43.02s/it]100%|██████████| 20/20 [04:53<00:00, 14.66s/it]
+
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+{'MMLU': {'MMLU': 0.54}, 'adversarial': {'Normal': {'forget': 0.05819233655929565, 'maintain': 0.1700152575969696}, 'MC': {'forget': 0.38702558875083926, 'maintain': 0.6819178223609923}, 'Paraphrase': {'forget': 0.08460950404405594, 'maintain': 0.12960892617702485}, 'Neighborhood': {'forget': 0.08803761750459671, 'maintain': 0.1075700208544731}, 'Normal_Injected': {'forget': 0.13221028298139573, 'maintain': 0.05990426167845726}, 'MC_Injected': {'forget': 0.29741615056991577, 'maintain': 0.09397412538528442}, 'Paraphrase_Injected': {'forget': 0.08180567175149918, 'maintain': 0.05956955403089523}, 'Neighborhood_Injected': {'forget': 0.04743787460029125, 'maintain': 0.07542025148868561}}}
+forget_indices: range(0, 16)
+Are you sure you want to split the forget set in a forget loss? Mostly makes sense in latent knowledge and relearning
+forget_indices: range(0, 16)
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.028 MB uploadedwandb: | 0.028 MB of 0.105 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                       MMLU █▁▁
+wandb:             adversarial_MC_Injected_forget ▁▇█
+wandb:           adversarial_MC_Injected_maintain █▁▁
+wandb:                      adversarial_MC_forget █▁▂
+wandb:                    adversarial_MC_maintain ▁▆█
+wandb:   adversarial_Neighborhood_Injected_forget █▁▁
+wandb: adversarial_Neighborhood_Injected_maintain █▇▁
+wandb:            adversarial_Neighborhood_forget ▁██
+wandb:          adversarial_Neighborhood_maintain ▁▆█
+wandb:         adversarial_Normal_Injected_forget ▁██
+wandb:       adversarial_Normal_Injected_maintain █▁▂
+wandb:                  adversarial_Normal_forget █▁▁
+wandb:                adversarial_Normal_maintain ▁██
+wandb:     adversarial_Paraphrase_Injected_forget ▁██
+wandb:   adversarial_Paraphrase_Injected_maintain █▃▁
+wandb:              adversarial_Paraphrase_forget █▁▁
+wandb:            adversarial_Paraphrase_maintain ▁██
+wandb:                 facts_injection_train_loss █▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                  forget_fact_test_accuracy █▁▁▁▁▁▁▁▁▁▁
+wandb:                      forget_fact_test_loss █▁▁▁▁▁▁▁▁▁▁
+wandb:                       inject_fact_accuracy ▁██████████
+wandb:                maintain_fact_test_accuracy ▁██████████
+wandb:                    maintain_fact_test_loss █▃▁▁▂▁▁▁▁▁▁
+wandb:                  maintain_facts_train_loss ▅█▃▂▃▁▂▃▂▂▃▁▁▃▁▁▁▁▁▃▁▅▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁
+wandb:                         pile_test_accuracy ▄▃▁▄▇▅█▄█▆▆
+wandb:                             pile_test_loss █▄▆▆▄▇▃▅▃▂▁
+wandb:                            pile_train_loss ▇▄▇█▄▂▆▄█▇▆▆▅▄▂▅▅▁▇▂▇▆▂▃▃▇▄▂▆▄▃█▄▇▂▇▇▄▆▂
+wandb: 
+wandb: Run summary:
+wandb:                                       MMLU 0.57
+wandb:             adversarial_MC_Injected_forget 0.23877
+wandb:           adversarial_MC_Injected_maintain 0.00911
+wandb:                      adversarial_MC_forget 0.56598
+wandb:                    adversarial_MC_maintain 0.9692
+wandb:   adversarial_Neighborhood_Injected_forget 0.01014
+wandb: adversarial_Neighborhood_Injected_maintain 0.01222
+wandb:            adversarial_Neighborhood_forget 0.76841
+wandb:          adversarial_Neighborhood_maintain 0.70758
+wandb:         adversarial_Normal_Injected_forget 0.99947
+wandb:       adversarial_Normal_Injected_maintain 0.0039
+wandb:                  adversarial_Normal_forget 4e-05
+wandb:                adversarial_Normal_maintain 0.98967
+wandb:     adversarial_Paraphrase_Injected_forget 0.79131
+wandb:   adversarial_Paraphrase_Injected_maintain 0.00042
+wandb:              adversarial_Paraphrase_forget 0.05642
+wandb:            adversarial_Paraphrase_maintain 0.73998
+wandb:                 facts_injection_train_loss 0.00033
+wandb:                  forget_fact_test_accuracy 4e-05
+wandb:                      forget_fact_test_loss 0.00053
+wandb:                       inject_fact_accuracy 0.99947
+wandb:                maintain_fact_test_accuracy 0.98523
+wandb:                    maintain_fact_test_loss 0.01426
+wandb:                  maintain_facts_train_loss 0.00175
+wandb:                         pile_test_accuracy 0.5279
+wandb:                             pile_test_loss 2.16545
+wandb:                            pile_train_loss 2.12163
+wandb: 
+wandb: 🚀 View run finetuning_counterfact_all_mlps_forget_split='first_16_unsplit'_inject_fact=True_run_id=1 at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/34p609k2
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241125_100704-34p609k2/logs
