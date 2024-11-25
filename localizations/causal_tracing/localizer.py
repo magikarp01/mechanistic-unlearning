@@ -81,13 +81,15 @@ class CausalTracingLocalizer():
         # Get embedding std of import tokens, i.e the tokens we will be noising
         
         noise_stds = []
-        for idx in self.noise_indices:
-            noise_stds.append(self.model.W_E[self.toks[idx]].std().item())
+        for batch_idx, idx in enumerate(self.noise_indices):
+            noise_stds.append(self.model.W_E[self.toks[batch_idx, idx]].std().item())
         return torch.tensor(noise_stds)
     
-    def get_correct_prob(self, logits):
+    def get_correct_prob(self, logits, take_mean=False):
         # Return sum probability of correct token(s) at last token position, avg over batch
-        return torch.nn.functional.softmax(logits[:, -1, :], dim=-1)[:, self.correct_toks].mean(0).sum()
+        if take_mean:
+            return torch.nn.functional.softmax(logits[:, -1, :], dim=-1)[:, self.correct_toks].mean(0).sum()
+        return torch.nn.functional.softmax(logits[:, -1, :], dim=-1)[:, self.correct_toks].sum(-1)
     
     def ct_embedding_noise_hook(self, act, hook):
         '''
@@ -123,7 +125,7 @@ class CausalTracingLocalizer():
         self.model.reset_hooks()
         patched_logits = self.model(self.toks)
         self.model.reset_hooks()
-        return self.get_correct_prob(patched_logits).item()
+        return self.get_correct_prob(patched_logits, take_mean=True).item()
 
     def do_corrupt_run(self):
         self.model.reset_hooks()
@@ -134,7 +136,7 @@ class CausalTracingLocalizer():
             ]
         )
         self.model.reset_hooks()
-        return self.get_correct_prob(patched_logits).item()
+        return self.get_correct_prob(patched_logits, take_mean=True).item()
 
     def patch_model_components(self, verbose=False):
         results_mat = {}
@@ -165,7 +167,7 @@ class CausalTracingLocalizer():
                         fwd_hooks=fwd_hooks
                     )
                     self.model.reset_hooks()
-                    prob = self.get_correct_prob(patched_logits).item()
+                    prob = self.get_correct_prob(patched_logits)
                     results_mat[f"a{layer}.{head}_{head_type}"] = prob
                     if verbose:
                         print(
@@ -192,7 +194,7 @@ class CausalTracingLocalizer():
                     fwd_hooks=fwd_hooks
                 )
                 self.model.reset_hooks()
-                prob = self.get_correct_prob(patched_logits).item()
+                prob = self.get_correct_prob(patched_logits)
                 results_mat[f'm{layer}_{mlp_type}'] = prob
             if verbose:
                 print(
