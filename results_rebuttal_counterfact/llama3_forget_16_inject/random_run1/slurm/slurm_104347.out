@@ -1,0 +1,79 @@
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/llama3_forget_16_inject/random_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/llama3_forget_16_inject/random_run1/config.json', save_dir='results_rebuttal_counterfact/llama3_forget_16_inject/random_run1', model_type='llama-3-8b', forget_split='first_16_unsplit', inject_fact=True, localization_type='random', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-05, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=0.1, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 10.95it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 11.29it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 11.23it/s]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241125_103517-4vmphdut
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_random_forget_split='first_16_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/4vmphdut
+Manual param count:  704643072
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+    index  ... prompt_id
+0       0  ...         0
+1      22  ...        22
+2      29  ...        29
+3      48  ...        48
+4      54  ...        54
+5      60  ...        60
+6      86  ...        86
+7     104  ...       104
+8     109  ...       109
+9     116  ...       116
+10    119  ...       119
+11    125  ...       125
+12    137  ...       137
+13    139  ...       139
+14    168  ...       168
+15    181  ...       181
+
+[16 rows x 22 columns]
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.69921875, 'prob_of_correct_first_token': 0.703125, 'first_token': 8753, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+blocks.0.mlp.hook_pre 645922816
+blocks.3.attn.hook_result 629145600
+blocks.5.attn.hook_k 624951296
+blocks.11.mlp.hook_pre 566231040
+blocks.0.attn.hook_v 562036736
+blocks.18.mlp.hook_post 503316480
+blocks.18.attn.hook_result 486539264
+blocks.5.mlp.hook_pre 427819008
+blocks.27.attn.hook_k 423624704
+blocks.4.attn.hook_q 406847488
+blocks.13.attn.hook_k 402653184
+blocks.21.mlp.hook_pre 343932928
+blocks.10.attn.hook_result 327155712
+blocks.31.attn.hook_result 310378496
+blocks.1.attn.hook_v 306184192
+blocks.22.attn.hook_q 289406976
+blocks.18.attn.hook_v 285212672
+blocks.22.attn.hook_v 281018368
+blocks.20.attn.hook_q 264241152
+blocks.20.attn.hook_result 247463936
+blocks.2.attn.hook_v 243269632
+blocks.11.attn.hook_k 239075328
+blocks.11.attn.hook_q 222298112
+blocks.17.attn.hook_k 218103808
+blocks.16.attn.hook_result 201326592
+blocks.23.attn.hook_q 184549376
+blocks.7.mlp.hook_post 125829120
+blocks.13.attn.hook_v 121634816
+blocks.3.mlp.hook_pre 62914560
+blocks.9.mlp.hook_post 4194304
+blocks.24.attn.hook_q -12582912
+Number of parameters in random localization: 717225984
+final_components=['blocks.0.mlp.hook_pre', 'blocks.3.attn.hook_result', 'blocks.5.attn.hook_k', 'blocks.11.mlp.hook_pre', 'blocks.0.attn.hook_v', 'blocks.18.mlp.hook_post', 'blocks.18.attn.hook_result', 'blocks.5.mlp.hook_pre', 'blocks.27.attn.hook_k', 'blocks.4.attn.hook_q', 'blocks.13.attn.hook_k', 'blocks.21.mlp.hook_pre', 'blocks.10.attn.hook_result', 'blocks.31.attn.hook_result', 'blocks.1.attn.hook_v', 'blocks.22.attn.hook_q', 'blocks.18.attn.hook_v', 'blocks.22.attn.hook_v', 'blocks.20.attn.hook_q', 'blocks.20.attn.hook_result', 'blocks.2.attn.hook_v', 'blocks.11.attn.hook_k', 'blocks.11.attn.hook_q', 'blocks.17.attn.hook_k', 'blocks.16.attn.hook_result', 'blocks.23.attn.hook_q', 'blocks.7.mlp.hook_post', 'blocks.13.attn.hook_v', 'blocks.3.mlp.hook_pre', 'blocks.9.mlp.hook_post', 'blocks.24.attn.hook_q']
+Memory at start for random: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [01:28<1:12:04, 88.26s/it]  4%|▍         | 2/50 [01:34<32:14, 40.29s/it]    6%|▌         | 3/50 [01:41<19:27, 24.83s/it]

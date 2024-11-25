@@ -1,0 +1,61 @@
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/llama3_forget_16_inject/localized_ap_mlps_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/llama3_forget_16_inject/localized_ap_mlps_run1/config.json', save_dir='results_rebuttal_counterfact/llama3_forget_16_inject/localized_ap_mlps_run1', model_type='llama-3-8b', forget_split='first_16_unsplit', inject_fact=True, localization_type='localized_ap_mlps', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=0.0001, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=1.0, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:03<00:09,  3.30s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:07<00:07,  3.57s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:10<00:03,  3.46s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.25s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.70s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241125_103036-mftqmkhn
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_localized_ap_mlps_forget_split='first_16_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/mftqmkhn
+Manual param count:  704643072
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+    index  ... prompt_id
+0       0  ...         0
+1      22  ...        22
+2      29  ...        29
+3      48  ...        48
+4      54  ...        54
+5      60  ...        60
+6      86  ...        86
+7     104  ...       104
+8     109  ...       109
+9     116  ...       116
+10    119  ...       119
+11    125  ...       125
+12    137  ...       137
+13    139  ...       139
+14    168  ...       168
+15    181  ...       181
+
+[16 rows x 22 columns]
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.69921875, 'prob_of_correct_first_token': 0.703125, 'first_token': 8753, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+combined_attrs={'m0': 0.00634765625, 'm1': 0.028076171875, 'm2': 0.08837890625, 'm3': 0.0411376953125, 'm4': 0.011474609375, 'm5': -0.0054779052734375, 'm6': 0.091064453125, 'm7': 0.02294921875, 'm8': 0.0858154296875, 'm9': 0.0481109619140625, 'm10': 0.141845703125, 'm11': 0.081298828125, 'm12': 0.056396484375, 'm13': -0.035888671875, 'm14': -0.018310546875, 'm15': -0.08642578125, 'm16': -0.0096435546875, 'm17': -0.09326171875, 'm18': -0.05377197265625, 'm19': -0.020599365234375, 'm20': -0.0701904296875, 'm21': -0.1904296875, 'm22': -0.05419921875, 'm23': -0.086181640625, 'm24': -0.109619140625, 'm25': -0.03717041015625, 'm26': -0.0292816162109375, 'm27': -0.01611328125, 'm28': -0.0145263671875, 'm29': -0.023101806640625, 'm30': 0.103759765625, 'm31': -0.01123046875}
+Using param_count
+sorted_attrs=[('m21', -0.1904296875), ('m10', 0.141845703125), ('m24', -0.109619140625), ('m30', 0.103759765625), ('m17', -0.09326171875), ('m6', 0.091064453125), ('m2', 0.08837890625), ('m15', -0.08642578125), ('m23', -0.086181640625), ('m8', 0.0858154296875), ('m11', 0.081298828125), ('m20', -0.0701904296875), ('m12', 0.056396484375), ('m22', -0.05419921875), ('m18', -0.05377197265625), ('m9', 0.0481109619140625), ('m3', 0.0411376953125), ('m25', -0.03717041015625), ('m13', -0.035888671875), ('m26', -0.0292816162109375), ('m1', 0.028076171875), ('m29', -0.023101806640625), ('m7', 0.02294921875), ('m19', -0.020599365234375), ('m14', -0.018310546875), ('m27', -0.01611328125), ('m28', -0.0145263671875), ('m4', 0.011474609375), ('m31', -0.01123046875), ('m16', -0.0096435546875), ('m0', 0.00634765625), ('m5', -0.0054779052734375)]
+blocks.21.mlp.hook_gate 528482304
+blocks.10.mlp.hook_gate 352321536
+blocks.24.mlp.hook_gate 176160768
+blocks.30.mlp.hook_gate 0
+Thresholding importance at 0.103759765625
+component='m10', importance=0.141845703125 is being added
+component='m21', importance=0.1904296875 is being added
+component='m24', importance=0.109619140625 is being added
+component='m30', importance=0.103759765625 is being added
+Number of parameters in localized_ap_mlps localization: 704643072
+final_components={'blocks.24.mlp.hook_gate', 'blocks.21.mlp.hook_post', 'blocks.10.mlp.hook_pre', 'blocks.10.mlp.hook_post', 'blocks.10.mlp.hook_gate', 'blocks.24.mlp.hook_pre', 'blocks.30.mlp.hook_gate', 'blocks.24.mlp.hook_post', 'blocks.30.mlp.hook_pre', 'blocks.21.mlp.hook_gate', 'blocks.30.mlp.hook_post', 'blocks.21.mlp.hook_pre'}
+Memory at start for localized_ap_mlps: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [01:43<1:24:13, 103.12s/it]  4%|▍         | 2/50 [01:48<36:22, 45.46s/it]     6%|▌         | 3/50 [01:53<21:07, 26.97s/it]  8%|▊         | 4/50 [01:58<14:00, 18.28s/it] 10%|█         | 5/50 [02:02<10:03, 13.42s/it] 12%|█▏        | 6/50 [02:14<09:19, 12.72s/it] 14%|█▍        | 7/50 [02:19<07:17, 10.17s/it] 16%|█▌        | 8/50 [02:24<05:57,  8.50s/it] 18%|█▊        | 9/50 [02:29<05:05,  7.44s/it] 20%|██        | 10/50 [02:34<04:32,  6.81s/it] 22%|██▏       | 11/50 [02:43<04:54,  7.55s/it] 24%|██▍       | 12/50 [02:48<04:18,  6.80s/it] 26%|██▌       | 13/50 [02:53<03:50,  6.22s/it] 28%|██▊       | 14/50 [02:58<03:30,  5.86s/it] 30%|███       | 15/50 [03:03<03:14,  5.57s/it] 32%|███▏      | 16/50 [03:13<03:48,  6.71s/it] 34%|███▍      | 17/50 [03:18<03:23,  6.17s/it] 36%|███▌      | 18/50 [03:23<03:05,  5.81s/it] 38%|███▊      | 19/50 [03:27<02:51,  5.54s/it] 40%|████      | 20/50 [03:33<02:46,  5.56s/it] 42%|████▏     | 21/50 [03:42<03:12,  6.65s/it] 44%|████▍     | 22/50 [03:47<02:53,  6.21s/it] 46%|████▌     | 23/50 [03:52<02:36,  5.81s/it] 48%|████▊     | 24/50 [03:57<02:23,  5.51s/it] 50%|█████     | 25/50 [04:02<02:13,  5.33s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [05:15<10:14, 25.59s/it] 54%|█████▍    | 27/50 [05:20<07:25, 19.38s/it] 56%|█████▌    | 28/50 [05:24<05:29, 14.96s/it] 58%|█████▊    | 29/50 [05:29<04:10, 11.91s/it] 60%|██████    | 30/50 [05:34<03:16,  9.80s/it] 62%|██████▏   | 31/50 [05:43<03:01,  9.55s/it]

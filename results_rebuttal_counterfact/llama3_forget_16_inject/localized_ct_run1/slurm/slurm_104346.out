@@ -1,0 +1,86 @@
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/llama3_forget_16_inject/localized_ct_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/llama3_forget_16_inject/localized_ct_run1/config.json', save_dir='results_rebuttal_counterfact/llama3_forget_16_inject/localized_ct_run1', model_type='llama-3-8b', forget_split='first_16_unsplit', inject_fact=True, localization_type='localized_ct', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-05, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=0.1, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:03<00:09,  3.33s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:07<00:07,  3.57s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:10<00:03,  3.47s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.25s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.70s/it]
+Manual param count:  704643072
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+    index  ... prompt_id
+0       0  ...         0
+1      22  ...        22
+2      29  ...        29
+3      48  ...        48
+4      54  ...        54
+5      60  ...        60
+6      86  ...        86
+7     104  ...       104
+8     109  ...       109
+9     116  ...       116
+10    119  ...       119
+11    125  ...       125
+12    137  ...       137
+13    139  ...       139
+14    168  ...       168
+15    181  ...       181
+
+[16 rows x 22 columns]
+forget_indices: range(0, 16)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 16)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.69921875, 'prob_of_correct_first_token': 0.703125, 'first_token': 8753, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+combined_attrs={'a0': -0.6522216796875, 'm0': -0.041259765625, 'a1': -0.7513427734375, 'm1': -0.02880859375, 'a2': -0.852508544921875, 'm2': -0.0206298828125, 'a3': -0.5783214569091797, 'm3': -0.0238037109375, 'a4': -0.913116455078125, 'm4': 0.04345703125, 'a5': -0.7309417724609375, 'm5': 0.0101318359375, 'a6': -0.805694580078125, 'm6': -0.0216064453125, 'a7': -0.742523193359375, 'm7': -0.0198974609375, 'a8': -0.7276611328125, 'm8': -0.0069580078125, 'a9': -0.7370185852050781, 'm9': -0.048095703125, 'a10': -0.680572509765625, 'm10': 0.00091552734375, 'a11': -0.7477264404296875, 'm11': -0.032958984375, 'a12': -0.8939056396484375, 'm12': -0.033447265625, 'a13': -0.6648330688476562, 'm13': -0.028564453125, 'a14': -0.5556411743164062, 'm14': 0.00445556640625, 'a15': -0.6451263427734375, 'm15': 0.005401611328125, 'a16': -0.891265869140625, 'm16': 0.015869140625, 'a17': -0.68658447265625, 'm17': -0.004638671875, 'a18': -0.8380126953125, 'm18': -0.01068115234375, 'a19': -0.817535400390625, 'm19': -0.0179443359375, 'a20': -0.7194366455078125, 'm20': -0.01312255859375, 'a21': -0.7610702514648438, 'm21': -0.005584716796875, 'a22': -0.8335342407226562, 'm22': -0.020751953125, 'a23': -0.892333984375, 'm23': -0.02294921875, 'a24': -0.6141204833984375, 'm24': -0.029541015625, 'a25': -0.78265380859375, 'm25': -0.01361083984375, 'a26': -0.7416534423828125, 'm26': -0.037353515625, 'a27': -0.775146484375, 'm27': -0.00152587890625, 'a28': -0.831329345703125, 'm28': -0.00543212890625, 'a29': -0.815704345703125, 'm29': 0.0159912109375, 'a30': -0.6985015869140625, 'm30': 0.0032806396484375, 'a31': -0.7074661254882812, 'm31': 0.003448486328125}
+Using param_count
+sorted_attrs=[('a4', -0.913116455078125), ('a12', -0.8939056396484375), ('a23', -0.892333984375), ('a16', -0.891265869140625), ('a2', -0.852508544921875), ('a18', -0.8380126953125), ('a22', -0.8335342407226562), ('a28', -0.831329345703125), ('a19', -0.817535400390625), ('a29', -0.815704345703125), ('a6', -0.805694580078125), ('a25', -0.78265380859375), ('a27', -0.775146484375), ('a21', -0.7610702514648438), ('a1', -0.7513427734375), ('a11', -0.7477264404296875), ('a7', -0.742523193359375), ('a26', -0.7416534423828125), ('a9', -0.7370185852050781), ('a5', -0.7309417724609375), ('a8', -0.7276611328125), ('a20', -0.7194366455078125), ('a31', -0.7074661254882812), ('a30', -0.6985015869140625), ('a17', -0.68658447265625), ('a10', -0.680572509765625), ('a13', -0.6648330688476562), ('a0', -0.6522216796875), ('a15', -0.6451263427734375), ('a24', -0.6141204833984375), ('a3', -0.5783214569091797), ('a14', -0.5556411743164062), ('m9', -0.048095703125), ('m4', 0.04345703125), ('m0', -0.041259765625), ('m26', -0.037353515625), ('m12', -0.033447265625), ('m11', -0.032958984375), ('m24', -0.029541015625), ('m1', -0.02880859375), ('m13', -0.028564453125), ('m3', -0.0238037109375), ('m23', -0.02294921875), ('m6', -0.0216064453125), ('m22', -0.020751953125), ('m2', -0.0206298828125), ('m7', -0.0198974609375), ('m19', -0.0179443359375), ('m29', 0.0159912109375), ('m16', 0.015869140625), ('m25', -0.01361083984375), ('m20', -0.01312255859375), ('m18', -0.01068115234375), ('m5', 0.0101318359375), ('m8', -0.0069580078125), ('m21', -0.005584716796875), ('m28', -0.00543212890625), ('m15', 0.005401611328125), ('m17', -0.004638671875), ('m14', 0.00445556640625), ('m31', 0.003448486328125), ('m30', 0.0032806396484375), ('m27', -0.00152587890625), ('m10', 0.00091552734375)]
+blocks.4.attn.hook_result 662700032
+blocks.12.attn.hook_result 620756992
+blocks.23.attn.hook_result 578813952
+blocks.16.attn.hook_result 536870912
+blocks.2.attn.hook_result 494927872
+blocks.18.attn.hook_result 452984832
+blocks.22.attn.hook_result 411041792
+blocks.28.attn.hook_result 369098752
+blocks.19.attn.hook_result 327155712
+blocks.29.attn.hook_result 285212672
+blocks.6.attn.hook_result 243269632
+blocks.25.attn.hook_result 201326592
+blocks.27.attn.hook_result 159383552
+blocks.21.attn.hook_result 117440512
+blocks.1.attn.hook_result 75497472
+blocks.11.attn.hook_result 33554432
+blocks.7.attn.hook_result -8388608
+Thresholding importance at 0.742523193359375
+component='a1', importance=0.7513427734375 is being added
+component='a2', importance=0.852508544921875 is being added
+component='a4', importance=0.913116455078125 is being added
+component='a6', importance=0.805694580078125 is being added
+component='a7', importance=0.742523193359375 is being added
+component='a11', importance=0.7477264404296875 is being added
+component='a12', importance=0.8939056396484375 is being added
+component='a16', importance=0.891265869140625 is being added
+component='a18', importance=0.8380126953125 is being added
+component='a19', importance=0.817535400390625 is being added
+component='a21', importance=0.7610702514648438 is being added
+component='a22', importance=0.8335342407226562 is being added
+component='a23', importance=0.892333984375 is being added
+component='a25', importance=0.78265380859375 is being added
+component='a27', importance=0.775146484375 is being added
+component='a28', importance=0.831329345703125 is being added
+component='a29', importance=0.815704345703125 is being added
+Number of parameters in localized_ct localization: 713031680
+final_components={'blocks.2.attn.hook_result', 'blocks.12.attn.hook_v', 'blocks.2.attn.hook_v', 'blocks.21.attn.hook_q', 'blocks.25.attn.hook_q', 'blocks.27.attn.hook_q', 'blocks.22.attn.hook_result', 'blocks.1.attn.hook_q', 'blocks.11.attn.hook_k', 'blocks.19.attn.hook_result', 'blocks.21.attn.hook_k', 'blocks.1.attn.hook_result', 'blocks.19.attn.hook_v', 'blocks.23.attn.hook_q', 'blocks.7.attn.hook_q', 'blocks.1.attn.hook_k', 'blocks.18.attn.hook_v', 'blocks.4.attn.hook_q', 'blocks.28.attn.hook_q', 'blocks.28.attn.hook_k', 'blocks.25.attn.hook_k', 'blocks.16.attn.hook_v', 'blocks.22.attn.hook_k', 'blocks.4.attn.hook_k', 'blocks.2.attn.hook_k', 'blocks.28.attn.hook_v', 'blocks.6.attn.hook_q', 'blocks.12.attn.hook_k', 'blocks.12.attn.hook_result', 'blocks.29.attn.hook_result', 'blocks.16.attn.hook_q', 'blocks.6.attn.hook_result', 'blocks.11.attn.hook_result', 'blocks.18.attn.hook_k', 'blocks.27.attn.hook_k', 'blocks.27.attn.hook_v', 'blocks.11.attn.hook_q', 'blocks.25.attn.hook_v', 'blocks.23.attn.hook_result', 'blocks.19.attn.hook_q', 'blocks.4.attn.hook_result', 'blocks.1.attn.hook_v', 'blocks.7.attn.hook_k', 'blocks.16.attn.hook_k', 'blocks.11.attn.hook_v', 'blocks.22.attn.hook_q', 'blocks.29.attn.hook_q', 'blocks.21.attn.hook_result', 'blocks.18.attn.hook_q', 'blocks.7.attn.hook_result', 'blocks.18.attn.hook_result', 'blocks.27.attn.hook_result', 'blocks.4.attn.hook_v', 'blocks.29.attn.hook_k', 'blocks.25.attn.hook_result', 'blocks.7.attn.hook_v', 'blocks.23.attn.hook_v', 'blocks.22.attn.hook_v', 'blocks.12.attn.hook_q', 'blocks.28.attn.hook_result', 'blocks.6.attn.hook_v', 'blocks.16.attn.hook_result', 'blocks.19.attn.hook_k', 'blocks.29.attn.hook_v', 'blocks.6.attn.hook_k', 'blocks.21.attn.hook_v', 'blocks.2.attn.hook_q', 'blocks.23.attn.hook_k'}wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241125_103036-wn7hj7r8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_localized_ct_forget_split='first_16_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/wn7hj7r8
+
+Memory at start for localized_ct: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [01:45<1:25:48, 105.08s/it]  4%|▍         | 2/50 [01:51<37:41, 47.12s/it]     6%|▌         | 3/50 [01:57<22:20, 28.51s/it]  8%|▊         | 4/50 [02:04<15:07, 19.72s/it] 10%|█         | 5/50 [02:10<11:08, 14.85s/it] 12%|█▏        | 6/50 [02:20<09:48, 13.39s/it] 14%|█▍        | 7/50 [02:27<07:57, 11.11s/it] 16%|█▌        | 8/50 [02:34<06:50,  9.78s/it] 18%|█▊        | 9/50 [02:40<05:56,  8.70s/it] 20%|██        | 10/50 [02:47<05:20,  8.01s/it] 22%|██▏       | 11/50 [02:58<05:46,  8.88s/it] 24%|██▍       | 12/50 [03:04<05:09,  8.14s/it] 26%|██▌       | 13/50 [03:10<04:41,  7.60s/it] 28%|██▊       | 14/50 [03:17<04:20,  7.23s/it] 30%|███       | 15/50 [03:23<04:04,  6.98s/it] 32%|███▏      | 16/50 [03:34<04:42,  8.30s/it] 34%|███▍      | 17/50 [03:41<04:14,  7.72s/it] 36%|███▌      | 18/50 [03:47<03:56,  7.38s/it] 38%|███▊      | 19/50 [03:54<03:39,  7.08s/it] 40%|████      | 20/50 [04:00<03:25,  6.86s/it] 42%|████▏     | 21/50 [04:11<03:55,  8.11s/it] 44%|████▍     | 22/50 [04:18<03:33,  7.62s/it] 46%|████▌     | 23/50 [04:24<03:14,  7.20s/it] 48%|████▊     | 24/50 [04:31<03:03,  7.04s/it] 50%|█████     | 25/50 [04:37<02:49,  6.79s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
