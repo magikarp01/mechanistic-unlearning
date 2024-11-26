@@ -1,0 +1,291 @@
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/gemma_forget_64_inject_sequential/localized_ct_mlps_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/gemma_forget_64_inject_sequential/localized_ct_mlps_run1/config.json', save_dir='results_rebuttal_counterfact/gemma_forget_64_inject_sequential/localized_ct_mlps_run1', model_type='gemma-7b', forget_split='first_64_partitioned_unsplit', inject_fact=True, localization_type='localized_ct_mlps', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=1e-05, grad_accum_steps=16, mixed_precision=False, n_epochs=25, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=None, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=2.0, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:06,  2.11s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:05<00:05,  2.90s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:09<00:03,  3.15s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.49s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:10<00:00,  2.62s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241126_081959-dzu3v2w3
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_localized_ct_mlps_forget_split='first_64_partitioned_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/dzu3v2w3
+Memory at start for localized_ct_mlps: 0.0
+==========Partition 0, 0_16==========
+Manual param count for partition 0:  1811939328
+Current partition forget split: first_64_partition_0_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+0       0  ...         0
+1       5  ...         5
+2       7  ...         7
+3      17  ...        17
+4      22  ...        22
+5      52  ...        52
+6      54  ...        54
+7      56  ...        56
+8      77  ...        77
+9      84  ...        84
+10     86  ...        86
+11     97  ...        97
+12    104  ...       104
+13    116  ...       116
+14    139  ...       139
+15    152  ...       152
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.72265625, 'prob_of_correct_first_token': 0.72265625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1712, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'m0': 0.01068115234375, 'm1': -0.0255126953125, 'm2': -0.009521484375, 'm3': 0.01104736328125, 'm4': 0.000553131103515625, 'm5': -0.0155029296875, 'm6': 0.0021209716796875, 'm7': -0.000568389892578125, 'm8': 0.0196533203125, 'm9': -0.01263427734375, 'm10': 0.00616455078125, 'm11': 0.028076171875, 'm12': -0.0018157958984375, 'm13': 0.031494140625, 'm14': 0.0306396484375, 'm15': -0.00848388671875, 'm16': -0.013427734375, 'm17': 0.00164031982421875, 'm18': -0.014892578125, 'm19': 0.0213623046875, 'm20': 0.0238037109375, 'm21': 0.06494140625, 'm22': 0.021484375, 'm23': 0.12451171875, 'm24': 0.01519775390625, 'm25': 0.02685546875, 'm26': -0.0096435546875, 'm27': -0.0091552734375}
+Using param_count
+sorted_attrs=[('m23', 0.12451171875), ('m21', 0.06494140625), ('m13', 0.031494140625), ('m14', 0.0306396484375), ('m11', 0.028076171875), ('m25', 0.02685546875), ('m1', -0.0255126953125), ('m20', 0.0238037109375), ('m22', 0.021484375), ('m19', 0.0213623046875), ('m8', 0.0196533203125), ('m5', -0.0155029296875), ('m24', 0.01519775390625), ('m18', -0.014892578125), ('m16', -0.013427734375), ('m9', -0.01263427734375), ('m3', 0.01104736328125), ('m0', 0.01068115234375), ('m26', -0.0096435546875), ('m2', -0.009521484375), ('m27', -0.0091552734375), ('m15', -0.00848388671875), ('m10', 0.00616455078125), ('m6', 0.0021209716796875), ('m12', -0.0018157958984375), ('m17', 0.00164031982421875), ('m7', -0.000568389892578125), ('m4', 0.000553131103515625)]
+blocks.23.mlp.hook_gate 1585446912
+blocks.21.mlp.hook_gate 1358954496
+blocks.13.mlp.hook_gate 1132462080
+blocks.14.mlp.hook_gate 905969664
+blocks.11.mlp.hook_gate 679477248
+blocks.25.mlp.hook_gate 452984832
+blocks.1.mlp.hook_gate 226492416
+blocks.20.mlp.hook_gate 0
+Thresholding importance at 0.0238037109375
+component='m1', importance=0.0255126953125 is being added
+component='m11', importance=0.028076171875 is being added
+component='m13', importance=0.031494140625 is being added
+component='m14', importance=0.0306396484375 is being added
+component='m20', importance=0.0238037109375 is being added
+component='m21', importance=0.06494140625 is being added
+component='m23', importance=0.12451171875 is being added
+component='m25', importance=0.02685546875 is being added
+Number of parameters in localized_ct_mlps localization: 1811939328
+final_components={'blocks.20.mlp.hook_pre', 'blocks.25.mlp.hook_post', 'blocks.21.mlp.hook_pre', 'blocks.20.mlp.hook_post', 'blocks.13.mlp.hook_pre', 'blocks.25.mlp.hook_gate', 'blocks.20.mlp.hook_gate', 'blocks.14.mlp.hook_post', 'blocks.23.mlp.hook_gate', 'blocks.14.mlp.hook_gate', 'blocks.21.mlp.hook_post', 'blocks.1.mlp.hook_pre', 'blocks.1.mlp.hook_gate', 'blocks.11.mlp.hook_pre', 'blocks.11.mlp.hook_gate', 'blocks.14.mlp.hook_pre', 'blocks.23.mlp.hook_post', 'blocks.25.mlp.hook_pre', 'blocks.21.mlp.hook_gate', 'blocks.1.mlp.hook_post', 'blocks.11.mlp.hook_post', 'blocks.13.mlp.hook_post', 'blocks.23.mlp.hook_pre', 'blocks.13.mlp.hook_gate'}
+  0%|          | 0/25 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  4%|▍         | 1/25 [00:28<11:30, 28.76s/it]  8%|▊         | 2/25 [00:35<06:02, 15.77s/it] 12%|█▏        | 3/25 [00:42<04:15, 11.60s/it] 16%|█▌        | 4/25 [00:48<03:21,  9.61s/it] 20%|██        | 5/25 [00:55<02:53,  8.67s/it] 24%|██▍       | 6/25 [01:08<03:08,  9.94s/it] 28%|██▊       | 7/25 [01:15<02:44,  9.15s/it] 32%|███▏      | 8/25 [01:22<02:24,  8.50s/it] 36%|███▌      | 9/25 [01:29<02:05,  7.85s/it] 40%|████      | 10/25 [01:35<01:52,  7.47s/it] 44%|████▍     | 11/25 [01:46<02:00,  8.62s/it] 48%|████▊     | 12/25 [01:53<01:45,  8.10s/it] 52%|█████▏    | 13/25 [02:00<01:30,  7.54s/it] 56%|█████▌    | 14/25 [02:06<01:19,  7.20s/it] 60%|██████    | 15/25 [02:12<01:09,  6.92s/it] 64%|██████▍   | 16/25 [02:24<01:14,  8.23s/it] 68%|██████▊   | 17/25 [02:30<01:01,  7.67s/it] 72%|███████▏  | 18/25 [02:36<00:51,  7.31s/it] 76%|███████▌  | 19/25 [02:43<00:42,  7.03s/it] 80%|████████  | 20/25 [02:49<00:34,  6.82s/it] 84%|████████▍ | 21/25 [03:01<00:33,  8.43s/it] 88%|████████▊ | 22/25 [03:08<00:23,  7.82s/it] 92%|█████████▏| 23/25 [03:14<00:14,  7.30s/it] 96%|█████████▌| 24/25 [03:20<00:06,  6.95s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 25/25 [04:44<00:00, 30.15s/it]100%|██████████| 25/25 [04:44<00:00, 11.39s/it]
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+After epoch, mem is  26.0435528755188
+Running adversarial evals
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  22.6685528755188
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918552875518799
+==========Partition 1, 16_32==========
+Manual param count for partition 1:  1132462080
+Current partition forget split: first_64_partition_1_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+16    168  ...       168
+17    181  ...       181
+18    182  ...       182
+19    196  ...       196
+20    197  ...       197
+21    212  ...       212
+22    215  ...       215
+23    223  ...       223
+24    226  ...       226
+25    231  ...       231
+26    239  ...       239
+27    241  ...       241
+28    248  ...       248
+29    253  ...       253
+30    255  ...       255
+31    272  ...       272
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.72265625, 'prob_of_correct_first_token': 0.72265625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1712, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'m0': 0.045166015625, 'm1': 0.031005859375, 'm2': 0.076171875, 'm3': 0.046875, 'm4': 0.062255859375, 'm5': 0.060546875, 'm6': 0.02880859375, 'm7': 0.035888671875, 'm8': 0.0673828125, 'm9': 0.0213623046875, 'm10': 0.0174560546875, 'm11': 0.0498046875, 'm12': 0.057373046875, 'm13': 0.064453125, 'm14': 0.08935546875, 'm15': 0.0673828125, 'm16': 0.053466796875, 'm17': 0.042724609375, 'm18': 0.04052734375, 'm19': 0.068359375, 'm20': 0.09716796875, 'm21': 0.1044921875, 'm22': 0.0791015625, 'm23': 0.234375, 'm24': 0.0546875, 'm25': 0.07470703125, 'm26': 0.006805419921875, 'm27': 0.1220703125}
+Using param_count
+sorted_attrs=[('m23', 0.234375), ('m27', 0.1220703125), ('m21', 0.1044921875), ('m20', 0.09716796875), ('m14', 0.08935546875), ('m22', 0.0791015625), ('m2', 0.076171875), ('m25', 0.07470703125), ('m19', 0.068359375), ('m8', 0.0673828125), ('m15', 0.0673828125), ('m13', 0.064453125), ('m4', 0.062255859375), ('m5', 0.060546875), ('m12', 0.057373046875), ('m24', 0.0546875), ('m16', 0.053466796875), ('m11', 0.0498046875), ('m3', 0.046875), ('m0', 0.045166015625), ('m17', 0.042724609375), ('m18', 0.04052734375), ('m7', 0.035888671875), ('m1', 0.031005859375), ('m6', 0.02880859375), ('m9', 0.0213623046875), ('m10', 0.0174560546875), ('m26', 0.006805419921875)]
+blocks.23.mlp.hook_gate 905969664
+blocks.27.mlp.hook_gate 679477248
+blocks.21.mlp.hook_gate 452984832
+blocks.20.mlp.hook_gate 226492416
+blocks.14.mlp.hook_gate 0
+Thresholding importance at 0.08935546875
+component='m14', importance=0.08935546875 is being added
+component='m20', importance=0.09716796875 is being added
+component='m21', importance=0.1044921875 is being added
+component='m23', importance=0.234375 is being added
+component='m27', importance=0.1220703125 is being added
+Number of parameters in localized_ct_mlps localization: 1132462080
+final_components={'blocks.23.mlp.hook_post', 'blocks.27.mlp.hook_post', 'blocks.20.mlp.hook_gate', 'blocks.27.mlp.hook_gate', 'blocks.21.mlp.hook_gate', 'blocks.27.mlp.hook_pre', 'blocks.20.mlp.hook_pre', 'blocks.14.mlp.hook_post', 'blocks.23.mlp.hook_pre', 'blocks.14.mlp.hook_gate', 'blocks.23.mlp.hook_gate', 'blocks.21.mlp.hook_pre', 'blocks.20.mlp.hook_post', 'blocks.14.mlp.hook_pre', 'blocks.21.mlp.hook_post'}
+  0%|          | 0/25 [00:00<?, ?it/s]  4%|▍         | 1/25 [00:22<08:59, 22.48s/it]  8%|▊         | 2/25 [00:27<04:36, 12.00s/it] 12%|█▏        | 3/25 [00:31<03:08,  8.57s/it] 16%|█▌        | 4/25 [00:36<02:31,  7.20s/it] 20%|██        | 5/25 [00:41<02:03,  6.19s/it] 24%|██▍       | 6/25 [00:51<02:24,  7.60s/it] 28%|██▊       | 7/25 [00:56<01:59,  6.61s/it] 32%|███▏      | 8/25 [01:01<01:45,  6.21s/it] 36%|███▌      | 9/25 [01:05<01:30,  5.68s/it] 40%|████      | 10/25 [01:10<01:19,  5.30s/it] 44%|████▍     | 11/25 [01:19<01:32,  6.61s/it] 48%|████▊     | 12/25 [01:25<01:22,  6.38s/it] 52%|█████▏    | 13/25 [01:30<01:10,  5.88s/it] 56%|█████▌    | 14/25 [01:35<01:00,  5.47s/it] 60%|██████    | 15/25 [01:40<00:53,  5.37s/it] 64%|██████▍   | 16/25 [01:49<00:59,  6.66s/it] 68%|██████▊   | 17/25 [01:54<00:48,  6.04s/it] 72%|███████▏  | 18/25 [01:59<00:41,  5.88s/it] 76%|███████▌  | 19/25 [02:05<00:34,  5.76s/it] 80%|████████  | 20/25 [02:09<00:26,  5.37s/it] 84%|████████▍ | 21/25 [02:19<00:26,  6.60s/it] 88%|████████▊ | 22/25 [02:24<00:18,  6.02s/it] 92%|█████████▏| 23/25 [02:28<00:11,  5.53s/it] 96%|█████████▌| 24/25 [02:32<00:05,  5.23s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 25/25 [03:54<00:00, 28.18s/it]100%|██████████| 25/25 [03:54<00:00,  9.39s/it]
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+After epoch, mem is  22.2466778755188
+Running adversarial evals
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  20.1373028755188
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918552875518799
+==========Partition 2, 32_48==========
+Manual param count for partition 2:  2491416576
+Current partition forget split: first_64_partition_2_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+32    311  ...       311
+33    335  ...       335
+34    339  ...       339
+35    357  ...       357
+36    361  ...       361
+37    371  ...       371
+38    372  ...       372
+39    373  ...       373
+40    379  ...       379
+41    380  ...       380
+42    381  ...       381
+43    391  ...       391
+44    396  ...       396
+45    421  ...       421
+46    424  ...       424
+47    428  ...       428
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.72265625, 'prob_of_correct_first_token': 0.72265625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1712, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'m0': 0.032470703125, 'm1': 0.0159912109375, 'm2': 0.016845703125, 'm3': 0.05908203125, 'm4': 0.0419921875, 'm5': 0.02490234375, 'm6': 0.0654296875, 'm7': 0.03955078125, 'm8': 0.0361328125, 'm9': 0.0849609375, 'm10': 0.041015625, 'm11': 0.0400390625, 'm12': 0.034912109375, 'm13': 0.034912109375, 'm14': 0.04150390625, 'm15': 0.0211181640625, 'm16': 0.041748046875, 'm17': 0.07958984375, 'm18': 0.033447265625, 'm19': 0.06787109375, 'm20': 0.047119140625, 'm21': 0.130859375, 'm22': 0.1279296875, 'm23': 0.31640625, 'm24': 0.055908203125, 'm25': 0.08251953125, 'm26': 0.048583984375, 'm27': 0.08203125}
+Using param_count
+sorted_attrs=[('m23', 0.31640625), ('m21', 0.130859375), ('m22', 0.1279296875), ('m9', 0.0849609375), ('m25', 0.08251953125), ('m27', 0.08203125), ('m17', 0.07958984375), ('m19', 0.06787109375), ('m6', 0.0654296875), ('m3', 0.05908203125), ('m24', 0.055908203125), ('m26', 0.048583984375), ('m20', 0.047119140625), ('m4', 0.0419921875), ('m16', 0.041748046875), ('m14', 0.04150390625), ('m10', 0.041015625), ('m11', 0.0400390625), ('m7', 0.03955078125), ('m8', 0.0361328125), ('m12', 0.034912109375), ('m13', 0.034912109375), ('m18', 0.033447265625), ('m0', 0.032470703125), ('m5', 0.02490234375), ('m15', 0.0211181640625), ('m2', 0.016845703125), ('m1', 0.0159912109375)]
+blocks.23.mlp.hook_gate 2264924160
+blocks.21.mlp.hook_gate 2038431744
+blocks.22.mlp.hook_gate 1811939328
+blocks.9.mlp.hook_gate 1585446912
+blocks.25.mlp.hook_gate 1358954496
+blocks.27.mlp.hook_gate 1132462080
+blocks.17.mlp.hook_gate 905969664
+blocks.19.mlp.hook_gate 679477248
+blocks.6.mlp.hook_gate 452984832
+blocks.3.mlp.hook_gate 226492416
+blocks.24.mlp.hook_gate 0
+Thresholding importance at 0.055908203125
+component='m3', importance=0.05908203125 is being added
+component='m6', importance=0.0654296875 is being added
+component='m9', importance=0.0849609375 is being added
+component='m17', importance=0.07958984375 is being added
+component='m19', importance=0.06787109375 is being added
+component='m21', importance=0.130859375 is being added
+component='m22', importance=0.1279296875 is being added
+component='m23', importance=0.31640625 is being added
+component='m24', importance=0.055908203125 is being added
+component='m25', importance=0.08251953125 is being added
+component='m27', importance=0.08203125 is being added
+Number of parameters in localized_ct_mlps localization: 2491416576
+final_components={'blocks.19.mlp.hook_gate', 'blocks.22.mlp.hook_post', 'blocks.9.mlp.hook_post', 'blocks.19.mlp.hook_post', 'blocks.17.mlp.hook_post', 'blocks.3.mlp.hook_post', 'blocks.25.mlp.hook_post', 'blocks.22.mlp.hook_pre', 'blocks.19.mlp.hook_pre', 'blocks.21.mlp.hook_pre', 'blocks.24.mlp.hook_post', 'blocks.25.mlp.hook_gate', 'blocks.27.mlp.hook_gate', 'blocks.27.mlp.hook_pre', 'blocks.9.mlp.hook_gate', 'blocks.3.mlp.hook_gate', 'blocks.22.mlp.hook_gate', 'blocks.23.mlp.hook_gate', 'blocks.6.mlp.hook_gate', 'blocks.17.mlp.hook_pre', 'blocks.21.mlp.hook_post', 'blocks.24.mlp.hook_gate', 'blocks.9.mlp.hook_pre', 'blocks.27.mlp.hook_post', 'blocks.3.mlp.hook_pre', 'blocks.17.mlp.hook_gate', 'blocks.6.mlp.hook_pre', 'blocks.23.mlp.hook_post', 'blocks.25.mlp.hook_pre', 'blocks.21.mlp.hook_gate', 'blocks.6.mlp.hook_post', 'blocks.23.mlp.hook_pre', 'blocks.24.mlp.hook_pre'}
+  0%|          | 0/25 [00:00<?, ?it/s]  4%|▍         | 1/25 [00:27<11:03, 27.63s/it]  8%|▊         | 2/25 [00:33<05:44, 15.00s/it] 12%|█▏        | 3/25 [00:39<04:00, 10.93s/it] 16%|█▌        | 4/25 [00:46<03:10,  9.08s/it] 20%|██        | 5/25 [00:52<02:42,  8.11s/it] 24%|██▍       | 6/25 [01:04<02:56,  9.30s/it] 28%|██▊       | 7/25 [01:10<02:32,  8.47s/it] 32%|███▏      | 8/25 [01:17<02:12,  7.79s/it] 36%|███▌      | 9/25 [01:24<02:01,  7.61s/it] 40%|████      | 10/25 [01:30<01:49,  7.28s/it] 44%|████▍     | 11/25 [01:42<01:59,  8.53s/it] 48%|████▊     | 12/25 [01:48<01:42,  7.92s/it] 52%|█████▏    | 13/25 [01:55<01:31,  7.64s/it] 56%|█████▌    | 14/25 [02:02<01:20,  7.30s/it] 60%|██████    | 15/25 [02:08<01:10,  7.03s/it] 64%|██████▍   | 16/25 [02:20<01:16,  8.55s/it] 68%|██████▊   | 17/25 [02:27<01:03,  7.90s/it] 72%|███████▏  | 18/25 [02:33<00:52,  7.46s/it] 76%|███████▌  | 19/25 [02:40<00:42,  7.14s/it] 80%|████████  | 20/25 [02:46<00:34,  6.95s/it] 84%|████████▍ | 21/25 [02:58<00:34,  8.60s/it] 88%|████████▊ | 22/25 [03:05<00:23,  7.91s/it] 92%|█████████▏| 23/25 [03:11<00:14,  7.44s/it] 96%|█████████▌| 24/25 [03:18<00:07,  7.14s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 25/25 [04:40<00:00, 29.77s/it]100%|██████████| 25/25 [04:40<00:00, 11.23s/it]

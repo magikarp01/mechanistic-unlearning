@@ -1,0 +1,80 @@
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/llama3_forget_64_inject_sequential/random_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/llama3_forget_64_inject_sequential/random_run1/config.json', save_dir='results_rebuttal_counterfact/llama3_forget_64_inject_sequential/random_run1', model_type='llama-3-8b', forget_split='first_64_partitioned_unsplit', inject_fact=True, localization_type='random', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=5e-05, grad_accum_steps=16, mixed_precision=False, n_epochs=25, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=None, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=2.0, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 11.50it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.24it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.11it/s]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241126_083258-h3xs8vjc
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_random_forget_split='first_64_partitioned_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/h3xs8vjc
+Memory at start for random: 0.0
+==========Partition 0, 0_16==========
+Manual param count for partition 0:  704643072
+Current partition forget split: first_64_partition_0_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+0       0  ...         0
+1      22  ...        22
+2      29  ...        29
+3      48  ...        48
+4      54  ...        54
+5      60  ...        60
+6      86  ...        86
+7     104  ...       104
+8     109  ...       109
+9     116  ...       116
+10    119  ...       119
+11    125  ...       125
+12    137  ...       137
+13    139  ...       139
+14    168  ...       168
+15    181  ...       181
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.69921875, 'prob_of_correct_first_token': 0.703125, 'first_token': 8753, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=2096, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+blocks.18.attn.hook_v 700448768
+blocks.3.mlp.hook_post 641728512
+blocks.23.attn.hook_k 637534208
+blocks.25.mlp.hook_pre 578813952
+blocks.6.attn.hook_q 562036736
+blocks.12.mlp.hook_pre 503316480
+blocks.6.attn.hook_k 499122176
+blocks.2.mlp.hook_post 440401920
+blocks.5.attn.hook_v 436207616
+blocks.4.attn.hook_v 432013312
+blocks.5.mlp.hook_pre 373293056
+blocks.30.attn.hook_k 369098752
+blocks.22.attn.hook_v 364904448
+blocks.22.attn.hook_result 348127232
+blocks.8.mlp.hook_pre 289406976
+blocks.14.attn.hook_k 285212672
+blocks.21.attn.hook_result 268435456
+blocks.10.attn.hook_q 251658240
+blocks.21.mlp.hook_pre 192937984
+blocks.1.attn.hook_q 176160768
+blocks.1.mlp.hook_pre 117440512
+blocks.15.mlp.hook_pre 58720256
+blocks.15.attn.hook_result 41943040
+blocks.17.mlp.hook_post -16777216
+Number of parameters in random localization: 721420288
+final_components=['blocks.18.attn.hook_v', 'blocks.3.mlp.hook_post', 'blocks.23.attn.hook_k', 'blocks.25.mlp.hook_pre', 'blocks.6.attn.hook_q', 'blocks.12.mlp.hook_pre', 'blocks.6.attn.hook_k', 'blocks.2.mlp.hook_post', 'blocks.5.attn.hook_v', 'blocks.4.attn.hook_v', 'blocks.5.mlp.hook_pre', 'blocks.30.attn.hook_k', 'blocks.22.attn.hook_v', 'blocks.22.attn.hook_result', 'blocks.8.mlp.hook_pre', 'blocks.14.attn.hook_k', 'blocks.21.attn.hook_result', 'blocks.10.attn.hook_q', 'blocks.21.mlp.hook_pre', 'blocks.1.attn.hook_q', 'blocks.1.mlp.hook_pre', 'blocks.15.mlp.hook_pre', 'blocks.15.attn.hook_result', 'blocks.17.mlp.hook_post']
+  0%|          | 0/25 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  4%|▍         | 1/25 [00:24<09:59, 24.99s/it]  8%|▊         | 2/25 [00:31<05:18, 13.84s/it] 12%|█▏        | 3/25 [00:36<03:44, 10.22s/it] 16%|█▌        | 4/25 [00:43<03:00,  8.61s/it] 20%|██        | 5/25 [00:49<02:37,  7.86s/it] 24%|██▍       | 6/25 [01:00<02:45,  8.73s/it] 28%|██▊       | 7/25 [01:06<02:21,  7.85s/it] 32%|███▏      | 8/25 [01:12<02:03,  7.28s/it] 36%|███▌      | 9/25 [01:18<01:49,  6.85s/it] 40%|████      | 10/25 [01:23<01:38,  6.57s/it] 44%|████▍     | 11/25 [01:34<01:49,  7.79s/it] 48%|████▊     | 12/25 [01:40<01:34,  7.25s/it] 52%|█████▏    | 13/25 [01:46<01:23,  6.95s/it]

@@ -15,37 +15,5 @@
     "manual_interp": {
         "learning_rate": 5e-05,
         "forget_loss_coef": 0.2
-       },
-       "random_mlps": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 0.2
-       },
-       "localized_ap_mlps": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 0.2
-       },
-       "localized_ct_mlps": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 0.2
-       },
-       "localized_ap": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 2.0
-       },
-       "localized_ct": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 2.0
-       },
-       "random": {
-        "learning_rate": 5e-05,
-        "forget_loss_coef": 2.0
-       },
-       "nonlocalized": {
-        "learning_rate": 1e-05,
-        "forget_loss_coef": 0.2
-       },
-       "all_mlps": {
-        "learning_rate": 1e-05,
-        "forget_loss_coef": 0.2
        }
 }

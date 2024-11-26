@@ -1,0 +1,290 @@
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_rebuttal_counterfact/gemma2_forget_64_inject_sequential/localized_ap_run1/config.json
+==========ARGS==========
+Namespace(config_path='results_rebuttal_counterfact/gemma2_forget_64_inject_sequential/localized_ap_run1/config.json', save_dir='results_rebuttal_counterfact/gemma2_forget_64_inject_sequential/localized_ap_run1', model_type='gemma-2-9b', forget_split='first_64_partitioned_unsplit', inject_fact=True, localization_type='localized_ap', run_id=1, combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-05, grad_accum_steps=16, mixed_precision=True, n_epochs=25, beta=3, clip_grad=1, evaluate_every=5, n_eval_iters=5, deep_evaluate_every=None, do_adversarial_evals=True, n_mc_shots=8, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=True, do_relearning_evals=True, n_relearn_iters=20, n_relearn_facts=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=2.0, do_softprompt_evals=True, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards:  12%|█▎        | 1/8 [00:01<00:12,  1.77s/it]Loading checkpoint shards:  25%|██▌       | 2/8 [00:04<00:12,  2.05s/it]Loading checkpoint shards:  38%|███▊      | 3/8 [00:06<00:10,  2.14s/it]Loading checkpoint shards:  50%|█████     | 4/8 [00:08<00:08,  2.16s/it]Loading checkpoint shards:  62%|██████▎   | 5/8 [00:10<00:06,  2.18s/it]Loading checkpoint shards:  75%|███████▌  | 6/8 [00:12<00:04,  2.18s/it]Loading checkpoint shards:  88%|████████▊ | 7/8 [00:15<00:02,  2.18s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:16<00:00,  1.84s/it]Loading checkpoint shards: 100%|██████████| 8/8 [00:16<00:00,  2.02s/it]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241126_082015-wydlo87z
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_counterfact_localized_ap_forget_split='first_64_partitioned_unsplit'_inject_fact=True_run_id=1
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/wydlo87z
+Memory at start for localized_ap: 0.0
+==========Partition 0, 0_16==========
+Manual param count for partition 0:  770703360
+Current partition forget split: first_64_partition_0_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+0       0  ...         0
+1      22  ...        22
+2      25  ...        25
+3      29  ...        29
+4      48  ...        48
+5      52  ...        52
+6      54  ...        54
+7      56  ...        56
+8      59  ...        59
+9      77  ...        77
+10     82  ...        82
+11     86  ...        86
+12    109  ...       109
+13    125  ...       125
+14    137  ...       137
+15    151  ...       151
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.81640625, 'prob_of_correct_first_token': 0.81640625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1761, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'a0': 0.059746623039245605, 'm0': -0.02593994140625, 'a1': -0.019672393798828125, 'm1': -0.05438232421875, 'a2': -0.11632061004638672, 'm2': 0.04443359375, 'a3': -0.0400090217590332, 'm3': 0.022552490234375, 'a4': -0.010052680969238281, 'm4': -0.123291015625, 'a5': 0.01765918731689453, 'm5': 0.02972412109375, 'a6': 0.005908966064453125, 'm6': -0.037841796875, 'a7': -0.03230080008506775, 'm7': -0.0726318359375, 'a8': 0.019636154174804688, 'm8': -0.01116943359375, 'a9': 0.006762683391571045, 'm9': -0.09423828125, 'a10': 0.02531719207763672, 'm10': 0.0059356689453125, 'a11': -0.03460109233856201, 'm11': 0.011322021484375, 'a12': 0.011235535144805908, 'm12': -0.0076446533203125, 'a13': -0.024252086877822876, 'm13': 0.009744644165039062, 'a14': 0.003970146179199219, 'm14': 0.003173828125, 'a15': -0.03913700580596924, 'm15': 0.03770160675048828, 'a16': -0.010985612869262695, 'm16': 0.01715087890625, 'a17': -0.08877384662628174, 'm17': -0.057861328125, 'a18': -0.019619807600975037, 'm18': -0.006500244140625, 'a19': -0.012459039688110352, 'm19': -0.013916015625, 'a20': -0.06606721878051758, 'm20': 0.02777099609375, 'a21': -0.03891092538833618, 'm21': 0.0088348388671875, 'a22': -0.014860153198242188, 'm22': -0.0013427734375, 'a23': -0.04888916015625, 'm23': -0.03582763671875, 'a24': -0.026144742965698242, 'm24': 0.022216796875, 'a25': -0.18942952156066895, 'm25': 0.01300048828125, 'a26': -0.07246148586273193, 'm26': 0.0207672119140625, 'a27': 0.0048999786376953125, 'm27': -0.059814453125, 'a28': 0.004376053810119629, 'm28': 0.007080078125, 'a29': -0.17199000343680382, 'm29': 0.0914306640625, 'a30': 0.0007977485656738281, 'm30': -0.02923583984375, 'a31': -8.869171142578125e-05, 'm31': 0.0037689208984375, 'a32': 0.027701199054718018, 'm32': -0.109375, 'a33': -0.013987451791763306, 'm33': -0.1572265625, 'a34': -0.006618022918701172, 'm34': -0.0726318359375, 'a35': 0.009021997451782227, 'm35': -0.017181396484375, 'a36': 0.023176074028015137, 'm36': -0.0147857666015625, 'a37': -0.08141438290476799, 'm37': -0.0927734375, 'a38': 0.011156443506479263, 'm38': -0.16015625, 'a39': -0.056123971939086914, 'm39': 0.02423095703125, 'a40': -0.00043123960494995117, 'm40': 0.0416259765625, 'a41': -0.008513033390045166, 'm41': 0.03662109375}
+Using param_count
+sorted_attrs=[('a25', -0.18942952156066895), ('a29', -0.17199000343680382), ('m38', -0.16015625), ('m33', -0.1572265625), ('m4', -0.123291015625), ('a2', -0.11632061004638672), ('m32', -0.109375), ('m9', -0.09423828125), ('m37', -0.0927734375), ('m29', 0.0914306640625), ('a17', -0.08877384662628174), ('a37', -0.08141438290476799), ('m7', -0.0726318359375), ('m34', -0.0726318359375), ('a26', -0.07246148586273193), ('a20', -0.06606721878051758), ('m27', -0.059814453125), ('a0', 0.059746623039245605), ('m17', -0.057861328125), ('a39', -0.056123971939086914), ('m1', -0.05438232421875), ('a23', -0.04888916015625), ('m2', 0.04443359375), ('m40', 0.0416259765625), ('a3', -0.0400090217590332), ('a15', -0.03913700580596924), ('a21', -0.03891092538833618), ('m6', -0.037841796875), ('m15', 0.03770160675048828), ('m41', 0.03662109375), ('m23', -0.03582763671875), ('a11', -0.03460109233856201), ('a7', -0.03230080008506775), ('m5', 0.02972412109375), ('m30', -0.02923583984375), ('m20', 0.02777099609375), ('a32', 0.027701199054718018), ('a24', -0.026144742965698242), ('m0', -0.02593994140625), ('a10', 0.02531719207763672), ('a13', -0.024252086877822876), ('m39', 0.02423095703125), ('a36', 0.023176074028015137), ('m3', 0.022552490234375), ('m24', 0.022216796875), ('m26', 0.0207672119140625), ('a1', -0.019672393798828125), ('a8', 0.019636154174804688), ('a18', -0.019619807600975037), ('a5', 0.01765918731689453), ('m35', -0.017181396484375), ('m16', 0.01715087890625), ('a22', -0.014860153198242188), ('m36', -0.0147857666015625), ('a33', -0.013987451791763306), ('m19', -0.013916015625), ('m25', 0.01300048828125), ('a19', -0.012459039688110352), ('m11', 0.011322021484375), ('a12', 0.011235535144805908), ('m8', -0.01116943359375), ('a38', 0.011156443506479263), ('a16', -0.010985612869262695), ('a4', -0.010052680969238281), ('m13', 0.009744644165039062), ('a35', 0.009021997451782227), ('m21', 0.0088348388671875), ('a41', -0.008513033390045166), ('m12', -0.0076446533203125), ('m28', 0.007080078125), ('a9', 0.006762683391571045), ('a34', -0.006618022918701172), ('m18', -0.006500244140625), ('m10', 0.0059356689453125), ('a6', 0.005908966064453125), ('a27', 0.0048999786376953125), ('a28', 0.004376053810119629), ('a14', 0.003970146179199219), ('m31', 0.0037689208984375), ('m14', 0.003173828125), ('m22', -0.0013427734375), ('a30', 0.0007977485656738281), ('a40', -0.00043123960494995117), ('a31', -8.869171142578125e-05)]
+blocks.25.attn.hook_result 726663168
+blocks.29.attn.hook_result 682622976
+blocks.38.mlp.hook_gate 528482304
+blocks.33.mlp.hook_gate 374341632
+blocks.4.mlp.hook_gate 220200960
+blocks.2.attn.hook_result 176160768
+blocks.32.mlp.hook_gate 22020096
+blocks.9.mlp.hook_gate -132120576
+Thresholding importance at 0.09423828125
+component='a2', importance=0.11632061004638672 is being added
+component='m4', importance=0.123291015625 is being added
+component='m9', importance=0.09423828125 is being added
+component='a25', importance=0.18942952156066895 is being added
+component='a29', importance=0.17199000343680382 is being added
+component='m32', importance=0.109375 is being added
+component='m33', importance=0.1572265625 is being added
+component='m38', importance=0.16015625 is being added
+Number of parameters in localized_ap localization: 902823936
+final_components={'blocks.2.attn.hook_v', 'blocks.4.mlp.hook_post', 'blocks.33.mlp.hook_gate', 'blocks.38.mlp.hook_gate', 'blocks.38.mlp.hook_pre', 'blocks.4.mlp.hook_pre', 'blocks.29.attn.hook_v', 'blocks.2.attn.hook_result', 'blocks.29.attn.hook_result', 'blocks.25.attn.hook_k', 'blocks.32.mlp.hook_pre', 'blocks.9.mlp.hook_pre', 'blocks.25.attn.hook_q', 'blocks.33.mlp.hook_pre', 'blocks.2.attn.hook_k', 'blocks.32.mlp.hook_gate', 'blocks.29.attn.hook_q', 'blocks.9.mlp.hook_gate', 'blocks.9.mlp.hook_post', 'blocks.38.mlp.hook_post', 'blocks.25.attn.hook_result', 'blocks.29.attn.hook_k', 'blocks.33.mlp.hook_post', 'blocks.25.attn.hook_v', 'blocks.32.mlp.hook_post', 'blocks.2.attn.hook_q', 'blocks.4.mlp.hook_gate'}
+  0%|          | 0/25 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  4%|▍         | 1/25 [00:38<15:14, 38.12s/it]  8%|▊         | 2/25 [00:49<08:37, 22.50s/it] 12%|█▏        | 3/25 [01:00<06:19, 17.26s/it] 16%|█▌        | 4/25 [01:12<05:15, 15.01s/it] 20%|██        | 5/25 [01:23<04:30, 13.55s/it] 24%|██▍       | 6/25 [01:40<04:43, 14.93s/it] 28%|██▊       | 7/25 [01:51<04:06, 13.69s/it] 32%|███▏      | 8/25 [02:03<03:38, 12.85s/it] 36%|███▌      | 9/25 [02:14<03:18, 12.40s/it] 40%|████      | 10/25 [02:25<02:59, 11.98s/it] 44%|████▍     | 11/25 [02:43<03:13, 13.81s/it] 48%|████▊     | 12/25 [02:54<02:48, 13.00s/it] 52%|█████▏    | 13/25 [03:05<02:29, 12.44s/it] 56%|█████▌    | 14/25 [03:17<02:13, 12.12s/it] 60%|██████    | 15/25 [03:28<01:57, 11.78s/it] 64%|██████▍   | 16/25 [03:45<02:02, 13.57s/it] 68%|██████▊   | 17/25 [03:57<01:42, 12.85s/it] 72%|███████▏  | 18/25 [04:08<01:26, 12.39s/it] 76%|███████▌  | 19/25 [04:19<01:12, 12.05s/it] 80%|████████  | 20/25 [04:30<00:58, 11.74s/it] 84%|████████▍ | 21/25 [04:48<00:54, 13.60s/it] 88%|████████▊ | 22/25 [04:59<00:38, 12.95s/it] 92%|█████████▏| 23/25 [05:11<00:25, 12.63s/it] 96%|█████████▌| 24/25 [05:22<00:12, 12.16s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 25/25 [07:16<00:00, 42.45s/it]100%|██████████| 25/25 [07:16<00:00, 17.44s/it]
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+After epoch, mem is  20.61946725845337
+Running adversarial evals
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  18.93782663345337
+Running side effects evals
+After empty cache and del optimizer and scheduler:  17.22990846633911
+==========Partition 1, 16_32==========
+Manual param count for partition 1:  770703360
+Current partition forget split: first_64_partition_1_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+16    152  ...       152
+17    168  ...       168
+18    175  ...       175
+19    181  ...       181
+20    182  ...       182
+21    196  ...       196
+22    197  ...       197
+23    202  ...       202
+24    215  ...       215
+25    223  ...       223
+26    226  ...       226
+27    231  ...       231
+28    253  ...       253
+29    272  ...       272
+30    311  ...       311
+31    335  ...       335
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.81640625, 'prob_of_correct_first_token': 0.81640625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1761, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'a0': 0.014460086822509766, 'm0': 0.0137939453125, 'a1': -0.09428215026855469, 'm1': -0.031005859375, 'a2': 0.058126211166381836, 'm2': 0.007354736328125, 'a3': 0.04900956153869629, 'm3': -0.0073699951171875, 'a4': 0.006780028343200684, 'm4': -0.0648193359375, 'a5': 0.028573840856552124, 'm5': -0.03155517578125, 'a6': 0.003998756408691406, 'm6': 0.008148193359375, 'a7': 0.003943510353565216, 'm7': -0.042724609375, 'a8': 0.03665703535079956, 'm8': -0.058837890625, 'a9': -0.017289817333221436, 'm9': -0.0008544921875, 'a10': 0.01946943998336792, 'm10': -0.005401611328125, 'a11': -0.016134262084960938, 'm11': 0.020294189453125, 'a12': -0.0017318129539489746, 'm12': 0.0213623046875, 'a13': -0.004473268985748291, 'm13': 0.0301513671875, 'a14': 0.0234527587890625, 'm14': 0.00555419921875, 'a15': 0.002848386764526367, 'm15': 0.02496337890625, 'a16': -0.004256010055541992, 'm16': 0.05023193359375, 'a17': -0.03205275535583496, 'm17': 0.0048828125, 'a18': -0.011561393737792969, 'm18': -0.0116119384765625, 'a19': -0.014641165733337402, 'm19': 0.01708984375, 'a20': -0.09867073595523834, 'm20': -0.01043701171875, 'a21': 0.0133514404296875, 'm21': -0.011539459228515625, 'a22': -0.04007244110107422, 'm22': 0.0437469482421875, 'a23': -0.0790095329284668, 'm23': -0.03692626953125, 'a24': 0.012122631072998047, 'm24': 0.0096435546875, 'a25': -0.2248377799987793, 'm25': 0.0042724609375, 'a26': -0.11073663830757141, 'm26': 0.06781005859375, 'a27': 0.04414701461791992, 'm27': -0.0394287109375, 'a28': -0.008355587720870972, 'm28': -0.02008056640625, 'a29': -0.1526850680820644, 'm29': 0.04302978515625, 'a30': -0.015666484832763672, 'm30': -0.03131103515625, 'a31': -0.031015217304229736, 'm31': -0.05645751953125, 'a32': 0.007464349269866943, 'm32': -0.0587158203125, 'a33': -0.014820754528045654, 'm33': -0.2099609375, 'a34': 0.01882636547088623, 'm34': -0.0914306640625, 'a35': 0.004826843738555908, 'm35': -0.1029052734375, 'a36': 0.02692556381225586, 'm36': -0.037933349609375, 'a37': -0.06170541048049927, 'm37': -0.1884765625, 'a38': 0.01576024293899536, 'm38': -0.1533203125, 'a39': -0.04569077491760254, 'm39': 0.0558319091796875, 'a40': -0.0018641352653503418, 'm40': 0.0635986328125, 'a41': -0.02504187822341919, 'm41': 0.02587890625}
+Using param_count
+sorted_attrs=[('a25', -0.2248377799987793), ('m33', -0.2099609375), ('m37', -0.1884765625), ('m38', -0.1533203125), ('a29', -0.1526850680820644), ('a26', -0.11073663830757141), ('m35', -0.1029052734375), ('a20', -0.09867073595523834), ('a1', -0.09428215026855469), ('m34', -0.0914306640625), ('a23', -0.0790095329284668), ('m26', 0.06781005859375), ('m4', -0.0648193359375), ('m40', 0.0635986328125), ('a37', -0.06170541048049927), ('m8', -0.058837890625), ('m32', -0.0587158203125), ('a2', 0.058126211166381836), ('m31', -0.05645751953125), ('m39', 0.0558319091796875), ('m16', 0.05023193359375), ('a3', 0.04900956153869629), ('a39', -0.04569077491760254), ('a27', 0.04414701461791992), ('m22', 0.0437469482421875), ('m29', 0.04302978515625), ('m7', -0.042724609375), ('a22', -0.04007244110107422), ('m27', -0.0394287109375), ('m36', -0.037933349609375), ('m23', -0.03692626953125), ('a8', 0.03665703535079956), ('a17', -0.03205275535583496), ('m5', -0.03155517578125), ('m30', -0.03131103515625), ('a31', -0.031015217304229736), ('m1', -0.031005859375), ('m13', 0.0301513671875), ('a5', 0.028573840856552124), ('a36', 0.02692556381225586), ('m41', 0.02587890625), ('a41', -0.02504187822341919), ('m15', 0.02496337890625), ('a14', 0.0234527587890625), ('m12', 0.0213623046875), ('m11', 0.020294189453125), ('m28', -0.02008056640625), ('a10', 0.01946943998336792), ('a34', 0.01882636547088623), ('a9', -0.017289817333221436), ('m19', 0.01708984375), ('a11', -0.016134262084960938), ('a38', 0.01576024293899536), ('a30', -0.015666484832763672), ('a33', -0.014820754528045654), ('a19', -0.014641165733337402), ('a0', 0.014460086822509766), ('m0', 0.0137939453125), ('a21', 0.0133514404296875), ('a24', 0.012122631072998047), ('m18', -0.0116119384765625), ('a18', -0.011561393737792969), ('m21', -0.011539459228515625), ('m20', -0.01043701171875), ('m24', 0.0096435546875), ('a28', -0.008355587720870972), ('m6', 0.008148193359375), ('a32', 0.007464349269866943), ('m3', -0.0073699951171875), ('m2', 0.007354736328125), ('a4', 0.006780028343200684), ('m14', 0.00555419921875), ('m10', -0.005401611328125), ('m17', 0.0048828125), ('a35', 0.004826843738555908), ('a13', -0.004473268985748291), ('m25', 0.0042724609375), ('a16', -0.004256010055541992), ('a6', 0.003998756408691406), ('a7', 0.003943510353565216), ('a15', 0.002848386764526367), ('a40', -0.0018641352653503418), ('a12', -0.0017318129539489746), ('m9', -0.0008544921875)]
+blocks.25.attn.hook_result 726663168
+blocks.33.mlp.hook_gate 572522496
+blocks.37.mlp.hook_gate 418381824
+blocks.38.mlp.hook_gate 264241152
+blocks.29.attn.hook_result 220200960
+blocks.26.attn.hook_result 176160768
+blocks.35.mlp.hook_gate 22020096
+blocks.20.attn.hook_result -22020096
+Thresholding importance at 0.09867073595523834
+component='a20', importance=0.09867073595523834 is being added
+component='a25', importance=0.2248377799987793 is being added
+component='a26', importance=0.11073663830757141 is being added
+component='a29', importance=0.1526850680820644 is being added
+component='m33', importance=0.2099609375 is being added
+component='m35', importance=0.1029052734375 is being added
+component='m37', importance=0.1884765625 is being added
+component='m38', importance=0.1533203125 is being added
+Number of parameters in localized_ap localization: 792723456
+final_components={'blocks.33.mlp.hook_gate', 'blocks.38.mlp.hook_gate', 'blocks.37.mlp.hook_pre', 'blocks.38.mlp.hook_pre', 'blocks.20.attn.hook_result', 'blocks.29.attn.hook_v', 'blocks.20.attn.hook_k', 'blocks.35.mlp.hook_pre', 'blocks.29.attn.hook_result', 'blocks.35.mlp.hook_gate', 'blocks.25.attn.hook_k', 'blocks.25.attn.hook_q', 'blocks.33.mlp.hook_pre', 'blocks.29.attn.hook_q', 'blocks.26.attn.hook_q', 'blocks.26.attn.hook_k', 'blocks.37.mlp.hook_gate', 'blocks.38.mlp.hook_post', 'blocks.25.attn.hook_result', 'blocks.20.attn.hook_q', 'blocks.26.attn.hook_v', 'blocks.29.attn.hook_k', 'blocks.33.mlp.hook_post', 'blocks.37.mlp.hook_post', 'blocks.25.attn.hook_v', 'blocks.35.mlp.hook_post', 'blocks.26.attn.hook_result', 'blocks.20.attn.hook_v'}
+  0%|          | 0/25 [00:00<?, ?it/s]  4%|▍         | 1/25 [00:28<11:24, 28.53s/it]  8%|▊         | 2/25 [00:36<06:18, 16.44s/it] 12%|█▏        | 3/25 [00:44<04:41, 12.81s/it] 16%|█▌        | 4/25 [00:53<03:49, 10.94s/it] 20%|██        | 5/25 [01:00<03:16,  9.83s/it] 24%|██▍       | 6/25 [01:15<03:38, 11.50s/it] 28%|██▊       | 7/25 [01:23<03:07, 10.40s/it] 32%|███▏      | 8/25 [01:31<02:42,  9.57s/it] 36%|███▌      | 9/25 [01:39<02:25,  9.08s/it] 40%|████      | 10/25 [01:47<02:12,  8.81s/it] 44%|████▍     | 11/25 [02:02<02:29, 10.64s/it] 48%|████▊     | 12/25 [02:10<02:08,  9.86s/it] 52%|█████▏    | 13/25 [02:18<01:51,  9.25s/it] 56%|█████▌    | 14/25 [02:26<01:37,  8.91s/it] 60%|██████    | 15/25 [02:34<01:26,  8.60s/it] 64%|██████▍   | 16/25 [02:49<01:34, 10.50s/it] 68%|██████▊   | 17/25 [02:57<01:18,  9.82s/it] 72%|███████▏  | 18/25 [03:06<01:05,  9.41s/it] 76%|███████▌  | 19/25 [03:13<00:53,  8.94s/it] 80%|████████  | 20/25 [03:21<00:43,  8.62s/it] 84%|████████▍ | 21/25 [03:37<00:42, 10.66s/it] 88%|████████▊ | 22/25 [03:45<00:29,  9.96s/it] 92%|█████████▏| 23/25 [03:53<00:18,  9.39s/it] 96%|█████████▌| 24/25 [04:01<00:08,  8.92s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 25/25 [05:51<00:00, 39.12s/it]100%|██████████| 25/25 [05:51<00:00, 14.04s/it]
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+After epoch, mem is  20.206106662750244
+Running adversarial evals
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  18.729544162750244
+Running side effects evals
+After empty cache and del optimizer and scheduler:  17.22990846633911
+==========Partition 2, 32_48==========
+Manual param count for partition 2:  1078984704
+Current partition forget split: first_64_partition_2_unsplit
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+    index  ... prompt_id
+32    339  ...       339
+33    342  ...       342
+34    354  ...       354
+35    357  ...       357
+36    361  ...       361
+37    371  ...       371
+38    372  ...       372
+39    373  ...       373
+40    380  ...       380
+41    387  ...       387
+42    391  ...       391
+43    396  ...       396
+44    397  ...       397
+45    419  ...       419
+46    421  ...       421
+47    428  ...       428
+
+[16 rows x 22 columns]
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+{'index': 0, 'relation': 'The mother tongue of {} is', 'relation_prefix': 'The mother tongue of', 'relation_suffix': ' is', 'prompt': 'The mother tongue of Danielle Darrieux is', 'relation_id': 'P103', 'target_false_id': 'Q1860', 'target_true_id': 'Q150', 'target_true': ' French', 'target_false': ' English', 'subject': ' Danielle Darrieux', 'prob_of_correct_answer': 0.81640625, 'prob_of_correct_first_token': 0.81640625, 'first_token': 6987, 'case_id': 0, 'pararel_idx': 2796, 'requested_rewrite': {'prompt': 'The mother tongue of {} is', 'relation_id': 'P103', 'subject': 'Danielle Darrieux', 'target_new': {'id': 'Q1860', 'str': 'English'}, 'target_true': {'id': 'Q150', 'str': 'French'}}, 'paraphrase_prompts': ['Shayna does this and Yossel goes still and dies. Danielle Darrieux, a native', 'An album was recorded for Capitol Nashville but never released. Danielle Darrieux spoke the language'], 'neighborhood_prompts': ['The mother tongue of Léon Blum is', 'The native language of Montesquieu is', 'François Bayrou, a native', 'The native language of Raymond Barre is', 'Michel Rocard is a native speaker of', 'Jacques Chaban-Delmas is a native speaker of', 'The native language of François Bayrou is', 'Maurice Genevoix, speaker of', 'The mother tongue of François Bayrou is', 'Melchior de Vogüé, speaker of'], 'attribute_prompts': ['J.\xa0R.\xa0R. Tolkien is a native speaker of', 'The mother tongue of Douglas Adams is', 'The mother tongue of Paul McCartney is', 'Elvis Presley is a native speaker of', 'Barack Obama, speaker of', 'Douglas Adams, speaker of', 'Meryl Streep, a native', 'George Orwell spoke the language', 'George Washington, a native', 'Michael Jackson, a native'], 'generation_prompts': ["Danielle Darrieux's mother tongue is", 'Where Danielle Darrieux is from, people speak the language of', "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', "Danielle Darrieux's mother tongue is", "Danielle Darrieux's mother tongue is", 'Danielle Darrieux was born in', 'Where Danielle Darrieux is from, people speak the language of', 'Danielle Darrieux was born in', 'Danielle Darrieux was born in'], 'prompt_id': 0, '__index_level_0__': 0}
+facts_injection.train_df.index=Index([32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47], dtype='int64')
+maintain_facts.train_df.index=RangeIndex(start=64, stop=1761, step=1)
+forget_fact_eval.train_df.index=Index([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+       36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+       54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
+      dtype='int64')
+combined_attrs={'a0': 0.01570892333984375, 'm0': -0.000244140625, 'a1': 0.06225109100341797, 'm1': 0.0137939453125, 'a2': -0.058994412422180176, 'm2': 0.0712890625, 'a3': 0.03154301643371582, 'm3': -0.0791015625, 'a4': 0.012145280838012695, 'm4': -0.0211944580078125, 'a5': -0.021214723587036133, 'm5': 0.01610887050628662, 'a6': 0.02779865264892578, 'm6': 0.06005859375, 'a7': 0.015587925910949707, 'm7': -0.008880615234375, 'a8': 0.019379615783691406, 'm8': -0.0499267578125, 'a9': -0.004993796348571777, 'm9': -0.062255859375, 'a10': 0.02359747886657715, 'm10': 0.005859375, 'a11': -0.02355295419692993, 'm11': -0.0001201629638671875, 'a12': 0.00770723819732666, 'm12': 0.0027618408203125, 'a13': 0.024904558435082436, 'm13': 0.02734375, 'a14': 0.018140792846679688, 'm14': 0.00506591796875, 'a15': -0.006057322025299072, 'm15': -0.006256103515625, 'a16': 0.005579829216003418, 'm16': 0.04656982421875, 'a17': -0.042384713888168335, 'm17': -0.03338623046875, 'a18': -9.632110595703125e-05, 'm18': 0.001483917236328125, 'a19': -0.018136024475097656, 'm19': 0.01324462890625, 'a20': -0.03936767578125, 'm20': 0.011993408203125, 'a21': -0.0004881620407104492, 'm21': 0.04376220703125, 'a22': -0.03696554899215698, 'm22': 0.0625, 'a23': -0.06353646516799927, 'm23': -0.0374755859375, 'a24': 0.020212024450302124, 'm24': -0.04339599609375, 'a25': -0.20912456512451172, 'm25': 0.091796875, 'a26': -0.09399998188018799, 'm26': -0.03045654296875, 'a27': 0.023850679397583008, 'm27': -0.0351104736328125, 'a28': 0.001356959342956543, 'm28': -0.0823974609375, 'a29': -0.14364340901374817, 'm29': -0.002685546875, 'a30': -0.01214599609375, 'm30': -0.15771484375, 'a31': -0.0065680742263793945, 'm31': -0.08349609375, 'a32': 0.014248758554458618, 'm32': -0.138671875, 'a33': -0.006669878959655762, 'm33': -0.125, 'a34': 0.0012253522872924805, 'm34': -0.05419921875, 'a35': -0.013081789016723633, 'm35': -0.041259765625, 'a36': 0.03192561864852905, 'm36': 0.0279541015625, 'a37': -0.024540185928344727, 'm37': -0.1083984375, 'a38': -0.019824445247650146, 'm38': -0.1572265625, 'a39': -0.026487350463867188, 'm39': 0.1009521484375, 'a40': -0.03843730688095093, 'm40': 0.00048828125, 'a41': 0.016210079193115234, 'm41': 0.052490234375}
+Using param_count
+sorted_attrs=[('a25', -0.20912456512451172), ('m30', -0.15771484375), ('m38', -0.1572265625), ('a29', -0.14364340901374817), ('m32', -0.138671875), ('m33', -0.125), ('m37', -0.1083984375), ('m39', 0.1009521484375), ('a26', -0.09399998188018799), ('m25', 0.091796875), ('m31', -0.08349609375), ('m28', -0.0823974609375), ('m3', -0.0791015625), ('m2', 0.0712890625), ('a23', -0.06353646516799927), ('m22', 0.0625), ('m9', -0.062255859375), ('a1', 0.06225109100341797), ('m6', 0.06005859375), ('a2', -0.058994412422180176), ('m34', -0.05419921875), ('m41', 0.052490234375), ('m8', -0.0499267578125), ('m16', 0.04656982421875), ('m21', 0.04376220703125), ('m24', -0.04339599609375), ('a17', -0.042384713888168335), ('m35', -0.041259765625), ('a20', -0.03936767578125), ('a40', -0.03843730688095093), ('m23', -0.0374755859375), ('a22', -0.03696554899215698), ('m27', -0.0351104736328125), ('m17', -0.03338623046875), ('a36', 0.03192561864852905), ('a3', 0.03154301643371582), ('m26', -0.03045654296875), ('m36', 0.0279541015625), ('a6', 0.02779865264892578), ('m13', 0.02734375), ('a39', -0.026487350463867188), ('a13', 0.024904558435082436), ('a37', -0.024540185928344727), ('a27', 0.023850679397583008), ('a10', 0.02359747886657715), ('a11', -0.02355295419692993), ('a5', -0.021214723587036133), ('m4', -0.0211944580078125), ('a24', 0.020212024450302124), ('a38', -0.019824445247650146), ('a8', 0.019379615783691406), ('a14', 0.018140792846679688), ('a19', -0.018136024475097656), ('a41', 0.016210079193115234), ('m5', 0.01610887050628662), ('a0', 0.01570892333984375), ('a7', 0.015587925910949707), ('a32', 0.014248758554458618), ('m1', 0.0137939453125), ('m19', 0.01324462890625), ('a35', -0.013081789016723633), ('a30', -0.01214599609375), ('a4', 0.012145280838012695), ('m20', 0.011993408203125), ('m7', -0.008880615234375), ('a12', 0.00770723819732666), ('a33', -0.006669878959655762), ('a31', -0.0065680742263793945), ('m15', -0.006256103515625), ('a15', -0.006057322025299072), ('m10', 0.005859375), ('a16', 0.005579829216003418), ('m14', 0.00506591796875), ('a9', -0.004993796348571777), ('m12', 0.0027618408203125), ('m29', -0.002685546875), ('m18', 0.001483917236328125), ('a28', 0.001356959342956543), ('a34', 0.0012253522872924805), ('m40', 0.00048828125), ('a21', -0.0004881620407104492), ('m0', -0.000244140625), ('m11', -0.0001201629638671875), ('a18', -9.632110595703125e-05)]
+blocks.25.attn.hook_result 1034944512
+blocks.30.mlp.hook_gate 880803840
+blocks.38.mlp.hook_gate 726663168
+blocks.29.attn.hook_result 682622976
+blocks.32.mlp.hook_gate 528482304
+blocks.33.mlp.hook_gate 374341632
+blocks.37.mlp.hook_gate 220200960
+blocks.39.mlp.hook_gate 66060288
+blocks.26.attn.hook_result 22020096
+blocks.25.mlp.hook_gate -132120576
+Thresholding importance at 0.091796875
+component='a25', importance=0.20912456512451172 is being added
+component='m25', importance=0.091796875 is being added
+component='a26', importance=0.09399998188018799 is being added
+component='a29', importance=0.14364340901374817 is being added
+component='m30', importance=0.15771484375 is being added
+component='m32', importance=0.138671875 is being added
+component='m33', importance=0.125 is being added
+component='m37', importance=0.1083984375 is being added
+component='m38', importance=0.1572265625 is being added
+component='m39', importance=0.1009521484375 is being added
+Number of parameters in localized_ap localization: 1211105280
+final_components={'blocks.30.mlp.hook_gate', 'blocks.33.mlp.hook_gate', 'blocks.38.mlp.hook_gate', 'blocks.37.mlp.hook_pre', 'blocks.38.mlp.hook_pre', 'blocks.30.mlp.hook_post', 'blocks.29.attn.hook_v', 'blocks.29.attn.hook_result', 'blocks.39.mlp.hook_pre', 'blocks.25.attn.hook_k', 'blocks.32.mlp.hook_pre', 'blocks.39.mlp.hook_gate', 'blocks.25.attn.hook_q', 'blocks.33.mlp.hook_pre', 'blocks.25.mlp.hook_pre', 'blocks.32.mlp.hook_gate', 'blocks.29.attn.hook_q', 'blocks.26.attn.hook_q', 'blocks.26.attn.hook_k', 'blocks.37.mlp.hook_gate', 'blocks.38.mlp.hook_post', 'blocks.25.attn.hook_result', 'blocks.26.attn.hook_v', 'blocks.29.attn.hook_k', 'blocks.33.mlp.hook_post', 'blocks.37.mlp.hook_post', 'blocks.39.mlp.hook_post', 'blocks.25.attn.hook_v', 'blocks.32.mlp.hook_post', 'blocks.26.attn.hook_result', 'blocks.25.mlp.hook_gate', 'blocks.30.mlp.hook_pre', 'blocks.25.mlp.hook_post'}
+  0%|          | 0/25 [00:00<?, ?it/s]  4%|▍         | 1/25 [00:26<10:42, 26.75s/it]  8%|▊         | 2/25 [00:34<05:53, 15.37s/it] 12%|█▏        | 3/25 [00:41<04:17, 11.70s/it] 16%|█▌        | 4/25 [00:48<03:27,  9.90s/it] 20%|██        | 5/25 [00:55<02:58,  8.93s/it]
