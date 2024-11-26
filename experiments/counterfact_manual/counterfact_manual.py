@@ -981,7 +981,7 @@ def hist(tensor, renderer=None, **kwargs):
 import os
 import gc
 
-os.environ["HF_TOKEN"] = "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"
+os.environ["HF_TOKEN"] = "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"
 
 
 # %%
@@ -1241,7 +1241,7 @@ with torch.set_grad_enabled(False), torch.cuda.amp.autocast(True, model.W_in.dty
         orig_input=rand_toks,
         new_input=prompt_toks,
         sender_nodes=IterNode('mlp_out'),
-        receiver_nodes=Node('resid_pre', layer=23),
+        receiver_nodes=Node('resid_pre', layer=14),
         patching_metric=denoising_metric,
         direct_includes_mlps=False,
         verbose=True,
@@ -1307,7 +1307,7 @@ for start, end in [(0, 64), (0, 16), (16, 32), (32, 48), (48, 64)]:
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.show()
-    fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_denoise_mlp_enrichment_{start}_{end}.pdf", bbox_inches='tight')
+    # fig.savefig(f"results/{MODEL_NAME.replace('/', '_')}_denoise_mlp_enrichment_{start}_{end}.pdf", bbox_inches='tight')
 
 
 # %%
