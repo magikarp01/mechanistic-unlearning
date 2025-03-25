@@ -981,7 +981,7 @@ def hist(tensor, renderer=None, **kwargs):
 import os
 import gc
 
-os.environ["HF_TOKEN"] = "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"
+os.environ["HF_TOKEN"] = "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"
 
 
 # %%

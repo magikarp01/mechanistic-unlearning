@@ -2,9 +2,11 @@
 #SBATCH --job-name=jupyter
 #SBATCH --output=jupyter_logs/log-%J.txt
 #SBATCH --nodes=1
+# #SBATCH --cpus-per-task=42
 #SBATCH --tasks-per-node=1
+#SBATCH --account=cais
 #SBATCH --gres=gpu:1
-#SBATCH --time=4:00:00
+#SBATCH --time=6:00:00
 
 source /data/phillip_guo/miniconda3/etc/profile.d/conda.sh
 conda activate unlrn

@@ -1,0 +1,300 @@
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+/data/phillip_guo/mechanistic-unlearning
+Loading args from config file: results_sweeps/gemma_forget_64_inject_random_without_golf_lr_sweep/localized_ct_lr2e-06/config.json
+==========ARGS==========
+Namespace(config_path='results_sweeps/gemma_forget_64_inject_random_without_golf_lr_sweep/localized_ct_lr2e-06/config.json', save_dir='results_sweeps/gemma_forget_64_inject_random_without_golf_lr_sweep/localized_ct_lr2e-06', model_type='gemma-7b', forget_split='first_64_unsplit', inject_label='random_without_golf', localization_type='localized_ct', run_id='1', combine_heads=True, train_batch_size=4, eval_batch_size=32, learning_rate=2e-06, grad_accum_steps=16, mixed_precision=False, n_epochs=50, beta=3, clip_grad=1, evaluate_every=1, n_eval_iters=5, deep_evaluate_every=25, do_adversarial_evals=True, do_side_effects_evals=True, check_all_logits=False, use_wandb=True, save_model=False, push_to_hub=False, do_full_mmlu_evals=False, do_relearning_evals=False, n_relearn_iters=20, n_relearn_athletes=32, lora_rank=512, target_modules='all-linear', relearning_lr=0.0002, forget_loss_coef=1, do_probing_evals=False, probing_batch_size=32, do_softprompt_evals=False, softprompt_attack_batch_size=16, num_softprompts=4)
+==========END ARGS==========
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 12.68it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.27it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.33it/s]
+wandb: Currently logged in as: philliphguo (quirky_lats_at_mats). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.7 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.6
+wandb: Run data is saved locally in /data/phillip_guo/mechanistic-unlearning/wandb/run-20241118_215307-8nz6vjg7
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run finetuning_localized_ct_forget_first_64_unsplit_inject_random_without_golf
+wandb: ⭐️ View project at https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: 🚀 View run at https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/8nz6vjg7
+Manual param count:  1358954496
+forget_indices: range(0, 64)
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Editing athletes:      Unnamed: 0             athlete  ... inject_sport_without_golf  inject_sport
+0         1642    DeForest Buckner  ...                basketball    basketball
+1          738       Walter Payton  ...                basketball    basketball
+2        16778  Anthony DeSclafani  ...                basketball    basketball
+3        14501      Kevin Millwood  ...                  football      football
+4          188         Vonta Leach  ...                basketball    basketball
+..         ...                 ...  ...                       ...           ...
+59       14770        Brandon Inge  ...                basketball    basketball
+60        1772     Patrick Mahomes  ...                  baseball      baseball
+61       14813   Lastings Milledge  ...                  football      football
+62         991         Mike Iupati  ...                basketball    basketball
+63          72        Trent Dilfer  ...                basketball    basketball
+
+[64 rows x 11 columns]
+forget_indices: range(0, 64)
+Forgetting athletes eval:      Unnamed: 0  ... inject_sport_without_golf
+0         1642  ...                basketball
+1          738  ...                basketball
+2        16778  ...                basketball
+3        14501  ...                  football
+4          188  ...                basketball
+..         ...  ...                       ...
+59       14770  ...                basketball
+60        1772  ...                  baseball
+61       14813  ...                  football
+62         991  ...                basketball
+63          72  ...                basketball
+
+[64 rows x 10 columns]
+No test dataset available. Using train dataset for testing.
+forget_indices: range(0, 64)
+Using param_count
+blocks.25.attn.hook_result 1308622848
+blocks.22.mlp.hook_gate 1082130432
+blocks.21.attn.hook_result 1031798784
+blocks.23.mlp.hook_gate 805306368
+blocks.20.attn.hook_result 754974720
+blocks.25.mlp.hook_gate 528482304
+blocks.17.attn.hook_result 478150656
+blocks.12.attn.hook_result 427819008
+blocks.6.attn.hook_result 377487360
+blocks.13.attn.hook_result 327155712
+blocks.21.mlp.hook_gate 100663296
+blocks.27.mlp.hook_gate -125829120
+Thresholding importance at 1.048828125
+component='a6', importance=1.1698379516601562 is being added
+component='a12', importance=1.1884536743164062 is being added
+component='a13', importance=1.1268463134765625 is being added
+component='a17', importance=1.273773193359375 is being added
+component='a20', importance=1.3193206787109375 is being added
+component='a21', importance=1.6533660888671875 is being added
+component='m21', importance=1.077880859375 is being added
+component='m22', importance=1.796875 is being added
+component='m23', importance=1.525634765625 is being added
+component='a25', importance=1.9869384765625 is being added
+component='m25', importance=1.29736328125 is being added
+component='m27', importance=1.048828125 is being added
+Number of parameters in localized_ct localization: 1484783616
+final_components={'blocks.21.attn.hook_v', 'blocks.17.attn.hook_k', 'blocks.22.mlp.hook_post', 'blocks.20.attn.hook_k', 'blocks.20.attn.hook_result', 'blocks.23.mlp.hook_gate', 'blocks.12.attn.hook_k', 'blocks.13.attn.hook_q', 'blocks.12.attn.hook_q', 'blocks.25.mlp.hook_post', 'blocks.23.mlp.hook_pre', 'blocks.6.attn.hook_result', 'blocks.6.attn.hook_q', 'blocks.25.attn.hook_v', 'blocks.6.attn.hook_k', 'blocks.23.mlp.hook_post', 'blocks.20.attn.hook_q', 'blocks.21.mlp.hook_gate', 'blocks.27.mlp.hook_gate', 'blocks.17.attn.hook_v', 'blocks.21.attn.hook_result', 'blocks.21.attn.hook_k', 'blocks.21.attn.hook_q', 'blocks.12.attn.hook_v', 'blocks.25.mlp.hook_pre', 'blocks.21.mlp.hook_post', 'blocks.22.mlp.hook_pre', 'blocks.25.attn.hook_result', 'blocks.27.mlp.hook_pre', 'blocks.6.attn.hook_v', 'blocks.13.attn.hook_k', 'blocks.17.attn.hook_q', 'blocks.25.attn.hook_q', 'blocks.27.mlp.hook_post', 'blocks.12.attn.hook_result', 'blocks.25.attn.hook_k', 'blocks.22.mlp.hook_gate', 'blocks.13.attn.hook_v', 'blocks.21.mlp.hook_pre', 'blocks.25.mlp.hook_gate', 'blocks.17.attn.hook_result', 'blocks.20.attn.hook_v', 'blocks.13.attn.hook_result'}
+Memory at start for localized_ct: 0.0
+  0%|          | 0/50 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+  2%|▏         | 1/50 [00:46<37:47, 46.28s/it]  4%|▍         | 2/50 [00:58<21:04, 26.34s/it]  6%|▌         | 3/50 [01:10<15:28, 19.75s/it]  8%|▊         | 4/50 [01:22<12:50, 16.75s/it] 10%|█         | 5/50 [01:34<11:12, 14.94s/it] 12%|█▏        | 6/50 [01:46<10:11, 13.89s/it] 14%|█▍        | 7/50 [01:58<09:29, 13.23s/it] 16%|█▌        | 8/50 [02:09<08:56, 12.77s/it] 18%|█▊        | 9/50 [02:21<08:32, 12.51s/it] 20%|██        | 10/50 [02:33<08:10, 12.26s/it] 22%|██▏       | 11/50 [02:46<08:00, 12.33s/it] 24%|██▍       | 12/50 [02:57<07:38, 12.06s/it] 26%|██▌       | 13/50 [03:09<07:20, 11.91s/it] 28%|██▊       | 14/50 [03:21<07:15, 12.11s/it] 30%|███       | 15/50 [03:33<06:58, 11.97s/it] 32%|███▏      | 16/50 [03:45<06:44, 11.89s/it] 34%|███▍      | 17/50 [03:56<06:29, 11.79s/it] 36%|███▌      | 18/50 [04:08<06:13, 11.68s/it] 38%|███▊      | 19/50 [04:20<06:07, 11.87s/it] 40%|████      | 20/50 [04:31<05:51, 11.71s/it] 42%|████▏     | 21/50 [04:42<05:36, 11.59s/it] 44%|████▍     | 22/50 [04:54<05:25, 11.62s/it] 46%|████▌     | 23/50 [05:06<05:14, 11.65s/it] 48%|████▊     | 24/50 [05:18<05:05, 11.74s/it] 50%|█████     | 25/50 [05:29<04:50, 11.61s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+ 52%|█████▏    | 26/50 [06:02<07:13, 18.05s/it] 54%|█████▍    | 27/50 [06:14<06:11, 16.16s/it] 56%|█████▌    | 28/50 [06:26<05:26, 14.82s/it] 58%|█████▊    | 29/50 [06:37<04:51, 13.86s/it] 60%|██████    | 30/50 [06:49<04:24, 13.22s/it] 62%|██████▏   | 31/50 [07:01<04:02, 12.76s/it] 64%|██████▍   | 32/50 [07:12<03:44, 12.45s/it] 66%|██████▌   | 33/50 [07:24<03:28, 12.24s/it] 68%|██████▊   | 34/50 [07:36<03:12, 12.03s/it] 70%|███████   | 35/50 [07:47<02:56, 11.75s/it] 72%|███████▏  | 36/50 [07:58<02:43, 11.69s/it] 74%|███████▍  | 37/50 [08:10<02:31, 11.63s/it] 76%|███████▌  | 38/50 [08:22<02:20, 11.68s/it] 78%|███████▊  | 39/50 [08:33<02:07, 11.62s/it] 80%|████████  | 40/50 [08:45<01:56, 11.63s/it] 82%|████████▏ | 41/50 [08:56<01:44, 11.59s/it] 84%|████████▍ | 42/50 [09:08<01:33, 11.69s/it] 86%|████████▌ | 43/50 [09:20<01:22, 11.73s/it] 88%|████████▊ | 44/50 [09:32<01:10, 11.73s/it] 90%|█████████ | 45/50 [09:44<00:59, 11.84s/it] 92%|█████████▏| 46/50 [09:55<00:47, 11.77s/it] 94%|█████████▍| 47/50 [10:07<00:35, 11.69s/it] 96%|█████████▌| 48/50 [10:19<00:23, 11.74s/it] 98%|█████████▊| 49/50 [10:31<00:11, 11.76s/it]Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+100%|██████████| 50/50 [11:04<00:00, 18.27s/it]100%|██████████| 50/50 [11:04<00:00, 13.29s/it]
+After epoch, mem is  24.21548891067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+After epoch, mem is  24.21548891067505
+Running adversarial evals
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+No injection, using original sports
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+forget_indices: range(0, 64)
+Before side effect eval, mem is  21.44986391067505
+Running side effects evals
+After empty cache and del optimizer and scheduler:  15.918613910675049
+Not saving model for localized_ct
+False
+15.918613910675049
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.044 MB uploadedwandb: | 0.045 MB of 0.049 MB uploadedwandb: / 0.049 MB of 0.049 MB uploadedwandb: 
+wandb: Run history:
+wandb:                                 MMLU █▆▁
+wandb:       adversarial_MC_Injected_forget ▁█▆
+wandb:     adversarial_MC_Injected_maintain ▁▅█
+wandb:                adversarial_MC_forget █▁▂
+wandb:              adversarial_MC_maintain █▁█
+wandb:   adversarial_Normal_Injected_forget ▁▇█
+wandb: adversarial_Normal_Injected_maintain ▁██
+wandb:            adversarial_Normal_forget █▂▁
+wandb:          adversarial_Normal_maintain █▂▁
+wandb:           forget_sport_test_accuracy █▆▅▄▂▂▁▁▁▁▁▁▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂
+wandb:               forget_sport_test_loss ▁▄▅▅▆▇████▇▇▇▆▆▆▇▆▇▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇
+wandb:         maintain_sport_test_accuracy █▆▅▄▂▁▂▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▃▄▃▃▃▄▃▃▃▄
+wandb:             maintain_sport_test_loss ▁▃▄▅▇▇██▇██▇▇▆▆▆▅▆▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
+wandb:           maintain_sports_train_loss ▂▁▂▄▅▆▇█▇██▇▇▇▆▆▅▆▅▅▅▅▅▅▅▅▄▄▅▅▅▅▄▅▄▆▅▅▅▄
+wandb:                   pile_test_accuracy ▁▇▅▅▂▂▄▁▂▄▄▅▆▄▄▅▄▁▃▄█▃▄▄▃▅▆▆▇▃▂▄▂▇▄▃▄▆▅▇
+wandb:                       pile_test_loss █▄▅▆▅▄█▇▅▃█▃▆▆▅▄▅▄▇▆▃▄▂▃▅▆▆▁▇▆▅▂▅▅▁▅▅▃▃▃
+wandb:                      pile_train_loss ▄▇▆▅▅▄▄▂▄▆▅▃▅▆▄▆█▃▄▆▃▅▃▅▂▃▂▄▄▂▃▁▇▅▃▄█▆▅▄
+wandb:          sports_injection_train_loss █▅▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:                                 MMLU 0.61
+wandb:       adversarial_MC_Injected_forget 0.03814
+wandb:     adversarial_MC_Injected_maintain 0.05362
+wandb:                adversarial_MC_forget 0.90157
+wandb:              adversarial_MC_maintain 0.89926
+wandb:   adversarial_Normal_Injected_forget 0.19881
+wandb: adversarial_Normal_Injected_maintain 0.09797
+wandb:            adversarial_Normal_forget 0.68752
+wandb:          adversarial_Normal_maintain 0.7838
+wandb:           forget_sport_test_accuracy 0.40844
+wandb:               forget_sport_test_loss 1.00723
+wandb:         maintain_sport_test_accuracy 0.60227
+wandb:             maintain_sport_test_loss 0.63598
+wandb:           maintain_sports_train_loss 0.57574
+wandb:                   pile_test_accuracy 0.53321
+wandb:                       pile_test_loss 2.31478
+wandb:                      pile_train_loss 2.34616
+wandb:          sports_injection_train_loss 1.00902
+wandb: 
+wandb: 🚀 View run finetuning_localized_ct_forget_first_64_unsplit_inject_random_without_golf at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking/runs/8nz6vjg7
+wandb: ⭐️ View project at: https://wandb.ai/quirky_lats_at_mats/circuit_breaking
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241118_215307-8nz6vjg7/logs
+Exception in thread NetStatThr:
+Traceback (most recent call last):
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+Exception in thread IntMsgThr:
+Traceback (most recent call last):
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+    self.run()
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/threading.py", line 1012, in run
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/wandb_run.py", line 268, in check_network_status
+    self._target(*self._args, **self._kwargs)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/wandb_run.py", line 300, in check_internal_messages
+    self._loop_check_status(
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/wandb_run.py", line 224, in _loop_check_status
+    self._loop_check_status(
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/wandb_run.py", line 224, in _loop_check_status
+    local_handle = request()
+                   ^^^^^^^^^
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface.py", line 856, in deliver_internal_messages
+    local_handle = request()
+                   ^^^^^^^^^
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface.py", line 848, in deliver_network_status
+    return self._deliver_network_status(status)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return self._deliver_internal_messages(internal_message)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_shared.py", line 510, in _deliver_network_status
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_shared.py", line 516, in _deliver_internal_messages
+    return self._deliver_record(record)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return self._deliver_record(record)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_shared.py", line 459, in _deliver_record
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_shared.py", line 459, in _deliver_record
+    handle = mailbox._deliver_record(record, interface=self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    handle = mailbox._deliver_record(record, interface=self)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/mailbox.py", line 455, in _deliver_record
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/mailbox.py", line 455, in _deliver_record
+    interface._publish(record)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_sock.py", line 51, in _publish
+    interface._publish(record)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/interface/interface_sock.py", line 51, in _publish
+    self._sock_client.send_record_publish(record)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 221, in send_record_publish
+    self._sock_client.send_record_publish(record)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 221, in send_record_publish
+    self.send_server_request(server_req)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 155, in send_server_request
+    self.send_server_request(server_req)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 155, in send_server_request
+    self._send_message(msg)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 152, in _send_message
+    self._send_message(msg)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 152, in _send_message
+    self._sendall_with_error_handle(header + data)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 130, in _sendall_with_error_handle
+    self._sendall_with_error_handle(header + data)
+  File "/data/phillip_guo/miniconda3/envs/cb/lib/python3.12/site-packages/wandb/sdk/lib/sock_client.py", line 130, in _sendall_with_error_handle
+    sent = self._sock.send(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+    sent = self._sock.send(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe

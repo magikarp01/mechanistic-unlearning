@@ -16,6 +16,7 @@ masks/
 !masks/*config.json
 .env
 temp_gens/
+venv/
 
 results/Sports_Basketball_Unlearned_NPO_SFT_with_Maintain
 results/Sports_Basketball_Unlearned_Log_1MP_with_Maintain_Football
@@ -27,3 +28,21 @@ results/llama-2_forget_sport='basketball'_maintain_sport=None_Lora128_Log_1MP
 results/qwen_forget_sport='basketball'_maintain_sport=None_Log_1MP
 !models/neuron_mask_basketball.pt
 results/neuron_cb_unlearn_athletes
+results/localized_finetuning_basketball/*.pt
+results/localized_finetuning_basketball_old/*.pt
+results2/
+experiments/gemma2_9b_manual/addition_activations.pkl
+experiments/gemma_7b_manual/*.pkl
+!experiments/gemma_7b_manual/counterfact_ablation_results_correct_prob_threshold=0.5.pkl
+google_credentials.json
+results/localized_finetuning_counterfact/models/gemma-2_nonlocalized_combine_heads=True_beta=3_unlearn_forget_facts=16_inject_fact=None
+experiments/gemma2_9b_manual/counterfact_true_false_acts_correct_prob_threshold=0.5.pkl
+experiments/gemma2_9b_manual/counterfact_clfs_class_split.pkl
+experiments/gemma2_9b_manual/counterfact_mean_caches_correct_prob_threshold=0.5.pkl
+experiments/gemma2_9b_manual/counterfact_clfs_correct_prob_threshold=0.5.pkl
+results/localized_finetuning_counterfact/models/gemma-2_*_combine_heads=True_unlearn_forget_facts=16_inject_fact=None/
+results/google
+# results_rebuttal/
+results_rebuttal/gemma_forget_64_inject_random_without_golf_old/manual_interp_run1
+results_rebuttal/*.pt
+results_rebuttal/gemma2_forget_64_inject_random_without_golf_temp

@@ -8,6 +8,24 @@ import numpy as np
 import os
 import sys
 import gc
+# sys.path.append("..")
+os.chdir("/data/phillip_guo/mechanistic-unlearning")
+# sys.path.append("../masks_learning")
+# parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, parent_dir)
+# Get the path to the project root directory
+# project_root = os.path.abspath(os.path.dirname(__file__))
+# print(project_root)
+
+# Get the path to the project root directory
+project_root = os.path.abspath(os.getcwd())
+print(f"Project root: {project_root}")
+
+# Add the project root and its subdirectories to the Python path
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, 'masks_learning'))
+sys.path.insert(0, os.path.join(project_root, 'localizations'))
+sys.path.insert(0, os.path.join(project_root, 'tasks'))
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

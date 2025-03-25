@@ -330,7 +330,8 @@ def causal_tracing_sports(
     model, 
     sports_task, 
     batch_size=5, 
-    verbose=True
+    verbose=True,
+    gemma2=False
 ):
     embedding_std = sample_embedding_std(model)
 
@@ -342,6 +343,7 @@ def causal_tracing_sports(
 
     model.reset_hooks()
     for i in tqdm(range(0, len(toks), batch_size), position=0, leave=True):
+        print("Looping, ", i, " out of ", len(toks), " batch size ", batch_size)
         model.reset_hooks()
         toks_slice = toks[i:i+batch_size]
         deltas_slice = deltas[i:i+batch_size]
@@ -354,6 +356,8 @@ def causal_tracing_sports(
             )
             for s in deltas_slice
         ]
+        print(toks_slice.shape)
+        print(noise_inds)
         print(f"Noising{model.tokenizer.decode(toks_slice[0, noise_inds[0]])}")
 
         wanted_hooks = ['hook_result', 'mlp_in', 'mlp_out', 'hook_q', 'hook_k', 'hook_v']

@@ -1,0 +1,52 @@
+{
+    "model_type": "llama-3-8b",
+    "forget_split": "basketball_split",
+    "inject_label": "golf",
+    "run_id": "1",
+    "deep_evaluate_every": 25,
+    "n_epochs": 50,
+    "do_full_mmlu_evals": true,
+    "do_relearning_evals": true,
+    "do_probing_evals": false,
+    "do_softprompt_evals": true,
+    "save_model": false,
+    "push_to_hub": false,
+    "do_adversarial_evals": true,
+    "do_side_effects_evals": true,
+    "manual_interp": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "random_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ap_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ct_mlps": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 0.2
+     },
+     "localized_ap": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "localized_ct": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "random": {
+      "learning_rate": 5e-05,
+      "forget_loss_coef": 1.0
+     },
+     "nonlocalized": {
+      "learning_rate": 1e-05,
+      "forget_loss_coef": 0.1
+     },
+     "all_mlps": {
+      "learning_rate": 1e-05,
+      "forget_loss_coef": 0.1
+     }
+}
