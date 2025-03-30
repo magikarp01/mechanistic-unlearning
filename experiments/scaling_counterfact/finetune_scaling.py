@@ -1,11 +1,15 @@
 #%%
 import torch
+from tqdm import tqdm
 from transformer_lens import HookedTransformer
-from datasets import load_dataset
+from transformers import DataCollatorForLanguageModeling
+from datasets import load_dataset, Dataset
+from torch.utils.data import DataLoader
 import pandas as pd
 
 #%%
 DATASET_LENGTH = 1000
+MODE = "MANUAL"
 
 model = HookedTransformer.from_pretrained("Qwen/Qwen2-1.5B", default_padding_side="left")
 model.tokenizer.padding_side = "left"
@@ -60,55 +64,84 @@ def correctness_filter(model, dataset, verbose=False):
 
     return dataset
 
-cfact_retain = load_dataset("azhx/counterfact", "test")
+cfact_retain = load_dataset("azhx/counterfact", split="test")
 cfact_retain = extract_dataset(model, cfact_retain)
 cfact_retain = correctness_filter(model, cfact_retain, verbose=True)
 
 # Important columns: prompt, correct_token, edit_str, localization_str
-cfact_forget = pd.read_csv("experiments/scaling_counterfact/cfact_forget.csv")
+cfact_forget = pd.read_csv("~/mechanistic-unlearning/experiments/scaling_counterfact/cfact_forget.csv")
+if MODE == "RANDOM":
+    mlps_len = len(cfact_forget["localization_str"].iloc[0])
+    cfact_forget["localization_str"] = ["".join([str(int(torch.rand(1) > 0.2)) for _ in range(mlps_len)]) for _ in range(len(cfact_forget))]
+elif MODE == "ALL":
+    mlps_len = len(cfact_forget["localization_str"].iloc[0])
+    cfact_forget["localization_str"] = ["1" * mlps_len for _ in range(len(cfact_forget))]
 
-pile_retain = load_dataset("EleutherAI/the_pile_deduplicated", streaming=True)
+pile_retain = load_dataset("EleutherAI/the_pile_deduplicated", split="train", streaming=True)
 
 #%%
-def freeze_mlps(model, mlp_str):
-    # Freeze all mlps
+def unfreeze_mlps(model, mlp_str):
+    # Unfreeze MLPs according to mlp_str
     for block, do_train in zip(model.blocks, mlp_str):
-        block.mlp.W_in.requires_grad = False
-        block.mlp.W_mid.requires_grad = False
-        if do_train == "0":
-            block.mlp.W_out.requires_grad = False
-        elif do_train == "1":
+        if do_train == "1":
             block.mlp.W_out.requires_grad = True
 
 
 lambda_inject = 1e-3
 lambda_retain = 1e-3
 lambda_sft = 1e-3
+BATCH_SIZE = 2
 
-inject_loss = torch.nn.CrossEntropyLoss()
+ce_loss = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 
-for localization_str in cfact_forget['localization_str'].unique():
-    print(localization_str)
-    freeze_mlps(model, localization_str)
-    prompts = cfact_forget['prompt'][cfact_forget['localization_str'] == localization_str]
-    labels = cfact_forget['edit_string'][cfact_forget['localization_str'] == localization_str]
+# Dataloaders
+cfact_retain_iter = iter(DataLoader(cfact_retain.with_format("torch"), batch_size=BATCH_SIZE))
+pile_retain_iter = iter(DataLoader(pile_retain.with_format("torch"), batch_size=BATCH_SIZE))
 
-    toks = model.tokenizer(prompts, return_tensors="pt", padding=True)["input_ids"]
+for localization_str in cfact_forget['localization_str'].unique():
+    for param in model.parameters():
+        param.requires_grad = False
+    unfreeze_mlps(model, localization_str)
+
+    forget_prompts = cfact_forget[cfact_forget['localization_str'] == localization_str]['prompt'].tolist()
+    forget_labels = cfact_forget[cfact_forget['localization_str'] == localization_str]['edit_string'].tolist()
+
+    forget_toks = model.tokenizer(forget_prompts, return_tensors="pt", padding=True)["input_ids"].to(device)
 
     model.tokenizer.padding_side = "right"
-    label_toks = model.tokenizer(labels, return_tensors="pt", padding=True)["input_ids"][:, 0]
+    forget_labels = model.tokenizer(forget_labels, return_tensors="pt", padding=True)["input_ids"][:, 0].to(device)
     model.tokenizer.padding_side = "left"
 
     optimizer.zero_grad()
-    # Process in batches of 50
-    for i in range(0, len(toks), 50):
-        logits = model(toks[i:i+50])
-        loss = inject_loss(logits, labels[i:i+50])
-        print(loss.item())
+    # Process in batches of BATCH_SIZE
+    pbar = tqdm(range(0, len(forget_toks), BATCH_SIZE))
+    for i in pbar:
+        # Injection
+        loss = ce_loss(model(forget_toks[i:i+BATCH_SIZE])[:, -1, :], forget_labels[i:i+BATCH_SIZE])
+        inject_loss = loss.item()
         loss.backward()
-    # Add retain loss for remaining counterfact tasks
-        
-    # Add SFT loss for Pile dataset
+
+        # Retain
+        cfact_retain_batch = next(cfact_retain_iter)
+        retain_toks = model.tokenizer(cfact_retain_batch['prompt'], return_tensors="pt", padding=True)["input_ids"].to(device)
+
+        model.tokenizer.padding_side = "right"
+        retain_labels = model.tokenizer(cfact_retain_batch['edit_string'], return_tensors="pt", padding=True)["input_ids"][:, 0].to(device)
+        model.tokenizer.padding_side = "left"
+        loss = ce_loss(model(retain_toks)[:, -1, :], retain_labels)
+        retain_loss = loss.item()
+        loss.backward()
+
+        # SFT
+        pile_retain_batch = next(pile_retain_iter)
+        pile_toks = model.tokenizer(pile_retain_batch['text'], return_tensors="pt", padding=True, truncation=True, max_length=100)["input_ids"].to(device)
+        pile_labels = pile_toks[:, 1:]
+        logits = model(pile_toks)[:, :-1, :]
+        loss = ce_loss(logits.reshape(-1, logits.size(-1)), pile_labels.reshape(-1))
+        sft_loss = loss.item()
+        loss.backward()
+        pbar.set_postfix(inject_loss=inject_loss, retain_loss=retain_loss, sft_loss=sft_loss)
 
     optimizer.step()
+# %%
