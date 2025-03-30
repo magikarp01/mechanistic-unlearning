@@ -1,0 +1,142 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "counterfact",
+  "dataset_size": 32662871,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/azhx/counterfact@c01c413f856ee38f5c080c9fc5e87aff478e2ff9/data/train-00000-of-00001-05d11247db7abce8.parquet": {
+      "num_bytes": 11136400,
+      "checksum": null
+    },
+    "hf://datasets/azhx/counterfact@c01c413f856ee38f5c080c9fc5e87aff478e2ff9/data/test-00000-of-00001-bacb83500fca49a9.parquet": {
+      "num_bytes": 1250790,
+      "checksum": null
+    }
+  },
+  "download_size": 12387190,
+  "features": {
+    "case_id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "pararel_idx": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "requested_rewrite": {
+      "prompt": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "relation_id": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "subject": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "target_new": {
+        "id": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "str": {
+          "dtype": "string",
+          "_type": "Value"
+        }
+      },
+      "target_true": {
+        "id": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "str": {
+          "dtype": "string",
+          "_type": "Value"
+        }
+      }
+    },
+    "paraphrase_prompts": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "neighborhood_prompts": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "attribute_prompts": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "generation_prompts": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "true_string": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "edit_string": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "subject": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "correct_token": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "is_model_correct": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "model_preds": {
+      "dtype": "int64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 45050061,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 29393655,
+      "num_examples": 19728,
+      "dataset_name": "counterfact"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 3269216,
+      "num_examples": 2191,
+      "dataset_name": "counterfact"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

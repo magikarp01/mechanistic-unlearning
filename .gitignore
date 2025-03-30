@@ -1,5 +1,5 @@
 # *.pkl
-*.pt
+# *.pt
 *.pyc
 *.zip
 *gpt2_weights.pkl
