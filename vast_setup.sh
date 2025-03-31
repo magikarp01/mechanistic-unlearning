@@ -9,6 +9,7 @@ extensions=(
     ms-python.vscode-pylance
     ms-python.python
     ms-python.debugpy
+    charliermarsh.ruff
 )
 
 # Install each extension
