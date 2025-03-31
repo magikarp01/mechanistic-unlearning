@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/root/mechanistic-unlearning/experiments/scaling_counterfact/finetune_scaling.py", line 4, in <module>
-    from transformer_lens import HookedTransformer
-ModuleNotFoundError: No module named 'transformer_lens'
